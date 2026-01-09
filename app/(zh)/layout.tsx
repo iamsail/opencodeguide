@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "../globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { GoogleAnalytics } from "@/components/google-analytics";
 
 export const metadata: Metadata = {
   title: {
@@ -29,6 +30,9 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
         </div>
         <SiteFooter />
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+        )}
       </body>
     </html>
   );
