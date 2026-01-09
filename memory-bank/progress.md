@@ -14,8 +14,9 @@
 -   [x] Chinese Content Generation (5 Articles)
 -   [x] Homepage Implementation
 -   [x] Git Initialization
+-   [x] UI Polish (Language Dropdown, Header Layout)
 
-### Phase 2: User Experience (Pending)
+### Phase 2: User Experience (In Progress)
 -   [ ] Documentation Sidebar / Table of Contents
 -   [ ] Dark Mode toggle (System preference is currently ignored, forcing Light)
 -   [ ] Search functionality (cmd+k)

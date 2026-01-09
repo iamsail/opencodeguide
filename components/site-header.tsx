@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { LanguageSwitcher } from '@/components/language-switcher';
 
 export function SiteHeader() {
   return (
@@ -8,13 +9,9 @@ export function SiteHeader() {
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <span className="font-bold inline-block text-gray-900">OpenCode Guide</span>
           </Link>
-          <nav className="flex items-center space-x-6 text-sm font-medium">
-            <Link href="/en/installation" className="transition-colors hover:text-gray-900 text-gray-600">English Docs</Link>
-            <Link href="/zh/install" className="transition-colors hover:text-gray-900 text-gray-600">中文文档</Link>
-          </nav>
         </div>
         <div className="flex-1 flex justify-end">
-           {/* Placeholder for GitHub link or similar */}
+          <LanguageSwitcher />
         </div>
       </div>
     </header>
