@@ -10,6 +10,9 @@ We have just completed the **Phase 1 Initialization**. The project is scaffolded
 -   Wrote 8 English MDX guides and 5 Chinese MDX guides.
 -   Fixed missing `postcss.config.mjs` which caused style loading failure.
 -   Initialized Git repository and made the first commit.
+-   Moved language switching links to the top right of the header for better UX.
+-   Implemented a Dropdown Language Switcher in the header to replace text links.
+-   Removed the redundant "中文指南" secondary button from the homepage hero section.
 
 ## Active Decisions
 -   **Navigation**: Currently, there is no global sidebar. Navigation relies on the Header and internal links within articles. This is acceptable for Phase 1 but might need a Sidebar component for Phase 2.

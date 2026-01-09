@@ -24,12 +24,6 @@ export default function Home() {
             Get Started
             <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
-          <Link
-            href="/zh/install"
-            className="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-8 py-3 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-100 placeholder:text-gray-400"
-          >
-            中文指南
-          </Link>
         </div>
       </section>
 
