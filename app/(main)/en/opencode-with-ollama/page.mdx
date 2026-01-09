@@ -1,0 +1,83 @@
+export const metadata = {
+  title: 'Running Local Models with OpenCode & Ollama',
+  description: 'Cut API costs and protect privacy by connecting OpenCode to local LLMs via Ollama. Setup guide for Llama 3 and DeepSeek Coder.',
+  alternates: {
+    canonical: '/opencode-with-ollama',
+  },
+}
+
+# OpenCode + Ollama: Running Local Models
+
+One of OpenCode's strongest selling points is its ability to decouple the **Agent Logic** from the **Intelligence Provider**. By using Ollama, you can run powerful coding models on your own hardware (Apple Silicon M1/M2/M3 or NVIDIA GPUs) for free.
+
+## Why Local?
+
+1.  **Cost**: $0 output tokens. Loop your agent extensively without fear of the bill.
+2.  **Privacy**: No code ever leaves `localhost`.
+3.  **Speed**: On fast GPUs, token generation can exceed API speeds.
+
+## Prerequisites
+
+1.  **Install Ollama**: Download from [ollama.com](https://ollama.com).
+2.  **Pull a Coding Model**:
+    ```bash
+    ollama pull deepseek-coder-v2
+    # OR
+    ollama pull llama3
+    ```
+
+## Configuring OpenCode
+
+OpenCode communicates with standard OpenAI-compatible endpoints, which Ollama provides.
+
+### 1. Update Configuration
+Edit your `~/.opencode/config.json` or use the CLI environment variables.
+
+```bash
+export OPENCODE_MODEL_PROVIDER="ollama"
+export OPENCODE_BASE_URL="http://localhost:11434/v1"
+export OPENCODE_MODEL_NAME="deepseek-coder-v2"
+```
+
+### 2. Verify Connection
+Run a simple check to ensure OpenCode can "see" your local model.
+
+```bash
+opencode health --check-model
+```
+*Output should confirm: "Connected to deepseek-coder-v2 at localhost:11434"*
+
+## Recommended Models
+
+Not all local models are smart enough to drive an agent. Agents require **tool use** and **structured output** capabilities.
+
+| Model | Size | Rec. RAM | Performance |
+| :--- | :--- | :--- | :--- |
+| **DeepSeek Coder V2** | 16B/236B | 16GB+ | ⭐⭐⭐⭐⭐ Best for coding logic. |
+| **Llama 3 Instruct** | 8B | 8GB | ⭐⭐⭐ Fast, decent for simple tasks. |
+| **Codestral** | 22B | 24GB | ⭐⭐⭐⭐ Excellent Python knowledge. |
+
+> **Warning**: Avoid using tiny models (<7B) for complex agentic loops. They often get stuck in loops or fail to format JSON correctly for tool calls.
+
+## Advanced: Context Window
+
+Local models often have shorter context windows than cloud models.
+If you see errors like `ContextLengthExceeded`, you may need to increase Ollama's context window.
+
+```bash
+# Set context window to 32k tokens
+OLLAMA_NUM_CTX=32768 ollama run deepseek-coder-v2
+```
+
+Then update your OpenCode config to reflect this capacity.
+
+## Integration with Neovim
+
+Once your local backend is running, it becomes incredibly powerful to combine this with your editor. See our [Neovim Integration](/en/neovim-integration) guide to bring this local intelligence directly into your buffer.
+
+## Next Steps
+Now that your engine is free, try assigning larger tasks:
+*   "Refactor this entire folder to use TypeScript types"
+*   "Write unit tests for every file in `src/utils`"
+
+Check out [OpenCode Use Cases](/en/use-cases) for more inspiration.

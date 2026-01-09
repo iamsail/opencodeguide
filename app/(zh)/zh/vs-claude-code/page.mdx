@@ -1,0 +1,56 @@
+export const metadata = {
+  title: 'OpenCode vs Claude Code: 全方位对比',
+  description: '开源 vs 闭源，本地 vs 云端。从成本、隐私、能力和生态四个维度，深度对比 OpenCode 与 Claude Code。',
+  alternates: {
+    canonical: '/zh/vs-claude-code',
+  },
+}
+
+# OpenCode vs Claude Code
+
+Anthropic 推出的 Claude Code 定义了 "Agentic IDE" 的新标准，但 OpenCode 代表了另一种完全不同的哲学——开放、本地与可控。
+
+## 核心差异一览表
+
+| 维度 | OpenCode | Claude Code |
+| :--- | :--- | :--- |
+| **运行模式** | **本地进程 (Local)** | 云端托管 (SaaS) |
+| **模型支持** | 任意 (Ollama, OpenAI, Claude) | 仅限 Claude 系列 |
+| **隐私安全** | **高 (代码不离本地)** | 中 (需上传云端处理) |
+| **使用成本** | 免费 (依赖本地算力) | 按 Token 计费 |
+| **扩展性** | NPM 插件生态 | 官方集成 + MCP |
+
+## 深度解析
+
+### 1. 隐私与合规 (Privacy)
+对于中国开发者或外企员工来说，**合规**往往是第一考量。
+*   **Claude Code**: 会将你的文件内容上传至 Anthropic 服务器进行推理。虽然官方承诺不用于训练（企业版），但数据流出是事实。
+*   **OpenCode**: 当你配合 Ollama 使用时，它是物理隔绝的。没有字节流出你的机器。
+
+### 2. 生态开放性 (Ecosystem)
+OpenCode 拥有一个类似 VS Code 的插件市场（虽然基于 CLI）。
+*   你想给 Agent 增加一个 "查询内网 Jira" 的能力？写一个简单的 TypeScript 插件即可。
+*   你想让 Agent 操作家里的智能家居？也能做到。
+
+Claude Code 目前相对封闭，主要围绕标准的软件工程任务优化。
+
+### 3. 智能程度 (Intelligence)
+必须承认，**Claude 3.7 Sonnet** 目前是编程领域的最强模型。
+如果你追求极致的“一次做对”率，Claude Code 体验更好。
+OpenCode 的上限取决于你接入的模型。如果你接入 GPT-4o 或 Claude 3.5 API，你可以获得类似的智能度，但失去了一些原生整合的流畅感。
+
+## 选型建议
+
+**选择 Claude Code，如果：**
+*   你不差钱，追求极致的流畅体验。
+*   你的项目没有严格的数据出境限制。
+*   你需要处理极其晦涩的 Bug，需要最强推理能力。
+
+**选择 OpenCode，如果：**
+*   你是 **VS Code / Neovim** 深度用户，喜欢定制。
+*   你需要在 **无网环境** 或 **内网** 工作。
+*   你想利用闲置的本地算力（GPU）来降低成本。
+*   你相信开源的力量。
+
+## 总结
+OpenCode 是开发者的“瑞士军刀”，而 Claude Code 是厂商提供的“精修服务”。两者各有千秋，但在 AI 时代，掌握一个本地可控的工具（OpenCode）始终是明智之选。

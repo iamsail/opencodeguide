@@ -1,0 +1,90 @@
+export const metadata = {
+  title: 'OpenCode 安装教程 (Mac & Linux)',
+  description: '由浅入深的 OpenCode 安装指南。包含 Node.js 环境配置、国内镜像源设置以及常见权限问题的解决方法。',
+  alternates: {
+    canonical: '/zh/install',
+  },
+}
+
+# OpenCode 安装教程
+
+本教程将引导你在 macOS 或 Linux 环境下安装 OpenCode CLI。
+
+> **注意**：Windows 用户建议使用 WSL2 (Ubuntu) 以获得最佳体验。
+
+## 环境准备
+
+OpenCode 基于 Node.js 开发。你需要确保本地环境满足以下要求：
+
+*   **Node.js**: v18.0.0 或更高版本。
+*   **Git**: 用于版本控制操作。
+
+### 检查版本
+在终端通过以下命令检查：
+```bash
+node -v
+# 应显示 v18.x.x 或更高
+```
+
+## 安装步骤
+
+### 1. 通过 NPM 安装
+
+推荐使用 `npm` 或 `pnpm` 进行全局安装。
+
+```bash
+# 全局安装 CLI
+npm install -g @opencode-ai/cli
+
+# 如果遇到权限问题 (EACCES)，请尝试：
+sudo npm install -g @opencode-ai/cli
+```
+
+### 2. 初始化配置 (国内用户必看)
+
+安装完成后，运行初始化命令：
+
+```bash
+opencode init
+```
+
+交互式向导会询问你几个问题：
+*   **Provider**: 选 `Ollama` (如果你想用本地模型) 或 `OpenAI`。
+*   **Language**: 选择 `Chinese` 可以让 Agent 默认用中文回复思考过程。
+
+### 3. 设置 API Key (如果不使用本地模型)
+
+如果你使用 DeepSeek API 或 OpenAI，你需要配置环境变量。写入到你的 `~/.zshrc` 或 `~/.bashrc`：
+
+```bash
+# 例如使用 DeepSeek 官方 API
+export OPENAI_BASE_URL="https://api.deepseek.com/v1"
+export OPENAI_API_KEY="sk-..."
+```
+
+## 验证安装
+
+让我们运行一个简单的测试任务：
+
+```bash
+opencode run "创建一个 demo.txt 文件，并在里面写入 '你好 OpenCode'"
+```
+
+如果安装成功，你会看到终端里 Agent 开始思考、执行命令，并最终创建文件。
+
+## 常见问题 (FAQ)
+
+### 报错 `command not found: opencode`
+这通常是 npm 全局路径没有加到系统 PATH 中。
+检查你的 npm配置：`npm config get prefix`，并确保该路径下的 `bin` 目录在你的 PATH 里。
+
+### 连接超时 / 网络问题
+国内用户拉取插件可能较慢。建议配置 npm 淘宝镜像：
+```bash
+npm config set registry https://registry.npmmirror.com
+```
+
+## 下一步
+
+*   配置本地模型：[OpenCode + Ollama 部署](/zh/ollama-local-deploy)
+*   探索 MCP 协议：[什么是 MCP?](/zh/what-is-mcp)

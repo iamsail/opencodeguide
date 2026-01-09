@@ -1,0 +1,77 @@
+export const metadata = {
+  title: 'OpenCode MCP Explained: Model Context Protocol',
+  description: 'Learn how OpenCode implements the Model Context Protocol (MCP) to connect LLMs to your local files, databases, and APIs safely.',
+  alternates: {
+    canonical: '/mcp-explained',
+  },
+}
+
+# OpenCode MCP Explained
+
+The **Model Context Protocol (MCP)** is a standard that allows AI models to interact with external data and tools relative to the user's context. OpenCode is built as an **MCP-native client**, meaning it can consume any standardized MCP server.
+
+## What is MCP?
+
+Think of MCP as "USB for AI".
+*   **Before MCP**: Every AI tool had to build custom integrations (GitHub, Postgres, Slack types).
+*   **With MCP**: You run a "server" that exposes data, and any "client" (like OpenCode or Claude) can use it.
+
+## Using MCP with OpenCode
+
+OpenCode reads your MCP configuration to know what tools are available to the agent.
+
+### 1. Configuration (`mcp_config.json`)
+
+OpenCode looks for standard MCP configuration files. You can define servers that run locally using `npx` or docker.
+
+```json
+{
+  "mcpServers": {
+    "git": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-git", "."]
+    },
+    "postgres": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres", "postgresql://user:password@localhost/db"]
+    }
+  }
+}
+```
+
+### 2. Available Servers
+
+Because OpenCode uses the standard, you can use any server from the official list:
+*   **Filesystem**: Allow safe access to specific directories.
+*   **Git**: Let the agent read diffs and commit history.
+*   **Postgres**: Let the agent query DB schemas to write better SQL.
+*   **Slack**: Let the agent summarize channel discussions.
+
+### 3. Granting Permissions
+
+OpenCode is security-first. When an agent tries to use an MCP tool (e.g., `postgres.execute_query`), the CLI will pause and ask for your permission unless you have run with `--auto-approve`.
+
+```bash
+[Agent] Wants to run tool: git_commit
+[Y/n] ?
+```
+
+## Creating Your Own MCP Server
+
+You can extend OpenCode by writing a simple MCP server in TypeScript or Python.
+
+**Example: A "Time" Server**
+If simple LLMs forget the date, you can expose a tool `get_current_time`.
+The agent will see this in its context window and call it when asked "How many days until Christmas?".
+
+## Why OpenCode + MCP is Powerful
+
+Unlike cloud-based agents where connecting your local database API is a firewall nightmare, OpenCode runs **locally on your network**.
+*   Connect to `localhost:5432` easily.
+*   Read internal wiki docs behind VPN using a fetch MCP server.
+
+This makes OpenCode the ideal orchestrator for enterprise intranets.
+
+## Next Steps
+*   Learn about [CLI Commands](/en/cli-commands) to manage servers.
+*   See [Use Cases](/en/use-cases) for examples of MCP in action (e.g., "Chat with my Database").

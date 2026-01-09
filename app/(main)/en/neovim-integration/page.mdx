@@ -1,0 +1,84 @@
+export const metadata = {
+  title: 'OpenCode with Neovim: A Seamless Workflow',
+  description: 'Integrate OpenCode directly into your Neovim configuration. Edit buffers, generate code, and run agent commands without leaving your editor.',
+  alternates: {
+    canonical: '/neovim-integration',
+  },
+}
+
+# OpenCode with Neovim
+
+OpenCode was born in the terminal, so it feels right at home inside Neovim. There are two primary ways to integrate OpenCode: as a CLI float or via the native plugin.
+
+## Method 1: The Native Plugin (Recommended)
+
+The community maintains `opencode.nvim`, a Lua plugin that wraps the SDK.
+
+### Installation (Lazy.nvim)
+
+```lua
+return {
+  "opencode-ai/opencode.nvim",
+  cmd = { "OpenCode", "OpenCodeChat" },
+  opts = {
+    backend = "ollama", -- or "openai"
+    model = "deepseek-coder-v2",
+    keymaps = {
+        accept = "<C-y>",
+        reject = "<C-n>",
+    }
+  },
+}
+```
+
+### Features
+
+*   **Ghost Text**: Similar to Copilot, but driven by your local OpenCode agent.
+*   **Chat Buffer**: Open a split to discuss the current file.
+*   **Refactor Selection**: Visual select a block -> `:OpenCode Refactor "Simplify this logic"`
+
+## Method 2: The CLI Wrapper (`toggleterm`)
+
+If you prefer the raw CLI experience but want it inside Neovim, `toggleterm.nvim` is excellent.
+
+```lua
+require("toggleterm").setup{
+  direction = "float",
+  float_opts = {
+    border = "curved",
+  }
+}
+
+-- Custom command to launch OpenCode
+local Terminal = require('toggleterm.terminal').Terminal
+local opencode = Terminal:new({ cmd = "opencode start", hidden = true })
+
+function _opencode_toggle()
+  opencode:toggle()
+end
+
+vim.api.nvim_set_keymap("n", "<leader>ai", "<cmd>lua _opencode_toggle()<CR>", {noremap = true, silent = true})
+```
+
+Now, hitting `<leader>ai` pops up the full Agent TUI over your code.
+
+## Workflow Tips
+
+### The "read-only" Agent
+You can pass the current buffer content to OpenCode without letting it write back.
+`:%w !opencode run "Explain this code"` - Pipes current buffer to the agent.
+
+### Using MCP from Neovim
+Because OpenCode shares the MCP configuration, your Neovim session effectively has access to your database or browser if configured. You can ask the agent inside Neovim to "Check the docs website context" if you have a browsing MCP server active.
+
+## Comparison
+
+| Feature | Official Copilot.vim | OpenCode.nvim |
+| :--- | :--- | :--- |
+| **Backend** | GitHub Cloud | Local / Any |
+| **Understanding** | File Context | Entire Project (Vector DB) |
+| **Actions** | Autocomplete | Shell, Git, Filesystem |
+
+## Next Steps
+*   Ensure you have [installed OpenCode](/en/installation) first.
+*   Check out [OpenCode + Ollama](/en/opencode-with-ollama) to power Neovim for free.

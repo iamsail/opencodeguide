@@ -1,0 +1,55 @@
+export const metadata = {
+  title: 'OpenCode vs Claude Code: A Developer Comparison',
+  description: 'A neutral, feature-by-feature comparison between OpenCode and Anthropic\'s Claude Code. Understand the trade-offs between local and cloud agents.',
+  alternates: {
+    canonical: '/opencode-vs-claude-code',
+  },
+}
+
+# OpenCode vs Claude Code
+
+With the release of Claude Code, developers now have a high-quality "Agentic IDE" accessible from the terminal. However, OpenCode offers a fundamentally different philosophy. This guide analyzes the trade-offs to help you choose the right tool.
+
+## At a Glance
+
+| Feature | OpenCode | Claude Code |
+| :--- | :--- | :--- |
+| **Model** | Agnostic (Ollama, GPT, Claude) | Claude Only (3.5/3.7) |
+| **Data Privacy** | **Local / Private** | Cloud Processed |
+| **Cost** | Free (Bring your own API/GPU) | Usage Based |
+| **Extensibility** | High (NPM Plugins + MCP) | Moderate (MCP only) |
+| **Ecosystem** | Open Source / Community | Proprietary |
+
+## Deep Dive: The Differences
+
+### 1. Privacy & Offline Capability
+**OpenCode** shines here. It is designed to work without an internet connection if you have [Local Models](/en/opencode-with-ollama) set up. Your codebase is indexed locally into vector memory (`.opencode/memory`).
+
+**Claude Code** is a cloud-tethered tool. While powerful, it uploads your context to Anthropic's servers for processing. For regulated industries or strict IP agreements, OpenCode is often the only compliant choice.
+
+### 2. Model Flexibility
+**Claude Code** is locked to Anthropic's state-of-the-art models. This is excellent for performance but rigid.
+
+**OpenCode** lets you route easy tasks to cheaper/faster models:
+*   Use **Haiku** or **Llama-3-8b** for simple lint fixes.
+*   Use **GPT-5** or **Opus** for complex architecture planning.
+This routing can save significant API costs.
+
+### 3. Integration Depth
+Both tools support the Model Context Protocol (MCP), but OpenCode's [CLI Commands](/en/cli-commands) expose lower-level system access. OpenCode can effectively "script" your OS, whereas Claude Code generally stays within the bounds of software engineering tasks.
+
+## When to use Claude Code?
+*   You want zero setup friction.
+*   You trust Anthropic with your code.
+*   You want the absolute smartest reasoning capability available today (Claude 3.7).
+
+## When to use OpenCode?
+*   **Cost Control**: You want to run heavy refactors using free local compute.
+*   **Customization**: You need to write a custom plugin to interface with internal legacy systems.
+*   **Privacy**: Your employment contract forbids sending code to cloud LLMs.
+
+## Conclusion
+
+They are not mutually exclusive. Many developers use **Claude Code** for difficult debugging sessions where reasoning is king, and **OpenCode** for daily driving, scaffolding, and bulk editing where cost and speed (via local models) matter more.
+
+Read more about [What is OpenCode](/en/what-is-opencode) to understand the philosophy behind the open alternative.

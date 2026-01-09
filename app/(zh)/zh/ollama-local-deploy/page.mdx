@@ -1,0 +1,72 @@
+export const metadata = {
+  title: 'OpenCode + Ollama 本地部署指南',
+  description: '完全免费、隐私安全的编程体验。教你如何使用 Ollama 运行 Llama 3 或 DeepSeek Coder，并将其接入 OpenCode。',
+  alternates: {
+    canonical: '/zh/ollama-local-deploy',
+  },
+}
+
+# OpenCode + Ollama 本地部署
+
+OpenCode 最吸引人的特性之一就是能完美支持本地大模型。这意味着你可以在飞机上、高铁上，或者断网的保密机房里写代码。
+
+## 为什么选择本地部署？
+
+1.  **零成本**：不再需要支付昂贵的 API Token 费用。
+2.  **绝对隐私**：你的代码甚至不会离开你的笔记本内存。
+3.  **低延迟**：在 M1/M2/M3 Max 芯片上，推理速度往往快于云端接口。
+
+## 准备工作
+
+### 1. 安装 Ollama
+访问 [Ollama 官网](https://ollama.com) 下载并安装。
+
+### 2. 拉取适合编程的模型
+对于中文用户，我们强烈推荐 **DeepSeek Coder V2**，它的中文理解能力和代码能力都非常出色。
+
+```bash
+# 拉取模型 (建议至少 16GB 内存)
+ollama pull deepseek-coder-v2
+
+# 如果内存较少 (8GB)，尝试 Llama 3
+ollama pull llama3
+```
+
+## 接入 OpenCode
+
+我们需要告诉 OpenCode 去连接本地的 Ollama 服务，而不是云端 API。
+
+修改配置文件 `~/.opencode/config.json`，或者直接设置环境变量：
+
+```bash
+export OPENCODE_MODEL_PROVIDER="ollama"
+export OPENCODE_BASE_URL="http://localhost:11434/v1" 
+# 注意：OpenCode 使用 Ollama 的 OpenAI 兼容接口
+```
+
+### 验证连接
+
+运行诊断命令：
+```bash
+opencode health
+```
+如果看到 `Model Check: OK (Ollama)`，说明连接成功。
+
+## 避坑指南
+
+### 上下文长度限制
+本地模型的默认上下文通常较短（4k 或 8k）。如果 Agent 在读取大文件时报错，需要在 Ollama 中增加上下文窗口。
+
+```bash
+# 临时运行增加上下文
+OLLAMA_NUM_CTX=32000 ollama run deepseek-coder-v2
+```
+
+### 算力与发热
+长时间运行 Agent 进行重构会导致笔记本发热严重。这是正常现象。建议在插电状态下使用。
+
+## 配置完成之后
+现在你的 Agent 已经拥有了“大脑”。
+你可以尝试让它阅读复杂的本地代码库，而不用担心 Token 消耗。
+
+下一步：[对比 Claude Code](/zh/vs-claude-code) 看看它和商业产品还有多大差距。

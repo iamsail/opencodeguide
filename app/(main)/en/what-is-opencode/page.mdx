@@ -1,0 +1,65 @@
+export const metadata = {
+  title: 'What is OpenCode? The Unofficial Guide',
+  description: 'Understand the core concepts of OpenCode, an offline-first, plugin-driven AI coding agent framework.',
+  alternates: {
+    canonical: '/what-is-opencode',
+  },
+}
+
+# What is OpenCode?
+
+OpenCode is an open-source, offline-first coding agent framework designed to live in your terminal. Unlike cloud-hosted assistants that require sending your code to third-party servers, OpenCode is architected to run entirely on your local machine—giving you full privacy, zero latency, and deep integration with your OS.
+
+## The Problem: Cloud Dependency & Privacy
+
+Most modern AI coding tools (Claude Code, GitHub Copilot Workspace) rely heavily on cloud runtimes. This introduces three friction points:
+1.  **Privacy Risks**: Sensitive IP leaves your machine.
+2.  **Latency**: Every command goes round-trip to a server.
+3.  **Vendor Lock-in**: You are tied to their model choices.
+
+OpenCode solves this by acting as a **local OS for agents**. It allows you to swap models (via Ollama or APIs), write custom plugins in TypeScript, and execute complex workflows without a subscription.
+
+## Core Architecture
+
+OpenCode is built on three pillars:
+
+### 1. The Kernel (CLI)
+At its heart, OpenCode is a CLI tool built with Node.js. It spawns a sandboxed environment where agents can run shell commands, edit files, and read git state.
+
+```bash
+# Basic usage
+opencode start --task "Analyze my package.json dependencies"
+```
+
+### 2. The Plugin System
+OpenCode is extensible. The community has built over 50+ plugins for everything from database access to browser automation.
+
+> **Tip**: Check out the [MCP Explained](/en/mcp-explained) guide to see how OpenCode implements standard protocols.
+
+### 3. Model Agnostic
+You are not forced to use GPT-4. OpenCode integrates seamlessly with local models.
+*   **Dev Machine**: Run deepseek-coder-v2 locally.
+*   **Laptop**: Connect to Claude 3.5 Sonnet via API.
+
+See our guide on [Running Local Models](/en/opencode-with-ollama) to set this up.
+
+## Key Features
+
+| Feature | Description |
+| :--- | :--- |
+| **Swarm Mode** | Orchestrate multiple sub-agents to handle complex refactors. |
+| **SuperMemory** | A vector database that lives in `.opencode/` to remember your project context. |
+| **Neovim First** | Designed to work inside Neovim buffers, not just VS Code sidebar. |
+
+## Who is OpenCode For?
+
+*   **Privacy-conscious teams**: Banks, healthcare, and enterprise devs who cannot paste code into ChatGPT.
+*   **Power users**: Developers who live in `tmux` and `neovim`.
+*   **AI Engineers**: People who want to build *custom* agents, not just use them.
+
+## Next Steps
+
+Ready to take back control of your coding assistant?
+
+1.  **Install the CLI**: Proceed to the [Installation Guide](/en/installation).
+2.  **Compare**: See how it stacks up in [OpenCode vs Claude Code](/en/opencode-vs-claude-code).

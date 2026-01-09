@@ -1,0 +1,60 @@
+export const metadata = {
+  title: 'OpenCode MCP 是什么? 模型上下文协议解析',
+  description: '通俗易懂地解释 MCP (Model Context Protocol)。了解 OpenCode 如何通过 MCP 连接你的数据库、Git 和本地文件系统。',
+  alternates: {
+    canonical: '/zh/what-is-mcp',
+  },
+}
+
+# OpenCode MCP 是什么?
+
+**MCP (Model Context Protocol)** 是由 Anthropic 牵头，OpenCode 率先全面支持的一项开放标准。你可以把它理解为 **"AI 时代的 USB 接口"**。
+
+## 为什么需要 MCP?
+
+在 MCP 出现之前，如果你想让 AI 读取你的 PostgreSQL 数据库，工具开发者必须专门写一个 "Postgres 插件"。如果你想连 Notion，又得写一个 "Notion 插件"。
+
+**有了 MCP 之后：**
+1.  开发者只需按照 MCP 标准写一个 "Server"。
+2.  任何支持 MCP 的 "Client" (如 OpenCode, Claude Desktop, Cursor) 都可以直接使用这个 Server。
+
+一切都实现了标准化。
+
+## 在 OpenCode 中使用 MCP
+
+OpenCode 是天生的 MCP 客户端。这意味着你可以利用现有的 MCP 生态来增强你的 Agent。
+
+### 配置示例
+
+假设你想让 Agent 拥有查询本地 Git 历史的能力。你只需要在配置中添加：
+
+```json
+{
+  "mcpServers": {
+    "git": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-git", "."]
+    }
+  }
+}
+```
+
+重启 OpenCode 后，Agent 就会自动发现 `git` 工具集。
+当你问它：“上周二谁修改了 `login.ts`？”，通过 MCP，它能精准调用 Git 命令获取答案，而不是瞎猜。
+
+## 常用 MCP 服务器
+
+*   **Filesystem**: 允许 Agent 安全地读写指定目录。
+*   **Postgres**: 让 Agent 查询数据库表结构，辅助写 SQL。
+*   **Browser**: 给 Agent 一个受控的浏览器，用于查阅报错信息。
+
+## 开发者视角：编写你自己的工具
+
+OpenCode 鼓励开发者编写自己的 MCP Server。
+比如公司的内部 API 文档系统，与其复制粘贴给 AI，不如写一个简单的 MCP Server，让 Agent 可以随时通过 `search_internal_docs` 工具来查询。
+
+## 总结
+
+MCP 让 OpenCode 不仅仅是一个写代码的工具，而变成了一个**全能的连接器**。它打破了数据孤岛，让 AI 能够真正理解你的工作上下文。
+
+下一步：学习 [CLI 命令](/cli-commands) 来管理你的 Agent。

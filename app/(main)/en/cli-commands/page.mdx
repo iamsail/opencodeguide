@@ -1,0 +1,106 @@
+export const metadata = {
+  title: 'OpenCode CLI Commands Reference',
+  description: 'Complete cheatsheet for OpenCode CLI commands. Learn how to start agents, manage profiles, and configure plugins from the terminal.',
+  alternates: {
+    canonical: '/cli-commands',
+  },
+}
+
+# OpenCode CLI Commands
+
+This reference covers the essential commands for the `@opencode/cli` tool.
+
+## Global Flags
+
+*   `--verbose`, `-v`: Enable debug logging.
+*   `--quiet`, `-q`: Suppress non-essential output.
+*   `--json`: Output results as JSON (useful for piping).
+
+## Core Commands
+
+### `opencode start`
+Starts an interactive session with the agent.
+```bash
+# Basic start
+opencode start
+
+# Start with an initial prompt
+opencode start "Refactor the tests in /src"
+```
+
+### `opencode run <task>`
+Runs a "fire-and-forget" task. The agent will exit when the task is complete.
+```bash
+opencode run "Audit my packages for security vulnerabilities"
+```
+
+### `opencode init`
+Initializes a new configuration in the current user home or project directory.
+```bash
+# Initialize in current folder (creates .opencode/ locally)
+opencode init --local
+```
+
+## Configuration Management
+
+### `opencode config`
+View or edit settings.
+
+```bash
+# List all settings
+opencode config list
+
+# Set a specific value
+opencode config set model.provider ollama
+opencode config set model.name llama3
+```
+
+## Plugin Management
+
+OpenCode uses a plugin architecture. Manage them via CLI.
+
+```bash
+# List installed plugins
+opencode plugin list
+
+# Install a community plugin
+opencode plugin install @opencode-community/sql-tools
+
+# Update all plugins
+opencode plugin update
+```
+
+## Memory & Context
+
+### `opencode memory`
+Interact with the vector database.
+
+```bash
+# Force index the current directory
+opencode memory index .
+
+# Query memory manually (debugging)
+opencode memory query "auth login flow"
+```
+
+## Environment Variables
+
+Standard execution flags:
+*   `OPENCODE_API_KEY`: Override key.
+*   `OPENCODE_SANDBOX_DIR`: Restrict file operations to this path.
+
+## Examples
+
+**Daily Standup Summary:**
+```bash
+opencode run "Read git log for last 24h and summarize what we changed in markdown" > standup.md
+```
+
+**Project Bootstrap:**
+```bash
+opencode run "Scaffold a new Next.js project with Tailwind and create a Makefile"
+```
+
+## related
+*   [What is OpenCode](/en/what-is-opencode)
+*   [Installation Guide](/en/installation)

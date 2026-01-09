@@ -1,0 +1,72 @@
+export const metadata = {
+  title: 'OpenCode Use Cases & Workflows',
+  description: 'Real-world examples of how developers use OpenCode. From legacy code refactoring to TDD loops and documentation generation.',
+  alternates: {
+    canonical: '/use-cases',
+  },
+}
+
+# OpenCode Use Cases
+
+OpenCode is more than just a chatbot; it's a scripting engine driven by language models. Here are common patterns used by the community.
+
+## 1. The Legacy Refactor
+
+**Scenario**: You have a 500-line Python file that needs to be broken into modules.
+**Why OpenCode**: It understands file structure and can move contents while updating imports.
+
+```bash
+opencode start "Take main.py. Split the database logic into db.py and the utils into utils.py. Update all imports."
+```
+*   **Advantage**: OpenCode will run `pytest` after the move (if you ask) to ensure it didn't break anything.
+
+## 2. Test Driven Development (TDD) Loop
+
+**Scenario**: You want to implement a new feature rigorously.
+**Workflow**:
+1.  Writer a failing test file `feature.test.ts`.
+2.  Run the agent.
+
+```bash
+opencode run "Run npm test. Read the failure. Implement the code in feature.ts to make the test pass."
+```
+*   **Advantage**: The agent gets immediate feedback from the CLI output provided by the test runner.
+
+## 3. Documentation "Gardener"
+
+**Scenario**: Your `README.md` is out of date with the actual API.
+**Why OpenCode**: It acts as a reader that can diff code vs docs.
+
+```bash
+opencode run "Read all exported functions in src/api. Update docs/API.md to match the current signatures."
+```
+
+## 4. The "Translator" (Language Migration)
+
+**Scenario**: Porting a React Class component to a Hook.
+```bash
+opencode run "Read Component.jsx. Rewrite it as a Functional Component using Hooks. Keep the same prop types."
+```
+
+## 5. Security Audit (Local)
+
+**Scenario**: Checking for hardcoded secrets before commit.
+**Why OpenCode**: Using a local model (Ollama) means you aren't sending your potential secrets to OpenAI to be checked.
+
+```bash
+# Using local Llama 3
+opencode run "Scan src/ for any strings that look like API keys. Report line numbers."
+```
+
+## 6. MCP Power User: Database Chat
+
+With the **Postgres MCP Server** configured:
+*   "Show me the schema for the 'users' table."
+*   "Write a migration to add a 'last_login' column."
+*   "Generate a seed script with 50 fake users."
+
+The agent queries the DB to understand the types before writing code.
+
+## Next Steps
+*   Ready to try these? [Install OpenCode](/en/installation).
+*   Need to connect to a DB? Read [MCP Explained](/en/mcp-explained).

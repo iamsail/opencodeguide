@@ -1,0 +1,50 @@
+export const metadata = {
+  title: '什么是 OpenCode? 非官方中文指南',
+  description: '全面解析 OpenCode：一款本地优先、插件驱动的 AI 编程 Agent 框架。从原理到实践，带你了解为何它是 Claude Code 的开源替代方案。',
+  alternates: {
+    canonical: '/zh/what-is-opencode',
+  },
+}
+
+# 什么是 OpenCode?
+
+OpenCode 是一个开源的、本地优先（Offline-first）的编程 Agent 框架，专为居住在终端里的开发者设计。
+
+与需要将代码发送到云端的商业产品（如 Claude Code 或 GitHub Copilot）不同，OpenCode 的核心架构允许你在完全断网、隐私隔离的环境下，运行强大的 AI 编程助手。
+
+## 解决的核心问题
+
+目前的 AI 编程工具存在三个主要痛点：
+
+1.  **隐私泄露**：企业的核心代码不允许上传到第三方服务器。
+2.  **云端依赖**：甚至连修改一个本地文件都需要 API 往返，延迟高且不可靠。
+3.  **厂商锁定**：你被迫使用厂商指定的模型（通常不仅贵，还没得选）。
+
+OpenCode 通过构建一个 **"Agent 操作系统"** 解决了这些问题。它提供了一个标准化的运行时，让你自由连接 Ollama 本地模型或商业 API。
+
+## 核心架构
+
+### 1. 内核 (The Kernel)
+OpenCode 本质上是一个运行在 Node.js 环境下的 CLI 工具。它像一个沙盒，允许 AI 在其中执行 Shell 命令、读写文件和管理 Git 状态。
+
+### 2. 插件生态 (Plugins)
+这是 OpenCode 最强大的地方。社区已经构建了数十个插件：
+*   **Web Scraper**: 让 Agent 能够读取网页文档。
+*   **SQL Tools**: 直接连接本地数据库进行查询。
+*   **Linear**: 自动读取 Issue 并生成 PR。
+
+### 3. 模型中立 (Model Agnostic)
+你可以混合使用模型：
+*   用免费的 **DeepSeek Coder V2** (本地 Ollama) 处理简单的代码重构。
+*   用 **Claude 3.5 Sonnet** (API) 处理复杂的架构设计。
+
+## 适用人群
+
+*   **全栈开发者**：不想在 IDE 和 终端之间切来切去。
+*   **隐私敏感团队**：金融、医疗或其他代码不能出境的行业。
+*   **Geek 用户**：喜欢折腾 Neovim, Tmux 并且想深度定制自己工作流的人。
+
+## 下一步
+
+*   开始部署：阅读 [安装教程](/zh/install)。
+*   了解差异：查看 [OpenCode vs Claude Code](/zh/vs-claude-code)。
