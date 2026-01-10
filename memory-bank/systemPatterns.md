@@ -19,7 +19,8 @@ We utilize **Route Groups** to handle multi-language root layouts completely sep
 -   **Theme**: "Clean & Calm" (Zinc/Neutral colors, Inter font).
 -   **Dark Mode**: Implemented via `next-themes` with data-attribute strategy (`class` mode in Tailwind). defaults to system preference.
 -   **Components**:
-    -   `mdx-components.tsx`: Maps standard HTML (h1, p, code) to styled Tailwind components.
+    -   `mdx-components.tsx`: Maps standard HTML (h1, p, code) to styled Tailwind components. Handles code block rendering.
+    -   `copy-button`: Client component for code blocks. Uses DOM traversal (`parentElement.querySelector('pre')`) to extract text at runtime when server-side metadata is unavailable (Turbopack compatibility).
     -   `site-header`: Sticky, backdrop-blur, contains Search and Theme toggles.
     -   `site-footer`: Contains the mandatory unofficial disclaimer.
     -   `docs-sidebar`: Responsive navigation handling active states.

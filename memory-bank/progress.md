@@ -1,8 +1,8 @@
 # Progress Status
 
 ## Overview
-**Status**: Phase 1 Complete (Ready for Deploy)
-**Version**: 0.1.0
+**Status**: Phase 2 Complete (Polishing)
+**Version**: 0.2.0
 
 ## Milestones
 
@@ -20,6 +20,7 @@
 -   [x] Documentation Sidebar / Table of Contents
 -   [x] Search functionality (cmd+k) [Refined: Tuned matching threshold]
 -   [x] Dark Mode toggle [Refined: Fixed contrast issues on Homepage]
+-   [x] Code Syntax Highlighting (Shiki) & Copy Button
 -   [ ] "Edit this page" links (Deferred)
 
 ### Phase 3: Engagement (Future)
