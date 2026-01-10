@@ -4,6 +4,8 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { GoogleAnalytics } from "@/components/google-analytics";
 
+import { ThemeProvider } from "@/components/theme-provider";
+
 export const metadata: Metadata = {
   title: {
     default: "OpenCode 使用指南 (非官方)",
@@ -22,17 +24,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh" className="scroll-smooth">
+    <html lang="zh" className="scroll-smooth" suppressHydrationWarning>
       {/* Fallback sans-serif for Chinese */}
-      <body className={`min-h-screen bg-white text-gray-900 antialiased font-sans`}>
-        <SiteHeader />
-        <div className="flex min-h-screen flex-col">
-          <main className="flex-1">{children}</main>
-        </div>
-        <SiteFooter />
-        {process.env.NEXT_PUBLIC_GA_ID && (
-          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
-        )}
+      <body className={`min-h-screen bg-white text-gray-900 antialiased font-sans dark:bg-gray-950 dark:text-gray-50`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <SiteHeader />
+          <div className="flex min-h-screen flex-col">
+            <main className="flex-1">{children}</main>
+          </div>
+          <SiteFooter />
+          {process.env.NEXT_PUBLIC_GA_ID && (
+            <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+          )}
+        </ThemeProvider>
       </body>
     </html>
   );
