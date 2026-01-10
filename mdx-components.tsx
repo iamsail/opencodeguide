@@ -37,13 +37,13 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       </code>
     ),
     pre: ({ children, ...props }) => {
-      // @ts-ignore
-      const raw = props['data-raw-code'] || "";
-      
       return (
         <div className="group relative mt-6 mb-4">
-           {raw && <CopyButton text={raw} />}
-          <pre className="mb-4 overflow-x-auto rounded-lg border border-gray-800 bg-gray-950 py-4 text-gray-50" {...props}>
+           <CopyButton />
+           <pre
+            {...props}
+            className="mb-4 overflow-x-auto rounded-lg border border-gray-800 bg-gray-950 py-4"
+          >
             {children}
           </pre>
         </div>

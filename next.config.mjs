@@ -16,19 +16,10 @@ const nextConfig = {
 const withMDX = createMDX({
   options: {
     remarkPlugins: [],
-    rehypePlugins: [
-      () => (tree) => {
-        visit(tree, (node) => {
-          if (node?.type === 'element' && node?.tagName === 'pre') {
-            const [codeEl] = node.children
-            if (codeEl.tagName !== 'code') return
-            
-            node.properties['data-raw-code'] = codeEl.children?.[0].value
-          }
-        })
-      },
-      [rehypePrettyCode, options],
-    ], 
+    rehypePlugins: [], 
+    // rehypePlugins: [
+    //   [rehypePrettyCode, options],
+    // ], 
   },
 })
 

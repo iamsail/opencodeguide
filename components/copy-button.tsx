@@ -3,11 +3,26 @@
 import * as React from "react"
 import { Check, Copy } from "lucide-react"
 
-export function CopyButton({ text }: { text: string }) {
+export function CopyButton({ text }: { text?: string }) {
   const [isCopied, setIsCopied] = React.useState(false)
 
-  const copy = async () => {
-    await navigator.clipboard.writeText(text)
+  const copy = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    let textToCopy = text
+
+    if (!textToCopy) {
+      // Find the sibling <pre> element
+      const button = e.currentTarget
+      const container = button.parentElement
+      const pre = container?.querySelector("pre")
+      
+      if (pre) {
+        textToCopy = pre.innerText
+      }
+    }
+
+    if (!textToCopy) return
+
+    await navigator.clipboard.writeText(textToCopy)
     setIsCopied(true)
 
     setTimeout(() => {
