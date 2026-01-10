@@ -20,6 +20,9 @@
 *   `@opencode-ai/cli` (referred to in content, not a project dep)
 *   `clsx`, `tailwind-merge` (Class utility)
 *   `@tailwindcss/typography` (Markdown styling)
+*   **Search**: `cmdk` (UI), `fuse.js` (Logic), `globby` (Build script)
+*   **Theme**: `next-themes` (Dark mode)
+*   **MDX Plugins**: `rehype-slug` (IDs), `rehype-autolink-headings` (Anchors)
 
 ## Constraints
 *   **Static Export**: The site acts effectively as a static site.
