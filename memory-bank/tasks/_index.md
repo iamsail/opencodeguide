@@ -20,5 +20,6 @@
 - [TASK011] Implement Table of Contents (TOC) - Completed on 2026-01-10
 - [TASK012] Implement Cmd+K Search - Completed on 2026-01-10
 - [TASK013] Implement Dark Mode - Completed on 2026-01-10
+- [TASK014] Enhance Code Blocks - Completed on 2026-01-10
 
 ## Abandoned

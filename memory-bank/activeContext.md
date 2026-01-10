@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Focus
-We have completed **Phase 2 User Experience** implementations (Sidebar, TOC, Search, Dark Mode). The current focus is on **Quality Assurance (QA) and Bug Fixing** to ensure these features work flawlessly before final deployment.
+We have completed **Phase 2 User Experience** implementations. We are now working on **Phase 3 Polish**, specifically enhancing the display of code blocks (syntax highlighting and "Copy" button) as requested by the user.
 
 ## Recent Changes
 -   Created Next.js App Router project.
