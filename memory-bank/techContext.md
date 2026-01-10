@@ -22,9 +22,11 @@
 *   `@tailwindcss/typography` (Markdown styling)
 *   **Search**: `cmdk` (UI), `fuse.js` (Logic), `globby` (Build script)
 *   **Theme**: `next-themes` (Dark mode)
+*   **Code Highlighting**: `rehype-pretty-code`, `shiki`
 *   **MDX Plugins**: `rehype-slug` (IDs), `rehype-autolink-headings` (Anchors)
 
 ## Constraints
 *   **Static Export**: The site acts effectively as a static site.
 *   **No Database**: All content is file-system based.
 *   **Performance**: Must achieve high Lighthouse scores (minimal script execution).
+*   **Next.js Turbopack**: Current configuration disables `rehypePlugin` injection of raw code properties in `mdx-components` to maintain Turbopack compatibility. "Copy Code" functionality relies on client-side DOM traversal as a fallback.

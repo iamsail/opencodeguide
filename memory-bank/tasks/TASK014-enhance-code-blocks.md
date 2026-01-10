@@ -30,3 +30,5 @@ The approved solution uses:
 -   Implemented `CopyButton` and integrated it into `mdx-components.tsx`.
 -   Added custom styles for syntax highlighting.
 -   Task Completed.
+-   **Regression Fixed**: The "Copy" button was missing because `rehype-pretty-code` plugins were disabled in `next.config.mjs` to support Turbopack, causing the `data-raw-code` attribute to be missing.
+-   **Resolution**: Refactored `mdx-components.tsx` to unconditionally render `CopyButton`. Updated `CopyButton` to fallback to client-side DOM traversal (`innerText` extraction) when the raw code prop is missing.

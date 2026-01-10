@@ -22,6 +22,7 @@ We have completed **Phase 2 User Experience** implementations. We are now workin
 -   **Fixed Search Config**: Tuned Fuse.js (`threshold: 0.4`, `ignoreLocation: true`) to fix fuzzy matching issues.
 -   **Fixed Homepage Dark Mode**: Refactored `page.tsx` with `dark:` variants to ensure text visibility in dark mode.
 -   **Fixed Build Error**: Updated `next-themes` type import in `theme-provider.tsx` to resolve Vercel deployment failure.
+-   **Fixed Copy Button**: Restored functionality by implementing client-side text extraction as a fallback for missing server-side data (due to Turbopack limitations).
 
 ## Active Decisions
 -   **Layout**: Evolved to a 3-column layout on Desktop: Sidebar (Left) - Content (Center) - TOC (Right).
