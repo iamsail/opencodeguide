@@ -22,6 +22,7 @@
 *   `@tailwindcss/typography` (Markdown styling)
 *   **Search**: `cmdk` (UI), `fuse.js` (Logic), `globby` (Build script)
 *   **Theme**: `next-themes` (Dark mode)
+*   **Analytics**: `@vercel/analytics`
 *   **Code Highlighting**: `rehype-pretty-code`, `shiki`
 *   **MDX Plugins**: `rehype-slug` (IDs), `rehype-autolink-headings` (Anchors)
 
