@@ -21,6 +21,8 @@
 -   [x] Search functionality (cmd+k) [Refined: Tuned matching threshold]
 -   [x] Dark Mode toggle [Refined: Fixed contrast issues on Homepage]
 -   [x] Code Syntax Highlighting (Shiki) & Copy Button
+-   [x] Vercel Analytics Integration
+-   [x] Fix dual-language text in Footer
 -   [ ] "Edit this page" links (Deferred)
 
 ### Phase 3: Engagement (Future)

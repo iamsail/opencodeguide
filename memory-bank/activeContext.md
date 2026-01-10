@@ -23,6 +23,9 @@ We have completed **Phase 2 User Experience** implementations. We are now workin
 -   **Fixed Homepage Dark Mode**: Refactored `page.tsx` with `dark:` variants to ensure text visibility in dark mode.
 -   **Fixed Build Error**: Updated `next-themes` type import in `theme-provider.tsx` to resolve Vercel deployment failure.
 -   **Fixed Copy Button**: Restored functionality by implementing client-side text extraction as a fallback for missing server-side data (due to Turbopack limitations).
+-   **Integrated Vercel Analytics**: Added `@vercel/analytics` to both English and Chinese root layouts.
+-   **Fixed Footer Language**: Updated `SiteFooter` to accept a `lang` prop, ensuring only the relevant language disclaimer is shown (English or Chinese).
+-   **Fixed Hydration Error**: Added `suppressHydrationWarning` to `<body>` tags to prevent warnings caused by browser extensions (e.g., ColorZilla) injecting attributes.
 
 ## Active Decisions
 -   **Layout**: Evolved to a 3-column layout on Desktop: Sidebar (Left) - Content (Center) - TOC (Right).

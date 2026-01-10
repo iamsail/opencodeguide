@@ -3,6 +3,7 @@ import "../globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { GoogleAnalytics } from "@/components/google-analytics";
+import { Analytics } from "@vercel/analytics/react";
 
 import { ThemeProvider } from "@/components/theme-provider";
 
@@ -26,7 +27,10 @@ export default function RootLayout({
   return (
     <html lang="zh" className="scroll-smooth" suppressHydrationWarning>
       {/* Fallback sans-serif for Chinese */}
-      <body className={`min-h-screen bg-white text-gray-900 antialiased font-sans dark:bg-gray-950 dark:text-gray-50`}>
+      <body
+        className={`min-h-screen bg-white text-gray-900 antialiased font-sans dark:bg-gray-950 dark:text-gray-50`}
+        suppressHydrationWarning
+      >
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -37,10 +41,11 @@ export default function RootLayout({
           <div className="flex min-h-screen flex-col">
             <main className="flex-1">{children}</main>
           </div>
-          <SiteFooter />
+          <SiteFooter lang="zh" />
           {process.env.NEXT_PUBLIC_GA_ID && (
             <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
           )}
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
