@@ -11,7 +11,12 @@ const nextConfig = {
 const withMDX = createMDX({
   options: {
     remarkPlugins: [],
-    rehypePlugins: [rehypeSlug, rehypeAutolinkHeadings],
+    rehypePlugins: [], 
+    // Temporarily disabled due to serialization issue in Next.js 15+
+    // rehypePlugins: [
+    //   [rehypeSlug],
+    //   [rehypeAutolinkHeadings, { behavior: 'wrap' }],
+    // ],
   },
 })
 

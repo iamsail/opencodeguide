@@ -43,7 +43,8 @@ export function Search() {
   const fuse = React.useMemo(() => {
     return new Fuse(data, {
       keys: ["title", "content"],
-      threshold: 0.3,
+      threshold: 0.4,
+      ignoreLocation: true,
     })
   }, [data])
 

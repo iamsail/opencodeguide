@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Focus
-We have just completed the **Phase 1 Initialization**. The project is scaffolded, the design system is active, and all initial content (13 pages total) has been written and verified to render correctly.
+We have completed **Phase 2 User Experience** implementations (Sidebar, TOC, Search, Dark Mode). The current focus is on **Quality Assurance (QA) and Bug Fixing** to ensure these features work flawlessly before final deployment.
 
 ## Recent Changes
 -   Created Next.js App Router project.
@@ -19,6 +19,8 @@ We have just completed the **Phase 1 Initialization**. The project is scaffolded
 -   **Implemented TOC**: Added a right-side "Table of Contents" for better reading experience on large screens.
 -   **Implemented Search**: Added a fast, client-side "Cmd+K" search using Fuse.js and build-time indexing.
 -   **Implemented Dark Mode**: Added system-aware theme switching with `next-themes`.
+-   **Fixed Search Config**: Tuned Fuse.js (`threshold: 0.4`, `ignoreLocation: true`) to fix fuzzy matching issues.
+-   **Fixed Homepage Dark Mode**: Refactored `page.tsx` with `dark:` variants to ensure text visibility in dark mode.
 
 ## Active Decisions
 -   **Layout**: Evolved to a 3-column layout on Desktop: Sidebar (Left) - Content (Center) - TOC (Right).
@@ -27,10 +29,9 @@ We have just completed the **Phase 1 Initialization**. The project is scaffolded
 -   **TOC Strategy**: Hybrid approach. IDs are generated server-side (for SEO anchors), but the list of links is generated client-side to simplify MDX data passing.
 -   **Config**: Navigation structure is defined in `lib/docs-config.ts`.
 -   **Images**: Placeholder `<div>`s are used or implicit text descriptions. Real screenshots are a TODO.
--   **Search**: No search functionality yet.
 -   **Sitemap**: Implemented dynamic sitemap generation in `app/sitemap.ts` to automatically crawl `page.tsx` and `page.mdx` files, ensuring the sitemap stays in sync with the file system.
 
 ## Next Steps
-1.  Add real screenshots to replace text descriptions where applicable.
-2.  Implement a proper Sidebar navigation for the `/en/` and `/zh/` documentation sections.
-3.  Deploy to Vercel.
+1.  Deploy to Vercel and verify production build.
+2.  Add real screenshots to replace text descriptions where applicable.
+3.  Implement "Edit this page" links.

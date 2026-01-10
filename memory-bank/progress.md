@@ -18,8 +18,8 @@
 
 ### Phase 2: User Experience (Completed)
 -   [x] Documentation Sidebar / Table of Contents
--   [x] Search functionality (cmd+k)
--   [x] Dark Mode toggle
+-   [x] Search functionality (cmd+k) [Refined: Tuned matching threshold]
+-   [x] Dark Mode toggle [Refined: Fixed contrast issues on Homepage]
 -   [ ] "Edit this page" links (Deferred)
 
 ### Phase 3: Engagement (Future)
