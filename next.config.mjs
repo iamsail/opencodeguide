@@ -1,4 +1,6 @@
 import createMDX from '@next/mdx'
+import rehypeSlug from 'rehype-slug'
+import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -9,7 +11,12 @@ const nextConfig = {
 const withMDX = createMDX({
   options: {
     remarkPlugins: [],
-    rehypePlugins: [],
+    rehypePlugins: [], 
+    // Temporarily disabled due to serialization issue in Next.js 15+
+    // rehypePlugins: [
+    //   [rehypeSlug],
+    //   [rehypeAutolinkHeadings, { behavior: 'wrap' }],
+    // ],
   },
 })
 
