@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Focus
-We have completed **Phase 2 User Experience** implementations. We are now working on **Phase 3 Polish**, specifically enhancing the display of code blocks (syntax highlighting and "Copy" button) as requested by the user.
+We are expanding the documentation content, specifically adding comprehensive Chinese guides to match the English content and enhance the localized experience.
 
 ## Recent Changes
 -   Created Next.js App Router project.
@@ -26,6 +26,8 @@ We have completed **Phase 2 User Experience** implementations. We are now workin
 -   **Integrated Vercel Analytics**: Added `@vercel/analytics` to both English and Chinese root layouts.
 -   **Fixed Footer Language**: Updated `SiteFooter` to accept a `lang` prop, ensuring only the relevant language disclaimer is shown (English or Chinese).
 -   **Fixed Hydration Error**: Added `suppressHydrationWarning` to `<body>` tags to prevent warnings caused by browser extensions (e.g., ColorZilla) injecting attributes.
+-   **Added Chinese Content**: Added 3 new Chinese documentation pages: What is OpenCode, Usage Guide, and Chinese Support Guide.
+-   **Updated Navigation**: Updated sidebar navigation and ROUTE_MAP to include new Chinese guides.
 
 ## Active Decisions
 -   **Layout**: Evolved to a 3-column layout on Desktop: Sidebar (Left) - Content (Center) - TOC (Right).
