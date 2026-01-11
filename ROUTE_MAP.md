@@ -22,6 +22,9 @@
 ## 中文文档 (Chinese Documentation)
 | 路由路径 (Route) | 对应文件路径 (File Path) | 功能说明 (Description) |
 | :--- | :--- | :--- |
+| `/zh/opencode-shi-shen-me` | `app/(zh)/zh/opencode-shi-shen-me/page.mdx` | **OpenCode 是什么**<br>介绍什么是 OpenCode (Updated)。 |
+| `/zh/opencode-shi-yong` | `app/(zh)/zh/opencode-shi-yong/page.mdx` | **OpenCode 使用**<br>基础命令与交互模式使用指南。 |
+| `/zh/opencode-zhong-wen` | `app/(zh)/zh/opencode-zhong-wen/page.mdx` | **OpenCode 中文**<br>中文环境配置与优化说明。 |
 | `/zh/what-is-opencode` | `app/(zh)/zh/what-is-opencode/page.mdx` | **介绍**<br>什么是 OpenCode，为中文用户介绍核心功能。 |
 | `/zh/install` | `app/(zh)/zh/install/page.mdx` | **安装指南**<br>中文版安装教程，适配国内网络环境说明。 |
 | `/zh/vs-claude-code` | `app/(zh)/zh/vs-claude-code/page.mdx` | **竞品对比**<br>OpenCode 与 Claude Code 的详细对比分析。 |

@@ -11,7 +11,7 @@
 -   [x] Design System Implementation (Typography, Colors)
 -   [x] SEO Setup (Metadata, Sitemap, Robots, Lang tags, GSC Verified)
 -   [x] English Content Generation (8 Articles)
--   [x] Chinese Content Generation (5 Articles)
+-   [x] Chinese Content Generation (8 Articles)
 -   [x] Homepage Implementation
 -   [x] Git Initialization
 -   [x] UI Polish (Language Dropdown, Header Layout)
