@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Focus
-We are expanding the documentation content, specifically adding comprehensive Chinese guides to match the English content and enhance the localized experience.
+We are expanding the documentation content, specifically adding comprehensive Chinese guides to match the English content and enhance the localized experience. We have just established a strategic "Hub Page" to centralize Chinese traffic and improve SEO.
 
 ## Recent Changes
 -   Created Next.js App Router project.
@@ -28,6 +28,7 @@ We are expanding the documentation content, specifically adding comprehensive Ch
 -   **Fixed Hydration Error**: Added `suppressHydrationWarning` to `<body>` tags to prevent warnings caused by browser extensions (e.g., ColorZilla) injecting attributes.
 -   **Added Chinese Content**: Added 3 new Chinese documentation pages: What is OpenCode, Usage Guide, and Chinese Support Guide.
 -   **Updated Navigation**: Updated sidebar navigation and ROUTE_MAP to include new Chinese guides.
+-   **Implemented Hub Page**: Created `/zh/opencode` as the authoritative entry point for Chinese users, linking to key content and improving SEO structure.
 
 ## Active Decisions
 -   **Layout**: Evolved to a 3-column layout on Desktop: Sidebar (Left) - Content (Center) - TOC (Right).
@@ -37,6 +38,7 @@ We are expanding the documentation content, specifically adding comprehensive Ch
 -   **Config**: Navigation structure is defined in `lib/docs-config.ts`.
 -   **Images**: Placeholder `<div>`s are used or implicit text descriptions. Real screenshots are a TODO.
 -   **Sitemap**: Implemented dynamic sitemap generation in `app/sitemap.ts` to automatically crawl `page.tsx` and `page.mdx` files, ensuring the sitemap stays in sync with the file system.
+-   **Hub Page Strategy**: Used a central Hub page (`/zh/opencode`) to aggregate 3 core topics (What, How, Chinese Support) rather than scattering them, to better signal relevance to search engines.
 
 ## Next Steps
 1.  Deploy to Vercel and verify production build.

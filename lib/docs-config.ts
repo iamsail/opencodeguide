@@ -67,6 +67,10 @@ export const docsConfigZh: DocsConfig = [
     title: "入门",
     items: [
       {
+        title: "OpenCode 中文指南",
+        href: "/zh/opencode",
+      },
+      {
         title: "什么是 OpenCode？",
         href: "/zh/opencode-shi-shen-me",
       },
