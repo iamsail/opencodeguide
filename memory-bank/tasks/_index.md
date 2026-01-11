@@ -1,13 +1,15 @@
 # Tasks Index
 
 ## In Progress
-- None.
+- [TASK022] SEO 架构优化 - 权重引导与路由关联
 
 ## Pending
-- [TASK022] Add real screenshots to documentation - Replacing text descriptions with visual aids
-- [TASK023] Implement "Edit this page" links - Connecting documentation to GitHub source
+- [TASK023] Add real screenshots to documentation - Replacing text descriptions with visual aids
+- [TASK024] Implement "Edit this page" links - Connecting documentation to GitHub source
 
 ## Completed
+- [TASK022] SEO 架构优化 (权重引导与路由关联) - Completed on 2026-01-11
+
 - [TASK001] Project setup - Completed on 2026-01-10
 - [TASK002] Header layout update - Completed on 2026-01-10
 - [TASK005] Language dropdown - Completed on 2026-01-10

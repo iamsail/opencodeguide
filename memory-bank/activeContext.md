@@ -1,28 +1,22 @@
 # Active Context
 
 ## Current Focus
-We have completed a major architectural overhaul of the Chinese documentation routing system. The focus was to separate "reference documentation" from "articles/blog posts" by moving the structured docs into a tiered \`/zh/docs\` hierarchy.
+We are finalizing the SEO optimization of the documentation structure. The goal is to concentrate search authority on the technical documentation center (\`/zh/docs\`) and establish clear language relationships between English and Chinese content.
 
 ## Recent Changes
--   **Routing Restructure (Critical Decision)**: Moved all 33+ Chinese documentation pages into a nested hierarchy under \`/zh/docs\`.
-    -   Intro & Core guides: \`/zh/docs/*\`
-    -   Configuration guides: \`/zh/docs/configure/*\`
-    -   Development guides: \`/zh/docs/develop/*\`
-    -   This provides a scalable, professional URL structure that mimics official documentation standards.
--   **TOC Persistence Fix**: Fixed a critical bug in \`components/toc.tsx\` where the Table of Contents wouldn't update when navigating between internal documentation pages. Added \`usePathname\` to the dependency array.
--   **Updated Documentation Hub**: Created \`/zh/docs/page.mdx\` as the central entry point for the new technical documentation structure.
--   **Updated Sidebar Configuration**: Refactored \`lib/docs-config.ts\` to map all navigation items to the new tiered paths.
--   **Config Page Content Overhaul**: Fully populated the \`Config\` page with technical details provided by the user (JSON formats, priorities, TUI, Models, Agents, etc.).
--   **Sitemap & Route Map Alignment**: Updated \`ROUTE_MAP.md\` and verified that the dynamic sitemap correctly indexes the new tiered structure.
--   **SEO Redirection Strategy**: Maintained old article paths (e.g., \`/zh/opencode-shi-yong\`) at the root level to preserve SEO/backlinks, while linking them internally to the new \`/zh/docs\` center.
+-   **SEO Authority Guidance (Canonical Strategy)**: Implemented \`canonical\` tags on all supplementary Chinese articles (\`/zh/opencode-*\`, \`/zh/install\`) pointing to their authoritative documentation equivalents under \`/zh/docs\`. This prevents route cannibalization.
+-   **Cross-Language Mapping (hreflang)**: Established bidirectional \`hreflang\` connections between 8 English pages and 7 Chinese documentation pages. For example, \`/en/what-is-opencode\` is now linked to \`/zh/docs/intro\` as its linguistic equivalent.
+-   **Fixed Broken Canonicals**: Corrected all English documentation pages which were missing the \`/en\` prefix in their canonical links.
+-   **Hub Page Refactoring**: Redesigned the [Chinese Hub page](/zh/opencode) to prominently feature the [Documentation Center](/zh/docs) as the primary technical reference, clearly distinguishing "educational articles" from "technical facts".
+-   **Completed Metadata for Skeletons**: Added missing \`metadata\` exports to 6 Chinese documentation sections (Intro, Usage, CLI, IDE, Providers, MCP) to ensure proper SEO indexing.
+-   **Standardized Route Map**: Updated \`ROUTE_MAP.md\` to reflect the tiered hierarchy and document the SEO strategy.
 
 ## Active Decisions
--   **Documentation vs. Articles**: Documentation follows a strict tiered hierarchy under \`/zh/docs\`. Articles/Guides follow a flat structure at \`/zh/\` for easier social sharing and distinct SEO targeting.
--   **Navigation Consistency**: The documentation sidebar is exclusive to pages under \`/zh/docs\` and \`/en/\`, providing a focused technical reading environment.
--   **Client-Side TOC Scanning**: TOC continues to use dynamic DOM scanning but now correctly resets on route change using \`usePathname\`.
--   **No-Regret Routing**: The decision to use \`/zh/docs\` as the primary technical documentation home is final and intended for long-term scalability.
+-   **Canonical vs Redirect**: We chose to keep the educational articles at their original URLs but use \`canonical\` instead of \`301 redirects\`. This allows us to keep the viral/SEO-friendly "entry points" while concentrating the actual ranking power on the documentation.
+-   **Hreflang Logic**: Even if the content is not a word-for-word translation, we link pages with high semantic overlap (e.g., Use Cases ↔ Usage) to help Google understand the site structure.
+-   **Documentation Sovereignty**: The \`/zh/docs/\` path is now explicitly confirmed as the "Single Source of Truth" for all technical details.
 
 ## Next Steps
-1.  **Visual Polish**: Replace technical/textual descriptions with real screenshots in the documentation.
-2.  **Community Metadata**: Add "Edit this page" links pointing to the GitHub repository.
-3.  **Content Refinement**: Gradually replace the skeleton templates in the new subsections with full translated content.
+1.  **Content Population**: Gradually replace the "What/When/Usage" templates in the 33+ Chinese doc pages with full technical content.
+2.  **Visual Assets**: Add screenshots to the documentation as planned in \`TASK022\`.
+3.  **Vercel Deployment**: Monitor the impact of these changes on the Vercel dashboard and Search Console.
