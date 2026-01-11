@@ -7,6 +7,7 @@
 *(None)*
 
 ## Completed
+- [TASK020] Update Config Documentation - Completed on 2026-01-11
 - [TASK019] 重构中文文档结构 - Completed on 2026-01-11
 - [TASK018] Update /zh/install Content & SEO Redirect - Completed on 2026-01-11
 - [TASK017] Fix Hydration Error (Extension Interference) - Completed on 2026-01-10

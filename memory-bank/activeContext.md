@@ -4,6 +4,8 @@
 We are undertaking a major overhaul of the Chinese documentation. The goal is to move from ad-hoc pages to a structured, 4-section documentation site (Intro, Usage, Configure, Develop) containing approximately 30+ pages. This is driven by the need for comprehensive, localized documentation for Chinese developers.
 
 ## Recent Changes
+-   **Config Page Content Update**: Updated `app/(zh)/zh/config/page.mdx` with comprehensive content covering JSON format, precedence, loading order, and all configuration sections (TUI, Server, Models, etc.) based on the latest documentation.
+-   **Fixed TOC Navigation Bug**: Fixed a bug in `components/toc.tsx` where the Table of Contents would not update when navigating between pages in the same layout. Added `pathname` dependency to the `useEffect` hook.
 -   **Documentation Complete**: Successfully created all ~33 MDX pages for the new Chinese documentation structure, covering Intro, Usage, Configure, and Develop sections.
 -   **Updated Sidebar Configuration**: Refactored `docsConfigZh` in `lib/docs-config.ts` to support the new 4-section structure.
 -   **Created Intro Section**: Initialized 7 new pages under "Intro" (Introduction, Config, Providers, Network, Enterprise, Troubleshooting, Migration).
