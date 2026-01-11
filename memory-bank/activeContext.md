@@ -29,12 +29,16 @@ We are expanding the documentation content, specifically adding comprehensive Ch
 -   **Added Chinese Content**: Added 3 new Chinese documentation pages: What is OpenCode, Usage Guide, and Chinese Support Guide.
 -   **Updated Navigation**: Updated sidebar navigation and ROUTE_MAP to include new Chinese guides.
 -   **Implemented Hub Page**: Created `/zh/opencode` as the authoritative entry point for Chinese users, linking to key content and improving SEO structure.
+-   **Updated /zh/install**: Replaced the Chinese installation guide to emphasize OpenCode as an AI Coding Agent supporting CLI + Desktop App, with Desktop App as the first recommendation and curl as the primary CLI path.
+-   **Added SEO Redirect**: Added a permanent redirect from `/zh/opencode-install` to `/zh/install` to consolidate SEO weight on `/zh/install`.
+-   **Fixed Install Page Rendering**: Replaced the Markdown table with an explicit HTML `<table>` (MDX without GFM table support) and made TOC generate missing heading IDs at runtime.
 
 ## Active Decisions
 -   **Layout**: Evolved to a 3-column layout on Desktop: Sidebar (Left) - Content (Center) - TOC (Right).
 -   **Theme**: Default to "System" preference. Persistence handled by local storage via `next-themes`.
 -   **Search Strategy**: "Static Indexing". The index is built into a JSON file (`public/search.json`) at deployment time. This avoids the need for external search services and ensures speed.
--   **TOC Strategy**: Hybrid approach. IDs are generated server-side (for SEO anchors), but the list of links is generated client-side to simplify MDX data passing.
+-   **TOC Strategy**: Hybrid approach. Prefer server-side heading IDs when available, but TOC also generates missing IDs client-side for robustness (avoids relying on MDX plugin injection under Turbopack).
+-   **MDX Compatibility**: Avoid MDX plugin injection that causes non-serializable loader options under Next 16 + Turbopack; prefer no-plugin content patterns when possible (e.g., explicit HTML tables).
 -   **Config**: Navigation structure is defined in `lib/docs-config.ts`.
 -   **Images**: Placeholder `<div>`s are used or implicit text descriptions. Real screenshots are a TODO.
 -   **Sitemap**: Implemented dynamic sitemap generation in `app/sitemap.ts` to automatically crawl `page.tsx` and `page.mdx` files, ensuring the sitemap stays in sync with the file system.
