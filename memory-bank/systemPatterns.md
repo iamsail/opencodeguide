@@ -9,6 +9,12 @@ We utilize **Route Groups** to handle multi-language root layouts completely sep
 -   `app/(zh)/`: Handles Chinese Content (`/zh/...`). Sets `<html lang="zh">`.
 -   This avoids complex i18n middleware for a static site and allows distinct UI/Fonts per language.
 
+### Documentation Routing Strategy
+We distinguish between "Technical Reference" and "Educational Articles/Blog":
+-   **Technical Reference**: Tiered hierarchy under `/zh/docs/` (e.g., `/zh/docs/configure/tools`). Used for structured manual-style content.
+-   **Educational Articles**: Flat structure under `/zh/` (e.g., `/zh/opencode-shi-yong`). Used for SEO-optimized entry points and deep-dives.
+-   **Navigation**: Technical Reference pages feature a functional sidebar and TOC for navigation.
+
 ### Content Engine
 -   **Source**: Local `.mdx` files stored in `app/(main)/en/**/*.mdx` and `app/(zh)/zh/**/*.mdx`.
 -   **Processor**: `@next/mdx` (Native Next.js MDX implementation).
@@ -17,41 +23,36 @@ We utilize **Route Groups** to handle multi-language root layouts completely sep
 ### Design System
 -   **Framework**: Tailwind CSS.
 -   **Theme**: "Clean & Calm" (Zinc/Neutral colors, Inter font).
--   **Dark Mode**: Implemented via `next-themes` with data-attribute strategy (`class` mode in Tailwind). defaults to system preference.
+-   **Dark Mode**: Implemented via `next-themes` with data-attribute strategy (`class` mode in Tailwind). Defaults to system preference.
 -   **Components**:
-    -   `mdx-components.tsx`: Maps standard HTML (h1, p, code) to styled Tailwind components. Handles code block rendering.
-    -   `copy-button`: Client component for code blocks. Uses DOM traversal (`parentElement.querySelector('pre')`) to extract text at runtime when server-side metadata is unavailable (Turbopack compatibility).
-    -   `site-header`: Sticky, backdrop-blur, contains Search and Theme toggles.
-    -   `site-footer`: Contains the mandatory unofficial disclaimer.
-    -   `docs-sidebar`: Responsive navigation handling active states.
+    -   `mdx-components.tsx`: Maps standard HTML (h1, p, code) to styled Tailwind components.
+    -   `copy-button`: Client component using DOM traversal to extract text at runtime (Turbopack compatible).
+    -   `toc`: Dynamic TOC generator that re-scans for headers on route changes using `usePathname`.
 
 ## Key Technical Decisions
-1.  **No `next-mdx-remote`**: Chosen `@next/mdx` for better build-time optimization and simplicity in App Router.
-2.  **Explicit Routing**: `/en` and `/zh` are explicit path prefixes, not query params, for SEO.
+1.  **No next-mdx-remote**: Chosen `@next/mdx` for better build-time optimization.
+2.  **Explicit Routing**: `/en` and `/zh` are explicit path prefixes for SEO.
 3.  **Search Architecture (Client-Side)**:
-    -   **Indexing**: A custom script (`scripts/build-search.mjs`) runs at *build time*. It recursively scans `.mdx` files and generates a `public/search.json` index.
-    -   **Querying**: The client fetches this JSON lazily (on first search interaction) and uses `fuse.js` for fuzzy searching.
-    -   **Rationale**: Zero backend requirement, ultra-fast, offline capable.
+    -   Build-time indexing via `scripts/build-search.mjs` -> `public/search.json`.
+    -   Client-side fuzzy search via `fuse.js`.
 4.  **Table of Contents (Hybrid)**:
-    -   **Anchors**: Prefer build-time IDs when available, but the TOC also generates missing heading IDs client-side for robustness.
-    -   **Layout**: `IntersectionObserver` detects active headings at runtime (Client) to highlight the TOC.
-    -   **Rationale**: Some MDX plugin injection patterns can break under Next 16 + Turbopack due to non-serializable loader options.
-5.  **Local vs Cloud**: The site itself requires no backend; it is purely static HTML/CSS/JS.
+    -   Uses `IntersectionObserver` to track active headings.
+    -   Generates missing IDs client-side to ensure robustness across different MDX processing modes.
+5.  **No-Regret Routing**: Absolute paths under `/zh/docs` for technical documentation to ensure long-term link stability.
 
 ## Directory Structure
 ```
 app/
 ├── (main)/             # English/Root Context
 │   ├── page.tsx        # Landing Page
-│   ├── layout.tsx      # Root & EN Layout (w/ Sidebar + TOC)
 │   └── en/             # English MDX Pages
 ├── (zh)/               # Chinese Context
 │   ├── layout.tsx      # ZH Layout (w/ Sidebar + TOC)
 │   └── zh/             # Chinese MDX Pages
+│       ├── docs/       # Technical Reference (Tiered)
+│       └── [article]   # SEO Articles (Flat)
 components/
-├── docs-sidebar.tsx    # Mobile/Desktop Navigation
+├── docs-sidebar.tsx    # Navigation
 ├── toc.tsx             # Table of Contents
-├── search.tsx          # Local Search UI (cmdk)
-└── theme-toggle.tsx    # Dark mode switcher
-globals.css             # Global Tailwind directives
+└── search.tsx          # Local Search UI (cmdk)
 ```
