@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { usePathname } from "next/navigation"
 
 interface TocItem {
   title: string
@@ -16,6 +17,7 @@ interface TableOfContentsProps {
 export function TableOfContents({ className }: TableOfContentsProps) {
   const [items, setItems] = React.useState<TocItem[]>([])
   const [activeId, setActiveId] = React.useState<string>()
+  const pathname = usePathname()
 
   React.useEffect(() => {
     const content = document.querySelector("article")
@@ -91,7 +93,7 @@ export function TableOfContents({ className }: TableOfContentsProps) {
     return () => {
       headings.forEach((heading) => observer.unobserve(heading))
     }
-  }, [])
+  }, [pathname])
 
   if (!items?.length) {
     return null

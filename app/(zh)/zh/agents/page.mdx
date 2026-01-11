@@ -1,0 +1,24 @@
+# 智能体 (Agents)
+
+## 这是什么？
+在 OpenCode 中，智能体 (Agents) 是指被设计用来处理特定领域任务的 AI 角色。不同的 Agent 拥有不同的 System Prompt、工具集和权限范围。例如，一个“代码审查 Agent”专注于找 Bug，而一个“技术文档 Agent”专注于写 Markdown。
+
+## 什么时候你会用到它？
+- 当你需要处理非常复杂的任务，单一通用的 AI 角色无法胜任时。
+- 当你希望并行执行任务（例如：一个 Agent 写代码，另一个 Agent 同时写测试用例）时。
+- 当你需要切换到特定模式（如“架构师模式”）来进行高层设计而非具体编码时。
+
+## 核心概念
+- **Role (角色)**：Agent 的身份定义（如 Developer, Reviewer, Architect）。
+- **Capabilities (能力)**：Agent 被允许调用的工具集合。
+- **Sub-agents**：主 Agent 可以在需要时唤起子 Agent 来协助完成子任务。
+
+## 基本用法 / 配置说明
+> TODO：后续补充如何切换或自定义 Agent 的配置
+
+## 常见误解 / 注意事项
+- 大多数情况下，默认的通用 Agent 已经足够强大，不需要频繁切换。
+- 自定义 Agent 需要一定的 Prompt Engineering 技巧。
+
+## 延伸阅读
+> TODO：后续补充

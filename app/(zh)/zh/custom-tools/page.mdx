@@ -1,0 +1,32 @@
+# 自定义工具 (Custom Tools)
+
+## 这是什么？
+OpenCode 允许用户通过编写简单的脚本（Shell, Python, JavaScript）来扩展 AI 的工具箱。一旦注册，AI 就能像调用内置工具一样，智能地决定何时以及如何调用你编写的脚本来解决问题。
+
+## 什么时候你会用到它？
+- 当你有一个内部使用的命令行工具（Cli），希望 AI 能直接操作它（例如：触发内部部署流程）时。
+- 当你需要执行特定的数据处理逻辑（如：将 CSV 转换为 JSON 并上传到 S3），而通用工具无法满足时。
+- 当你希望封装复杂的 API 调用流程，简化 AI 的操作步骤时。
+
+## 核心概念
+- **Tool Definition**：描述工具名称、功能描述、参数结构的元数据（通常使用 JSON Schema）。
+- **Executable Path**：脚本在本地文件系统中的执行路径。
+- **Output Parsing**：将脚本的标准输出解析为 AI 可理解的自然语言反馈。
+
+## 基本用法 / 配置说明
+```json
+// 示例：tools.json
+{
+  "name": "check_weather",
+  "description": "Get current weather for a city",
+  "command": "python scripts/weather.py"
+}
+```
+> TODO：后续补充完整的参数定义和脚本编写指南
+
+## 常见误解 / 注意事项
+- 描述（Description）非常重要！AI 依靠描述来判断何时通过该工具来解决用户的问题。
+- 自定义工具的稳定性直接影响 AI 的表现，请确保脚本有完善的错误处理。
+
+## 延伸阅读
+> TODO：后续补充
