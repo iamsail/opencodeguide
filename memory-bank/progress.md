@@ -1,41 +1,34 @@
 # Progress Status
 
 ## Overview
-**Status**: Phase 2 Complete (Content Expansion)
-**Version**: 0.3.0
+**Status**: Phase 2.5 Complete (SEO Optimization & Authority Strategy)
+**Version**: 0.5.0
 
 ## Milestones
 
 ### Phase 1: Foundation & Content (Completed)
--   [x] Project Scaffolding (Next.js, TS, Tailwind)
--   [x] Design System Implementation (Typography, Colors)
--   [x] SEO Setup (Metadata, Sitemap, Robots, Lang tags, GSC Verified)
--   [x] English Content Generation (8 Articles)
--   [x] Homepage Implementation
--   [x] Git Initialization
--   [x] UI Polish (Language Dropdown, Header Layout)
+-   [x] Project Scaffolding
+-   [x] English Content Generation
+-   [x] Sitemap & Robots Implementation
 
 ### Phase 2: User Experience (Completed)
--   [x] Documentation Sidebar / Table of Contents
--   [x] Search functionality (cmd+k) [Refined: Tuned matching threshold]
--   [x] Dark Mode toggle [Refined: Fixed contrast issues on Homepage]
--   [x] Code Syntax Highlighting (Shiki) & Copy Button
--   [x] Vercel Analytics Integration
--   [x] Fix dual-language text in Footer
--   [x] Implementation of Content Hub Page (/zh/opencode)
--   [x] Update Chinese Installation Guide (/zh/install) + SEO Redirect (/zh/opencode-install -> /zh/install)
--   [ ] "Edit this page" links (Deferred)
+-   [x] Sidebar & TOC
+-   [x] Cmd+K Search
+-   [x] Dark Mode
+-   [x] Flow: Article -> Hub -> Documentation
 
-### Phase 2.5: Chinese Documentation Overhaul (Completed)
--   [x] Restructured documentation into 4 pillars: Intro, Usage, Configure, Develop
--   [x] Created 33 structured MDX pages with standardized templates- [x] Updated `/zh/config` page with full detailed documentation content provided by user-   [x] Updated navigation configuration (`docsConfigZh`) to support deep nesting
--   [x] Covered comprehensive topics including TUI, IDE, Agents, MCP, and Plugin Development
+### Phase 2.5: Documentation & SEO Refinement (Completed)
+-   [x] Full restructure of Chinese docs into 4 tiers under \`/zh/docs\`
+-   [x] **SEO Fix**: Established Canonical links to prevent route iç cannibalization.
+-   [x] **SEO Fix**: Established hreflang languages alternates for EN/ZH synchronization.
+-   [x] **Hub Update**: Redesigned \`/zh/opencode\` as a professional entry point.
+-   [x] Fixed all 8 broken English canonical links.
+-   [x] Filled missing metadata for all core documentation skeletons.
 
-### Phase 3: Engagement (Future)
--   [ ] Blog section suitable for updates.
--   [ ] Newsletter signup.
+### Phase 3: Content Enrichment & Engagement (In Progress)
+-   [ ] Fully translate the 33+ documentation pages (Config is done).
+-   [ ] Add visual screenshots to documentation.
+-   [ ] Implement "Edit this page" links.
 
 ## Known Issues
--   None critical.
--   *Minor*: No visual screenshots; only text/code.
--   *Minor*: GFM Markdown tables are not enabled in MDX (to avoid Turbopack loader option constraints). Use explicit HTML `<table>` when needed.
+-   Screenshots are still text-based placeholders.

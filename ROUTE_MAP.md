@@ -1,37 +1,90 @@
 # 项目路由映射表 (Route Map)
 
-本文档列出了项目中目前所有的页面路由及其对应的功能说明。
+本文档列出了项目中所有的页面路由及其对应的功能说明与 SEO 策略。
 
-## 首页 (Main)
-| 路由路径 (Route) | 对应文件路径 (File Path) | 功能说明 (Description) |
+## 1. 核心页面 (Core Pages)
+| 路由 (Route) | 文件路径 (File Path) | 功能说明 (Description) |
 | :--- | :--- | :--- |
-| `/` | `app/(main)/page.tsx` | **项目主页 (Landing Page)**<br>包含 Hero 区域、特性介绍、对比表格以及入口链接。 |
+| \`/\` | \`app/(main)/page.tsx\` | 项目主页 (Landing Page) |
+| \`/zh/opencode\` | \`app/(zh)/zh/opencode/page.mdx\` | 中文指南总入口 (Hub) - 引导用户前往文档中心 |
 
-## 英文文档 (English Documentation)
-| 路由路径 (Route) | 对应文件路径 (File Path) | 功能说明 (Description) |
+## 2. 英文文档 (English Documentation)
+| 路由 (Route) | 对应中文对等页 (ZH Equivalent) | 功能说明 (Description) |
 | :--- | :--- | :--- |
-| `/en/what-is-opencode` | `app/(main)/en/what-is-opencode/page.mdx` | **Introduction**<br>介绍什么是 OpenCode，核心理念和价值。 |
-| `/en/installation` | `app/(main)/en/installation/page.mdx` | **Installation**<br>英文版安装指南，包含环境要求和安装步骤。 |
-| `/en/cli-commands` | `app/(main)/en/cli-commands/page.mdx` | **CLI Reference**<br>OpenCode 命令行工具的详细指令手册。 |
-| `/en/opencode-vs-claude-code` | `app/(main)/en/opencode-vs-claude-code/page.mdx` | **Comparisons**<br>详细对比 OpenCode 与 Claude Code 的区别（隐私、成本、功能）。 |
-| `/en/opencode-with-ollama` | `app/(main)/en/opencode-with-ollama/page.mdx` | **Local Models**<br>如何配置 OpenCode 使用 Ollama 运行本地模型。 |
-| `/en/mcp-explained` | `app/(main)/en/mcp-explained/page.mdx` | **MCP Protocol**<br>模型上下文协议 (MCP) 的原理解析与应用。 |
-| `/en/neovim-integration` | `app/(main)/en/neovim-integration/page.mdx` | **Integrations**<br>Neovim 编辑器集成指南。 |
-| `/en/use-cases` | `app/(main)/en/use-cases/page.mdx` | **Use Cases**<br>常见使用场景和最佳实践示例。 |
+| \`/en/what-is-opencode\` | \`/zh/docs/intro\` | Introduction |
+| \`/en/installation\` | \`/zh/docs/intro\` | Installation Guide |
+| \`/en/cli-commands\` | \`/zh/docs/cli\` | CLI Commands Reference |
+| \`/en/opencode-vs-claude-code\` | \`/zh/vs-claude-code\` | Comparisons |
+| \`/en/opencode-with-ollama\` | \`/zh/docs/providers\` | Local Models (Ollama) |
+| \`/en/mcp-explained\` | \`/zh/docs/configure/mcp-servers\` | MCP Protocol Explanation |
+| \`/en/neovim-integration\` | \`/zh/docs/ide\` | Neovim Setup |
+| \`/en/use-cases\` | \`/zh/docs/usage\` | Usage Scenarios |
 
-## 中文文档 (Chinese Documentation)
-| 路由路径 (Route) | 对应文件路径 (File Path) | 功能说明 (Description) |
+## 3. 中文科普/引流文章 (Chinese SEO Articles)
+这些页面主要用于外部引流，通过 \`canonical\` 将权重集中到官方文档。
+
+| 路由 (Route) | 权威文档 (Canonical Docs) | 说明 (Notes) |
 | :--- | :--- | :--- |
-| `/zh/opencode` | `app/(zh)/zh/opencode/page.mdx` | **OpenCode 中文指南 (Hub)**<br>中文权威入口，分发流量到核心子页面。 |
-| `/zh/opencode-shi-shen-me` | `app/(zh)/zh/opencode-shi-shen-me/page.mdx` | **OpenCode 是什么**<br>介绍什么是 OpenCode (Updated)。 |
-| `/zh/opencode-shi-yong` | `app/(zh)/zh/opencode-shi-yong/page.mdx` | **OpenCode 使用**<br>基础命令与交互模式使用指南。 |
-| `/zh/opencode-zhong-wen` | `app/(zh)/zh/opencode-zhong-wen/page.mdx` | **OpenCode 中文**<br>中文环境配置与优化说明。 |
-| `/zh/what-is-opencode` | `app/(zh)/zh/what-is-opencode/page.mdx` | **介绍**<br>什么是 OpenCode，为中文用户介绍核心功能。 |
-| `/zh/install` | `app/(zh)/zh/install/page.mdx` | **安装指南**<br>中文版安装教程，适配国内网络环境说明。 |
-| `/zh/vs-claude-code` | `app/(zh)/zh/vs-claude-code/page.mdx` | **竞品对比**<br>OpenCode 与 Claude Code 的详细对比分析。 |
-| `/zh/ollama-local-deploy` | `app/(zh)/zh/ollama-local-deploy/page.mdx` | **本地模型**<br>结合 Ollama 进行本地大模型部署与调用的教程。 |
-| `/zh/what-is-mcp` | `app/(zh)/zh/what-is-mcp/page.mdx` | **协议解析**<br>什么是 MCP (Model Context Protocol) 及其重要性。 |
+| \`/zh/opencode-shi-shen-me\` | \`/zh/docs/intro\` | 介绍页引流 |
+| \`/zh/opencode-shi-yong\` | \`/zh/docs/usage\` | 使用指南引流 |
+| \`/zh/opencode-zhong-wen\` | \`/zh/docs/config\` | 中文支持说明引流 |
+| \`/zh/install\` | \`/zh/docs/intro\` | 安装教程引流 |
+| \`/zh/vs-claude-code\` | - | 竞品对比专题 (与 \`/en/...\` 互链) |
 
-## 目录结构说明
-- `app/(main)/`：包含主页和英文内容（路由组），共享相同的英文版布局。
-- `app/(zh)/`：包含中文内容（路由组），使用独立的中文版布局（设置了 html lang="zh"）。
+## 4. 中文官方文档中心 (Chinese Documentation Center - /zh/docs)
+所有技术细节的唯一事实来源。采用分层路由架构。
+
+### 4.1 入门 (Intro)
+| 路由 (Route) | 说明 (Description) |
+| :--- | :--- |
+| \`/zh/docs\` | 文档中心首页 |
+| \`/zh/docs/intro\` | 核心介绍与快速开始 |
+| \`/zh/docs/config\` | 配置系统总览 |
+| \`/zh/docs/providers\` | 模型提供商 (OpenAI, Claude, Ollama 等) |
+| \`/zh/docs/network\` | 网络与代理配置 |
+| \`/zh/docs/enterprise\` | 企业版功能 |
+| \`/zh/docs/troubleshooting\` | 常见问题排查 |
+| \`/zh/docs/migrating-to-1-0\` | 1.0 迁移指南 |
+
+### 4.2 使用 (Usage)
+| 路由 (Route) | 说明 (Description) |
+| :--- | :--- |
+| \`/zh/docs/usage\` | 多模式使用概览 |
+| \`/zh/docs/tui\` | 终端交互界面 (TUI) 指南 |
+| \`/zh/docs/cli\` | 命令行工具 (CLI) 指南 |
+| \`/zh/docs/ide\` | VS Code / Neovim 编辑器集成 |
+| \`/zh/docs/zen\` | 专注模式 (Zen Mode) |
+| \`/zh/docs/share\` | 会话分享功能 |
+| \`/zh/docs/github\` | GitHub 集成 |
+| \`/zh/docs/gitlab\` | GitLab 集成 |
+
+### 4.3 配置 (Configure)
+| 路由 (Route) | 说明 (Description) |
+| :--- | :--- |
+| \`/zh/docs/configure/tools\` | 工具权限与配置 |
+| \`/zh/docs/configure/rules\` | 指令与规则文件 |
+| \`/zh/docs/configure/agents\` | 自定义智能体 |
+| \`/zh/docs/configure/models\` | 详细模型参数配置 |
+| \`/zh/docs/configure/themes\` | 主题与 UI 自定义 |
+| \`/zh/docs/configure/keybinds\` | 快捷键绑定 |
+| \`/zh/docs/configure/commands\` | 自定义命令 |
+| \`/zh/docs/configure/formatters\` | 代码格式化器 |
+| \`/zh/docs/configure/permissions\` | 细粒度权限控制 |
+| \`/zh/docs/configure/lsp-servers\` | LSP 服务器集成 |
+| \`/zh/docs/configure/mcp-servers\` | MCP 服务器扩展 |
+| \`/zh/docs/configure/acp-support\` | ACP 协议支持 |
+| \`/zh/docs/configure/agent-skills\` | 智能体技能库 |
+| \`/zh/docs/configure/custom-tools\` | 自定义工具开发 |
+
+### 4.4 开发 (Develop)
+| 路由 (Route) | 说明 (Description) |
+| :--- | :--- |
+| \`/zh/docs/develop/sdk\` | OpenCode SDK 使用指南 |
+| \`/zh/docs/develop/server\` | 集成服务端配置 |
+| \`/zh/docs/develop/plugins\` | 插件系统开发 |
+| \`/zh/docs/develop/ecosystem\` | 社区生态与扩展 |
+
+---
+**SEO 说明**：
+1. **Canonical**: 所有引流文章均指向对应的 \`/zh/docs/\` 页面。
+2. **Hreflang**: 核心页面均已配置 \`alternates.languages\`，实现中英版本互认。
