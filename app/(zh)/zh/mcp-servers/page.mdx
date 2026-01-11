@@ -1,0 +1,24 @@
+# MCP 服务器 (MCP Servers)
+
+## 这是什么？
+模型上下文协议 (Model Context Protocol, MCP) 是一个开放标准，用于连接 AI 模型与数据源。通过配置 MCP 服务器，你可以让 OpenCode 连接到数据库、Slack、Notion、GitHub 或任何自定义的 API，从而在对话中查询和操作这些外部数据。
+
+## 什么时候你会用到它？
+- 当你需要 AI "查询生产数据库中最近 10 条报错日志"（通过 PostgreSQL MCP Server）时。
+- 当你需要 AI 读取 Notion 里的产品需求文档来编写代码（通过 Notion MCP Server）时。
+- 当你开发了自己的内部工具平台，希望 AI 能直接调用查询接口时。
+
+## 核心概念
+- **MCP Server**：运行在本地或远程的代理服务，暴露了一组 Tools 和 Resources 给 AI。
+- **Resources**：类似文件的数据源（如数据库记录、API 返回值）。
+- **Prompts**：Server 提供的预设交互模版。
+
+## 基本用法 / 配置说明
+> TODO：后续补充如何安装和配置 `mcp-server-postgres` 等官方示例
+
+## 常见误解 / 注意事项
+- MCP 是一套协议，你需要安装具体的 MCP Server 实现才能工作。
+- 安全性至关重要：连接数据库等敏感源时，务必通过只读账号或严格的审计策略。
+
+## 延伸阅读
+> TODO：后续补充
