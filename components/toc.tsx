@@ -23,12 +23,49 @@ export function TableOfContents({ className }: TableOfContentsProps) {
 
     const headings = Array.from(content.querySelectorAll("h2, h3"))
     const items: TocItem[] = []
+
+    const slugify = (value: string) => {
+      return value
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[\u0000-\u001f\u007f]+/g, '')
+        .replace(/["'`~!@#$%^&*()+=\[\]{}|\\:;,.?<>/]+/g, '')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')
+    }
+
+    const usedIds = new Set<string>()
+    const ensureUniqueId = (base: string) => {
+      const fallbackBase = base || 'section'
+      let candidate = fallbackBase
+      let counter = 2
+      while (usedIds.has(candidate) || document.getElementById(candidate)) {
+        candidate = `${fallbackBase}-${counter}`
+        counter += 1
+      }
+      usedIds.add(candidate)
+      return candidate
+    }
     
     // Simple flat list approach first for robustness
     headings.forEach((heading) => {
-      const id = heading.id
       const title = heading.textContent || ""
-      if (id && title) {
+      if (!title) return
+
+      if (!heading.id) {
+        // Prefer existing anchor id if present (e.g., rehype-autolink-headings)
+        const maybeAnchor = heading.querySelector('a[href^="#"]') as HTMLAnchorElement | null
+        const hrefId = maybeAnchor?.getAttribute('href')?.slice(1)
+        if (hrefId) {
+          heading.id = hrefId
+        } else {
+          heading.id = ensureUniqueId(slugify(title))
+        }
+      }
+
+      const id = heading.id
+      if (id) {
         items.push({
           title,
           url: `#${id}`,

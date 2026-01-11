@@ -24,6 +24,7 @@
 -   [x] Vercel Analytics Integration
 -   [x] Fix dual-language text in Footer
 -   [x] Implementation of Content Hub Page (/zh/opencode)
+-   [x] Update Chinese Installation Guide (/zh/install) + SEO Redirect (/zh/opencode-install -> /zh/install)
 -   [ ] "Edit this page" links (Deferred)
 
 ### Phase 3: Engagement (Future)
@@ -33,3 +34,4 @@
 ## Known Issues
 -   None critical.
 -   *Minor*: No visual screenshots; only text/code.
+-   *Minor*: GFM Markdown tables are not enabled in MDX (to avoid Turbopack loader option constraints). Use explicit HTML `<table>` when needed.

@@ -1,46 +1,135 @@
 export const metadata = {
-  title: 'OpenCode 安装教程 (Mac & Linux)',
-  description: '由浅入深的 OpenCode 安装指南。包含 Node.js 环境配置、国内镜像源设置以及常见权限问题的解决方法。',
+  title: 'OpenCode 安装教程（Mac / Linux / Windows）',
+  description: 'OpenCode 官方安装方式全解析。支持 Desktop App、curl、brew、npm 等多种方式，包含国内网络与 API Key 配置说明。',
   alternates: {
     canonical: '/zh/install',
   },
 }
 
-# OpenCode 安装教程
+# OpenCode 安装教程（官方方式全解析）
 
-本教程将引导你在 macOS 或 Linux 环境下安装 OpenCode CLI。
+OpenCode 是一个 **开源的 AI Coding Agent**，支持 **命令行（CLI）和桌面端（Desktop App）** 两种使用方式。
 
-> **注意**：Windows 用户建议使用 WSL2 (Ubuntu) 以获得最佳体验。
+官方提供了多种安装方式，覆盖不同系统与用户习惯。你可以根据自己的情况选择最合适的一种。
 
-## 环境准备
+---
 
-OpenCode 基于 Node.js 开发。你需要确保本地环境满足以下要求：
+## 安装方式总览（官方支持）
 
-*   **Node.js**: v18.0.0 或更高版本。
-*   **Git**: 用于版本控制操作。
+<table>
+  <thead>
+    <tr>
+      <th>安装方式</th>
+      <th>适合人群</th>
+      <th>是否需要 Node.js</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Desktop App</td>
+      <td>普通用户 / 非开发者</td>
+      <td>❌</td>
+    </tr>
+    <tr>
+      <td>curl 一行命令</td>
+      <td>macOS / Linux 用户</td>
+      <td>❌</td>
+    </tr>
+    <tr>
+      <td>Homebrew / paru</td>
+      <td>熟悉系统包管理器的用户</td>
+      <td>❌</td>
+    </tr>
+    <tr>
+      <td>npm / bun</td>
+      <td>前端 / Node.js 开发者</td>
+      <td>✅</td>
+    </tr>
+  </tbody>
+</table>
 
-### 检查版本
-在终端通过以下命令检查：
+---
+
+## 方式一：安装 Desktop App（最推荐）
+
+如果你不关心环境配置，**直接使用桌面端是最省事的方式**。
+
+OpenCode 官方提供 Desktop App，支持：
+
+- macOS
+- Windows
+- Linux
+
+下载安装后即可使用，无需 Node.js、无需命令行。
+
+👉 官方下载地址：https://opencode.ai
+
+---
+
+## 方式二：使用 curl 安装（macOS / Linux）
+
+这是官方推荐的 CLI 安装方式之一，不依赖 Node.js。
+
 ```bash
-node -v
-# 应显示 v18.x.x 或更高
+curl -fsSL https://opencode.ai/install | bash
 ```
 
-## 安装步骤
-
-### 1. 通过 NPM 安装
-
-推荐使用 `npm` 或 `pnpm` 进行全局安装。
+安装完成后，重新打开终端，验证是否成功：
 
 ```bash
-# 全局安装 CLI
-npm install -g @opencode-ai/cli
+opencode --version
+```
 
-# 如果遇到权限问题 (EACCES)，请尝试：
+---
+
+## 方式三：使用系统包管理器安装
+
+### macOS（Homebrew）
+
+```bash
+brew install opencode
+```
+
+### Arch Linux（paru）
+
+```bash
+paru -S opencode
+```
+
+---
+
+## 方式四：通过 npm / bun 安装（开发者）
+
+如果你已经有 Node.js 环境，也可以通过 npm 或 bun 安装 CLI。
+
+### 环境要求
+
+* Node.js v18.0.0 或更高
+* Git
+
+检查 Node.js 版本：
+
+```bash
+node -v
+```
+
+### 安装命令
+
+```bash
+npm install -g @opencode-ai/cli
+# 或
+bun add -g @opencode-ai/cli
+```
+
+如果遇到权限问题（EACCES）：
+
+```bash
 sudo npm install -g @opencode-ai/cli
 ```
 
-### 2. 初始化配置 (国内用户必看)
+---
+
+## 初始化配置（国内用户必看）
 
 安装完成后，运行初始化命令：
 
@@ -48,43 +137,66 @@ sudo npm install -g @opencode-ai/cli
 opencode init
 ```
 
-交互式向导会询问你几个问题：
-*   **Provider**: 选 `Ollama` (如果你想用本地模型) 或 `OpenAI`。
-*   **Language**: 选择 `Chinese` 可以让 Agent 默认用中文回复思考过程。
+常见选项说明：
 
-### 3. 设置 API Key (如果不使用本地模型)
+* Provider
 
-如果你使用 DeepSeek API 或 OpenAI，你需要配置环境变量。写入到你的 `~/.zshrc` 或 `~/.bashrc`：
+  * Ollama：本地模型
+  * OpenAI / DeepSeek：在线 API
+* Language
+
+  * 选择 Chinese，可让 Agent 优先使用中文
+
+---
+
+## 设置 API Key（如使用在线模型）
+
+将以下内容写入 `~/.zshrc` 或 `~/.bashrc`：
 
 ```bash
-# 例如使用 DeepSeek 官方 API
 export OPENAI_BASE_URL="https://api.deepseek.com/v1"
-export OPENAI_API_KEY="sk-..."
+export OPENAI_API_KEY="sk-xxxxxxxx"
 ```
 
-## 验证安装
-
-让我们运行一个简单的测试任务：
+保存后执行：
 
 ```bash
-opencode run "创建一个 demo.txt 文件，并在里面写入 '你好 OpenCode'"
+source ~/.zshrc
 ```
 
-如果安装成功，你会看到终端里 Agent 开始思考、执行命令，并最终创建文件。
+---
 
-## 常见问题 (FAQ)
+## 验证安装是否成功
 
-### 报错 `command not found: opencode`
-这通常是 npm 全局路径没有加到系统 PATH 中。
-检查你的 npm配置：`npm config get prefix`，并确保该路径下的 `bin` 目录在你的 PATH 里。
+```bash
+opencode run "创建一个 demo.txt 文件，并写入：你好 OpenCode"
+```
 
-### 连接超时 / 网络问题
-国内用户拉取插件可能较慢。建议配置 npm 淘宝镜像：
+---
+
+## 常见问题（FAQ）
+
+### command not found: opencode
+
+通常是全局安装路径未加入 PATH。
+
+```bash
+npm config get prefix
+```
+
+确保该路径下的 `bin` 目录在 PATH 中。
+
+---
+
+### 国内网络慢 / 依赖下载失败
+
 ```bash
 npm config set registry https://registry.npmmirror.com
 ```
 
+---
+
 ## 下一步
 
-*   配置本地模型：[OpenCode + Ollama 部署](/zh/ollama-local-deploy)
-*   探索 MCP 协议：[什么是 MCP?](/zh/what-is-mcp)
+* 本地模型部署：[OpenCode + Ollama](/zh/ollama-local-deploy)
+* 协议原理介绍：[什么是 MCP？](/zh/what-is-mcp)

@@ -33,8 +33,9 @@ We utilize **Route Groups** to handle multi-language root layouts completely sep
     -   **Querying**: The client fetches this JSON lazily (on first search interaction) and uses `fuse.js` for fuzzy searching.
     -   **Rationale**: Zero backend requirement, ultra-fast, offline capable.
 4.  **Table of Contents (Hybrid)**:
-    -   **Anchors**: `rehype-slug` adds IDs to headings at build time (Server).
+    -   **Anchors**: Prefer build-time IDs when available, but the TOC also generates missing heading IDs client-side for robustness.
     -   **Layout**: `IntersectionObserver` detects active headings at runtime (Client) to highlight the TOC.
+    -   **Rationale**: Some MDX plugin injection patterns can break under Next 16 + Turbopack due to non-serializable loader options.
 5.  **Local vs Cloud**: The site itself requires no backend; it is purely static HTML/CSS/JS.
 
 ## Directory Structure
