@@ -4,9 +4,14 @@
 We are undertaking a major overhaul of the Chinese documentation. The goal is to move from ad-hoc pages to a structured, 4-section documentation site (Intro, Usage, Configure, Develop) containing approximately 30+ pages. This is driven by the need for comprehensive, localized documentation for Chinese developers.
 
 ## Recent Changes
--   **Config Page Content Update**: Updated `app/(zh)/zh/config/page.mdx` with comprehensive content covering JSON format, precedence, loading order, and all configuration sections (TUI, Server, Models, etc.) based on the latest documentation.
--   **Fixed TOC Navigation Bug**: Fixed a bug in `components/toc.tsx` where the Table of Contents would not update when navigating between pages in the same layout. Added `pathname` dependency to the `useEffect` hook.
--   **Documentation Complete**: Successfully created all ~33 MDX pages for the new Chinese documentation structure, covering Intro, Usage, Configure, and Develop sections.
+-   **Documentation Route Refactoring**: Restructured all 33 Chinese documentation pages under the `/zh/docs` root path.
+    -   Intro & Usage pages: `/zh/docs/*`
+    -   Configure pages: `/zh/docs/configure/*` (moved to secondary path)
+    -   Develop pages: `/zh/docs/develop/*` (moved to secondary path)
+-   **Created Documentation Hub**: Added `/zh/docs` as the central entry point for Chinese reference documentation.
+-   **Preserved Legacy Articles**: Kept existing articles like `/zh/opencode-shi-yong` at their original roots to maintain SEO/backlinks while clearly distinguishing them from reference documentation.
+-   **Updated Navigation**: Reflected path changes in `lib/docs-config.ts` and updated the Hub page (`/zh/opencode`) to guide traffic to the new `/zh/docs` center.
+-   **Config Page Content Update**: Updated `app/(zh)/zh/config/page.mdx` with comprehensive content...
 -   **Updated Sidebar Configuration**: Refactored `docsConfigZh` in `lib/docs-config.ts` to support the new 4-section structure.
 -   **Created Intro Section**: Initialized 7 new pages under "Intro" (Introduction, Config, Providers, Network, Enterprise, Troubleshooting, Migration).
 -   **Created Usage Section**: Initialized 8 new pages under "Usage" (Terms, TUI, CLI, IDE, Zen, Share, GitHub, GitLab).

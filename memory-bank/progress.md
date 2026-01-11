@@ -28,7 +28,10 @@
 
 ### Phase 2.5: Chinese Documentation Overhaul (Completed)
 -   [x] Restructured documentation into 4 pillars: Intro, Usage, Configure, Develop
--   [x] Created 33 structured MDX pages with standardized templates- [x] Updated `/zh/config` page with full detailed documentation content provided by user-   [x] Updated navigation configuration (`docsConfigZh`) to support deep nesting
+-   [x] Finalized absolute routing structure under `/zh/docs` (Intro/Usage at root, Configure/Develop at 2nd tier)
+-   [x] Created 33 structured MDX pages with standardized templates
+-   [x] Updated `/zh/config` page with full detailed documentation content
+-   [x] Updated navigation configuration (`docsConfigZh`) for new paths and nesting
 -   [x] Covered comprehensive topics including TUI, IDE, Agents, MCP, and Plugin Development
 
 ### Phase 3: Engagement (Future)
