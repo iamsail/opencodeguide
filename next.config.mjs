@@ -11,6 +11,15 @@ const options = {
 const nextConfig = {
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
   reactStrictMode: true,
+  async redirects() {
+    return [
+      {
+        source: '/zh/opencode-install',
+        destination: '/zh/install',
+        permanent: true,
+      },
+    ]
+  },
 }
 
 const withMDX = createMDX({
