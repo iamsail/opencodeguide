@@ -23,6 +23,7 @@
 -   [x] Code Syntax Highlighting (Shiki) & Copy Button
 -   [x] Vercel Analytics Integration
 -   [x] Fix dual-language text in Footer
+-   [x] Implementation of Content Hub Page (/zh/opencode)
 -   [ ] "Edit this page" links (Deferred)
 
 ### Phase 3: Engagement (Future)
