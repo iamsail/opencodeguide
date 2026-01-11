@@ -1,0 +1,29 @@
+# SDK 开发指南
+
+## 这是什么？
+OpenCode SDK 提供了一套类型安全的编程接口，允许开发者将 OpenCode 的能力集成到自己的应用程序中。无论你是想开发一个定制化的 IDE 插件，还是构建一个基于 AI 的代码审查流水线，SDK 都是你的首选工具。
+
+## 什么时候你会用到它？
+- 当你正在开发一款基于 Electron 的代码编辑器，希望加入类似 Cursor 的 AI 辅助功能时。
+- 当你需要编写一个自动化脚本，批量处理代码库中的重构任务时。
+- 当你希望在自己的 SaaS 产品中嵌入“AI 编程助手”组件时。
+
+## 核心概念
+- **Client/Session**：管理与 OpenCode 核心服务的连接会话。
+- **Streaming API**：支持流式接收 AI 生成的文本，实现打字机效果。
+- **Tool Registration**：通过代码动态注册新的工具及其回调函数。
+
+## 基本用法 / 配置说明
+```typescript
+import { OpenCodeClient } from '@opencode/sdk';
+
+const client = new OpenCodeClient({ apiKey: '...' });
+// TODO: 后续补充更多示例代码
+```
+
+## 常见误解 / 注意事项
+- SDK 主要负责与 OpenCode Core 通信，并不包含 UI 组件。如果需要 UI，请参考 UI Kit 文档。
+- 目前 SDK 主要支持 Node.js 和 Python 环境。
+
+## 延伸阅读
+> TODO：后续补充 API 参考文档链接

@@ -1,0 +1,24 @@
+# 格式化 (Formatters)
+
+## 这是什么？
+格式化配置用于定义 OpenCode 生成代码后的自动美化规则。OpenCode 可以在生成代码块后，自动调用项目中的 Prettier, ESLint, Black, Rustfmt 等工具，确保生成的代码风格与你的项目保持一致。
+
+## 什么时候你会用到它？
+- 当你发现 AI 生成的代码缩进（2空格 vs 4空格）总是与你项目的 `.editorconfig` 不符时。
+- 当你希望生成的 Python 代码自动符合 PEP8 规范，而不需要手动调整时。
+- 当你需要 AI 在修改文件后自动运行 `go imports` 清理未使用的引用时。
+
+## 核心概念
+- **Auto-formatting**：生成即格式化，无需人工干预。
+- **Linter Integration**：在格式化的同时运行静态检查。
+- **Fallback Formatter**：当项目中未检测到特定语言的格式化工具时，OpenCode 内置的默认格式化逻辑。
+
+## 基本用法 / 配置说明
+> TODO：后续补充如何配置 OpenCode 调用本地 Prettier 的示例
+
+## 常见误解 / 注意事项
+- OpenCode 不会自带所有语言的格式化工具，它通常是调用你环境中已安装的 CLI 工具。
+- 如果格式化工具运行过慢，可能会导致 AI 生成内容的显示有延迟。
+
+## 延伸阅读
+> TODO：后续补充

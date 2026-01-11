@@ -1,0 +1,24 @@
+# GitLab 集成
+
+## 这是什么？
+GitLab 集成功能为使用 GitLab 自托管或云服务的团队提供了类似 GitHub 的智能工作流支持。它允许 OpenCode 读取 GitLab Issues、Merge Requests (MR)，并协助进行代码合并前的检查和修改。
+
+## 什么时候你会用到它？
+- 当你所在的企业使用私有化部署的 GitLab，需要 AI 辅助处理内部开发任务时。
+- 当你需要 AI 分析 GitLab CI/CD 流水线的失败日志，并提出修复建议时。
+- 当你希望自动化创建 Merge Request 并分配给指定的审核人时。
+
+## 核心概念
+- **GitLab Instance URL**：支持配置自托管 GitLab 实例的地址（不仅仅是 gitlab.com）。
+- **Personal Access Token**：用于认证 GitLab API 的密钥。
+- **CI/CD Integration**：能够理解 `.gitlab-ci.yml` 配置并尝试修复构建错误。
+
+## 基本用法 / 配置说明
+> TODO：后续补充具体用法示例
+
+## 常见误解 / 注意事项
+- 针对自托管 GitLab，需要确保 OpenCode 当前运行的网络环境能够访问该实例 IP。
+- 同样需要注意 API Token 的权限范围和有效期管理。
+
+## 延伸阅读
+> TODO：后续补充

@@ -1,8 +1,8 @@
 # Progress Status
 
 ## Overview
-**Status**: Phase 2 Complete (Polishing)
-**Version**: 0.2.0
+**Status**: Phase 2 Complete (Content Expansion)
+**Version**: 0.3.0
 
 ## Milestones
 
@@ -11,7 +11,6 @@
 -   [x] Design System Implementation (Typography, Colors)
 -   [x] SEO Setup (Metadata, Sitemap, Robots, Lang tags, GSC Verified)
 -   [x] English Content Generation (8 Articles)
--   [x] Chinese Content Generation (8 Articles)
 -   [x] Homepage Implementation
 -   [x] Git Initialization
 -   [x] UI Polish (Language Dropdown, Header Layout)
@@ -26,6 +25,12 @@
 -   [x] Implementation of Content Hub Page (/zh/opencode)
 -   [x] Update Chinese Installation Guide (/zh/install) + SEO Redirect (/zh/opencode-install -> /zh/install)
 -   [ ] "Edit this page" links (Deferred)
+
+### Phase 2.5: Chinese Documentation Overhaul (Completed)
+-   [x] Restructured documentation into 4 pillars: Intro, Usage, Configure, Develop
+-   [x] Created 33 structured MDX pages with standardized templates
+-   [x] Updated navigation configuration (`docsConfigZh`) to support deep nesting
+-   [x] Covered comprehensive topics including TUI, IDE, Agents, MCP, and Plugin Development
 
 ### Phase 3: Engagement (Future)
 -   [ ] Blog section suitable for updates.
