@@ -1,12 +1,7 @@
 # Tasks Index
 
-## In Progress
-- [TASK023] Add real screenshots to documentation - Replacing text descriptions with visual aids
-
-## Pending
-- [TASK024] Implement "Edit this page" links - Connecting documentation to GitHub source
-
 ## Completed
+- [TASK026] Implement MCP Use Cases Page - Created comprehensive guide and updated navigation - Completed on 2026-01-12
 - [TASK025] MCP Hub SEO Transformation - Transform /en/mcp into authoritative source - Completed on 2026-01-12
 - [TASK022] SEO 架构优化 (权重引导与路由关联) - Completed on 2026-01-11
 
