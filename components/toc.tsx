@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation"
 interface TocItem {
   title: string
   url: string
+  level: number
   items?: TocItem[]
 }
 
@@ -71,6 +72,7 @@ export function TableOfContents({ className }: TableOfContentsProps) {
         items.push({
           title,
           url: `#${id}`,
+          level: parseInt(heading.tagName.replace('H', '')),
         })
       }
     })
@@ -102,16 +104,22 @@ export function TableOfContents({ className }: TableOfContentsProps) {
   return (
     <div className={cn("space-y-2", className)}>
       <p className="font-medium text-sm text-gray-900">On This Page</p>
-      <ul className="m-0 list-none">
+      <ul className="m-0 list-none text-sm">
         {items.map((item) => (
-          <li key={item.url} className="mt-0 pt-2">
+          <li
+            key={item.url}
+            className={cn(
+              "mt-0 pt-2",
+              item.level === 3 && "pl-4"
+            )}
+          >
             <a
               href={item.url}
               className={cn(
                 "inline-block no-underline transition-colors hover:text-gray-900",
                 item.url === `#${activeId}`
                   ? "font-medium text-gray-900"
-                  : "text-gray-600"
+                  : "text-gray-600 dark:text-gray-400"
               )}
             >
               {item.title}
