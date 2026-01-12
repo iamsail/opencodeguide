@@ -1,0 +1,59 @@
+---
+title: "Opencode + Claude: Complete Setup & Usage Guide"
+description: "Learn how to use opencode with Claude, including setup, API keys, Claude Code differences, and common errors."
+keywords:
+  - opencode claude
+  - opencode claude code
+  - claude code opencode
+---
+
+# Opencode + Claude
+
+Claude is the most popular model used with **opencode**.
+
+This guide explains how Claude works with opencode, how to set it up correctly, and how to avoid common configuration mistakes.
+
+---
+
+## How opencode uses Claude
+
+Opencode connects to Claude through the **Anthropic API**.
+
+It does **not** use Claude Code credentials.
+
+---
+
+## Claude Code vs Claude API
+
+Many users confuse these two.
+
+- **Claude Code** → a hosted coding experience
+- **Claude API** → programmatic access (required by opencode)
+
+If you use Claude Code credentials, opencode will fail.
+
+---
+
+## Basic setup
+
+```bash
+export ANTHROPIC_API_KEY=your_api_key_here
+```
+
+Then run:
+
+```bash
+opencode
+```
+
+## Common issues
+
+- [This credential is only authorized for use with Claude Code](/en/opencode/errors/claude-credential-only-authorized)
+- [Anthropic authentication issues](/en/opencode-anthropic-auth)
+
+## Advanced usage
+
+- Use Claude with MCP tools
+- Combine Claude with Playwright or Figma
+
+→ See [Opencode MCP Guide](/en/opencode-mcp)
