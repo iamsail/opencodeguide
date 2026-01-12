@@ -1,7 +1,9 @@
 # Active Context
 
 ## Current Focus
-We have completed the **MCP Hub SEO Transformation ([TASK025])**, establishing `/en/mcp` as the single authoritative source. Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets.
+We have completed the **MCP Hub SEO Transformation ([TASK025])**, establishing `/en/mcp` as the single authoritative source. We have optimized the **sitemap priorities** and **internal linking** to support this authority. All **P0 and P1 SEO tasks are now complete**.
+
+Our focus now shifts to **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets.
 
 ## Recent Changes
 -   **MCP Hub Optimization ([TASK025])**: Consolidated all MCP-related traffic to `/en/mcp`.

@@ -17,7 +17,9 @@
 -   [x] Dark Mode
 -   [x] Flow: Article -> Hub -> Documentation
 
-### Phase 2.5: Documentation & SEO Refinement (Completed)-   [x] **MCP Hub**: Established `/en/mcp` as the authoritative source.-   [x] Full restructure of Chinese docs into 4 tiers under \`/zh/docs\`
+### Phase 2.5: Documentation & SEO Refinement (Completed)-   [x] **MCP Hub**: Established `/en/mcp` as the authoritative source.
+-   [x] **MCP Authority**: Optimized Sitemap and internal links for `/en/mcp`
+-   [x] Full restructure of Chinese docs into 4 tiers under `/zh/docs`
 -   [x] **SEO Fix**: Established Canonical links to prevent route iç cannibalization.
 -   [x] **SEO Fix**: Established hreflang languages alternates for EN/ZH synchronization.
 -   [x] **Hub Update**: Redesigned \`/zh/opencode\` as a professional entry point.

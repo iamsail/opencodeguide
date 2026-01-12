@@ -38,4 +38,5 @@ The current MCP content is fragmented across multiple pages (\`mcp\`, \`mcp-conf
 - Added backlinks to \`app/(main)/en/mcp-configuration/page.mdx\` and \`app/(main)/en/mcp-client/page.mdx\`.
 - Added Chinese SEO callout to \`app/(zh)/zh/docs/configure/mcp-servers/page.mdx\`.
 - Updated "MCP Ready" card in \`app/(main)/page.tsx\` to link to \`/en/mcp\`.
-- Updated reference in \`app/(main)/en/opencode-vs-claude-code/page.mdx\`.
+- Updated reference in \`app/(main)/en/opencode-vs-claude-code/page.mdx\`.- Optimized sitemap priorities for MCP pages.
+- P0/P1 tasks complete.
