@@ -1,0 +1,99 @@
+export const metadata = {
+  title: "Opencode MCP Explained: What It Is, How It Works, and Why It Matters",
+  description:
+    "Opencode MCP explained in plain English. Learn what MCP is, how it works, and why it matters for building reliable AI agents.",
+  alternates: {
+    canonical: "/en/mcp",
+    languages: {
+      en: "/en/mcp",
+      zh: "/zh/docs/mcp",
+    },
+  },
+};
+
+# Opencode MCP Explained
+
+Opencode MCP (Model Context Protocol) is the core protocol that allows Opencode agents to **maintain context, coordinate tools, and execute multi-step workflows reliably**.
+
+This page explains what MCP is, how it works, and why it is fundamental to Opencode’s architecture.
+
+---
+
+## What Is Opencode MCP?
+
+MCP stands for **Model Context Protocol**.
+
+In Opencode, MCP defines how context is:
+
+- Structured
+- Persisted
+- Shared between the model, the agent, and tools
+
+Instead of passing raw prompts, Opencode uses MCP to manage **explicit, structured state**.
+
+---
+
+## Why MCP Exists
+
+Traditional AI tools rely on stateless prompts, which leads to:
+
+- Context loss between steps
+- Unpredictable tool behavior
+- Difficult debugging
+
+MCP solves these problems by introducing:
+
+- Deterministic context updates
+- Clear execution boundaries
+- Explicit tool permissions
+
+---
+
+## How MCP Works (High-Level)
+
+At a high level, each MCP cycle looks like this:
+
+1. User input is parsed into structured context
+2. The agent reads and updates context
+3. Tools execute within defined permissions
+4. Results are merged back into context
+5. The loop continues until completion
+
+This makes agent behavior **predictable and inspectable**.
+
+---
+
+## MCP vs Prompt-Based Systems
+
+| Feature | Prompt-Based Systems | Opencode MCP |
+|------|---------------------|-------------|
+| Persistent context | ❌ | ✅ |
+| Tool isolation | ❌ | ✅ |
+| Deterministic flow | ❌ | ✅ |
+| Debuggability | Low | High |
+
+---
+
+## When Should You Use MCP?
+
+MCP is especially useful when:
+
+- Running multi-step workflows
+- Coordinating multiple tools
+- Building long-running agents
+- Debugging agent behavior
+
+---
+
+## Related Guides
+
+- [Opencode MCP Configuration](/en/mcp-configuration)
+- [Opencode MCP Client](/en/mcp-client)
+
+---
+
+## Summary
+
+Opencode MCP is the backbone of how Opencode agents reason, act, and persist state.
+
+If you're building serious agent workflows, MCP is unavoidable.

@@ -16,7 +16,9 @@
 | \`/en/cli-commands\` | \`/zh/docs/cli\` | CLI Commands Reference |
 | \`/en/opencode-vs-claude-code\` | \`/zh/vs-claude-code\` | Comparisons |
 | \`/en/opencode-with-ollama\` | \`/zh/docs/providers\` | Local Models (Ollama) |
-| \`/en/mcp-explained\` | \`/zh/docs/configure/mcp-servers\` | MCP Protocol Explanation |
+| \`/en/mcp\` | \`/zh/docs/mcp\` | MCP Protocol Explanation (Hub) |
+| \`/en/mcp-configuration\` | \`/zh/docs/configure/mcp-servers\` | MCP Configuration Guide |
+| \`/en/mcp-client\` | \`/zh/docs/develop/server\` | MCP Client Architecture |
 | \`/en/neovim-integration\` | \`/zh/docs/ide\` | Neovim Setup |
 | \`/en/use-cases\` | \`/zh/docs/usage\` | Usage Scenarios |
 

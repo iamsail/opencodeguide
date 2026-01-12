@@ -1,0 +1,120 @@
+export const metadata = {
+  title: "Opencode MCP Configuration Guide (With Examples)",
+  description:
+    "Learn how to configure Opencode MCP step by step. Includes configuration file structure, examples, and best practices.",
+  alternates: {
+    canonical: "/en/mcp-configuration",
+    languages: {
+      en: "/en/mcp-configuration",
+      zh: "/zh/docs/configure/mcp-servers",
+    },
+  },
+};
+
+# Opencode MCP Configuration Guide
+
+This guide explains how to configure **Opencode MCP**, including configuration structure, key options, and common mistakes.
+
+Correct MCP configuration is essential for reliable agent behavior.
+
+---
+
+## MCP Configuration Overview
+
+MCP configuration controls:
+
+- Context persistence
+- Tool permissions
+- Execution scope
+- Memory lifecycle
+
+A misconfigured MCP setup can cause agents to behave unpredictably.
+
+---
+
+## Basic MCP Configuration Example
+
+```json
+{
+  "mcp": {
+    "context": {
+      "persistence": true,
+      "scope": "session"
+    },
+    "tools": {
+      "filesystem": true,
+      "shell": false
+    }
+  }
+}
+```
+
+---
+
+## Key Configuration Options Explained
+
+### Context Persistence
+
+Controls whether the agent remembers previous steps.
+
+* `true`: recommended for workflows
+* `false`: useful for isolated tasks
+
+---
+
+### Scope
+
+Defines how long context survives.
+
+Common values:
+
+* `session`
+* `task`
+* `global`
+
+Avoid `global` unless you fully understand the implications.
+
+---
+
+### Tool Permissions
+
+Each tool must be explicitly enabled.
+
+This prevents:
+
+* Accidental file modification
+* Unsafe command execution
+* Context leakage
+
+---
+
+## Common Configuration Mistakes
+
+* Enabling too many tools by default
+* Using global scope unnecessarily
+* Disabling persistence unintentionally
+
+---
+
+## Recommended Defaults
+
+For most users:
+
+* Persistence: enabled
+* Scope: session
+* Tools: minimal required set
+
+---
+
+## Related Guides
+
+* [What Is Opencode MCP?](/en/mcp)
+* [Opencode MCP Client](/en/mcp-client)
+
+---
+
+## Summary
+
+Treat MCP configuration as **production infrastructure**, not a convenience setting.
+
+A well-configured MCP setup is the foundation of stable agents.

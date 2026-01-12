@@ -18,6 +18,11 @@ const nextConfig = {
         destination: '/zh/install',
         permanent: true,
       },
+      {
+        source: '/en/mcp-explained',
+        destination: '/en/mcp',
+        permanent: true,
+      },
     ]
   },
 }

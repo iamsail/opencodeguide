@@ -111,7 +111,7 @@ export default function Home() {
           </p>
           <div className="grid sm:grid-cols-2 gap-4 max-w-lg mx-auto">
              <Link
-              href="/en/mcp-explained"
+              href="/en/mcp"
               className="flex items-center justify-center rounded-md bg-white text-gray-900 px-8 py-4 text-sm font-semibold hover:bg-gray-100 transition-all"
             >
               Explore MCP

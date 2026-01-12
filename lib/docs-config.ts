@@ -17,7 +17,7 @@ export const docsConfigEn: DocsConfig = [
       },
       {
         title: "MCP Explained",
-        href: "/en/mcp-explained",
+        href: "/en/mcp",
       },
     ],
   },

@@ -1,0 +1,91 @@
+export const metadata = {
+  title: "Opencode MCP Client Explained: Architecture and Usage",
+  description:
+    "A deep dive into the Opencode MCP client. Learn how it manages context, communicates with MCP servers, and executes tools.",
+  alternates: {
+    canonical: "/en/mcp-client",
+    languages: {
+      en: "/en/mcp-client",
+      zh: "/zh/docs/develop/server",
+    },
+  },
+};
+
+# Opencode MCP Client Explained
+
+The Opencode MCP client is the **runtime layer** responsible for executing MCP logic.
+
+This page explains how the client works and when customization is necessary.
+
+---
+
+## What Is the MCP Client?
+
+The MCP client:
+
+- Sends structured context to the model
+- Receives model responses
+- Executes tool calls
+- Updates MCP state
+
+It acts as the bridge between **protocol definition and real execution**.
+
+---
+
+## MCP Client Responsibilities
+
+The client is responsible for:
+
+1. Context serialization
+2. Tool dispatch and isolation
+3. Error handling
+4. State reconciliation
+
+This separation keeps agent behavior deterministic.
+
+---
+
+## Client–Server Interaction
+
+Typical interaction flow:
+
+1. Client sends context snapshot
+2. Server validates and processes context
+3. Tools execute in isolated environments
+4. Results return to the client
+5. Context is updated and persisted
+
+---
+
+## Do You Need a Custom MCP Client?
+
+Most users do not.
+
+You only need a custom client if:
+
+- Embedding Opencode into another system
+- Implementing custom tool routing
+- Requiring non-standard persistence behavior
+
+---
+
+## Performance Considerations
+
+- Smaller context sizes improve performance
+- Limit tool calls per step
+- Avoid unnecessary global state
+
+---
+
+## Related Guides
+
+- [Opencode MCP Explained](/en/mcp)
+- [Opencode MCP Configuration](/en/mcp-configuration)
+
+---
+
+## Summary
+
+The MCP client turns **protocol design into working agents**.
+
+Understanding it helps you debug, optimize, and extend Opencode safely.
