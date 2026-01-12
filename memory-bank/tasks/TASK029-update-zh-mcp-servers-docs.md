@@ -43,4 +43,5 @@ The `/zh/docs/configure/mcp-servers` page was a placeholder. I:
 - Created task file and updated index.
 - Replaced placeholder in `app/(zh)/zh/docs/configure/mcp-servers/page.mdx` with full content.
 - Verified SEO metadata and link integrity.
+- **Refinement**: User provided a more comprehensive technical guide including Local/Remote specifics, OAuth details, and configuration tables. Updated the page with this detailed content.
 - Task marked as completed.

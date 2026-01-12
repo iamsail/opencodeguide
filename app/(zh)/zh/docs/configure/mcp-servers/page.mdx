@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "MCP 服务器配置指南 | OpenCode 中文文档",
-  description: "如何配置 MCP 服务器以扩展 OpenCode 的功能，包括连接数据库、GitHub、Slack 等外部工具。",
+  title: "MCP 服务器 | OpenCode 中文文档",
+  description: "配置模型上下文协议 (MCP) 服务器以连接本地和远程工具，扩展 OpenCode 的功能。",
   alternates: {
     canonical: "/zh/docs/configure/mcp-servers",
     languages: {
@@ -9,73 +9,328 @@ export const metadata = {
   },
 };
 
-# MCP 服务器 (MCP Servers)
+# MCP 服务器
 
-模型上下文协议 (Model Context Protocol, MCP) 是一项开放标准，允许 OpenCode 连接到各种外部源和工具。
+你可以使用模型上下文协议（Model Context Protocol，简称 MCP）将外部工具添加到 OpenCode 中。OpenCode 支持**本地**和**远程**两种类型的服务器。
 
-有关 MCP 的工作原理、架构和实际应用示例，请参阅我们的 **[MCP 综述指南](/zh/docs/mcp)**。
+添加完成后，MCP 工具会自动与内置工具一起提供给大语言模型（LLM）使用。
 
-## 概览
+> [!CAUTION]
+> **注意事项**
+> 使用 MCP 服务器会增加上下文内容。如果工具数量很多，上下文 token 消耗会迅速增加。因此建议谨慎选择要使用的 MCP 服务器。
+> 某些 MCP 服务器（例如 GitHub 的 MCP 服务器）往往会产生大量 token，很容易超出上下文限制。
 
-OpenCode 允许你直接在 [opencode.jsonc](/zh/docs/config) 配置文件中配置 MCP 服务器。这些服务器可以提供额外的工具（Tools）、资源（Resources）和提示词（Prompts），供 AI 智能体在与你互动时使用。
+## 启用
 
-## 配置
-
-在你的 `opencode.jsonc` 文件的 `mcp` 部分添加服务器：
+你可以在 [OpenCode 配置文件](/zh/docs/config) 中的 `mcp` 字段下定义 MCP 服务器。为每个 MCP 指定一个唯一的名称。在提示 LLM 时，可以通过这个名称来引用对应的 MCP。
 
 ```json
 {
+  "$schema": "https://opencode.ai/config.json",
   "mcp": {
-    "server-name": {
-      "type": "command",
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-postgres", "postgresql://localhost/mydb"],
+    "name-of-mcp-server": {
+      // ...
+      "enabled": true
+    },
+    "name-of-other-mcp-server": {
+      // ...
+    }
+  }
+}
+```
+*opencode.jsonc*
+
+你也可以将 `enabled` 设置为 `false` 来禁用某个服务器。这在你想暂时停用但又不想删除配置时很有用。
+
+### 覆盖组织默认远程配置
+
+组织可以通过 `.well-known/opencode` 端点提供默认的 MCP 服务器。这些默认服务器可能默认是禁用的，用户需要手动选择启用需要的服务器。
+
+要启用组织远程配置中的某个服务器，只需在本地配置中添加它并设置 `enabled: true`：
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "jira": {
+      "type": "remote",
+      "url": "https://jira.example.com/mcp",
+      "enabled": true
+    }
+  }
+}
+```
+*opencode.json*
+
+本地配置会覆盖远程默认值。更多详情见 [配置优先级](/zh/docs/config#加载优先级顺序从先到后后者覆盖前者)。
+
+---
+
+## 本地 MCP
+
+将 `type` 设置为 `"local"` 来添加本地 MCP 服务器。
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "my-local-mcp-server": {
+      "type": "local",
+      // 或 ["bun", "x", "my-mcp-command"]
+      "command": ["npx", "-y", "my-mcp-command"],
       "enabled": true,
-      "env": {
-        "MY_ENV_VAR": "value"
+      "environment": {
+        "MY_ENV_VAR": "my_env_var_value"
       }
     }
   }
 }
 ```
+*opencode.jsonc*
 
-### 属性
+`command` 是启动本地 MCP 服务器的命令（数组形式）。你也可以传入环境变量对象。
 
-- `type`: 目前支持 `command`（本地脚本/命令）
-- `command`: 要运行的命令（例如 `npx`, `python`, `node`, `docker`, `poetry`）
-- `args`: 传递给命令的参数列表
-- `enabled`: (可选) 布尔值，用于启用或禁用该服务器（默认为 `true`）
-- `env`: (可选) 要传递给服务器进程的环境变量对象
+例如，以下是如何添加官方测试服务器 `@modelcontextprotocol/server-everything`：
 
-## 修改配置
+```json
+{
+  "mcp": {
+    "mcp_everything": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-everything"]
+    }
+  }
+}
+```
+*opencode.jsonc*
 
-修改完成后，OpenCode 将会：
-1. 检测到配置文件的更改。
-2. 自动重启受影响的 MCP 服务器。
-3. 更新该会话中可用的工具列表。
+**使用方式：** 在提示中加入 `use the mcp_everything tool` 即可。
 
-## 调试
+> **示例提示：** `use the mcp_everything tool to add the number 3 and 4`
 
-你可以通过以下方式检查 MCP 服务器的状态：
+### 本地选项
 
-1.  **TUI 界面**: 使用 `/mcp` 斜杠命令查看已连接的服务器及其工具。
-2.  **日志**: OpenCode 会将 MCP 相关的错误记录到标准错误输出 (stderr)。
+| 选项 | 类型 | 必填 | 说明 |
+| :--- | :--- | :--- | :--- |
+| `type` | String | 是 | 必须为 `"local"` |
+| `command` | Array | 是 | 运行 MCP 服务器的命令及参数 |
+| `environment` | Object | 否 | 运行服务器时设置的环境变量 |
+| `enabled` | Boolean | 否 | 是否在启动时启用该服务器 |
+| `timeout` | Number | 否 | 获取工具的超时时间（毫秒），默认 5000（5秒） |
 
-## [优先级顺序](/zh/docs/config#加载优先级顺序从先到后后者覆盖前者)
+---
 
-如果在多个配置文件中定义了同名的 MCP 服务器（例如在全局和项目配置中），则合并规则如下：
+## 远程 MCP
 
--   `enabled` 属性将被覆盖。
--   `env` 变量将被合并。
--   如果 `command` 不同，则更高优先级的配置将完全替换旧的配置。
+将 `type` 设置为 `"remote"` 来添加远程 MCP 服务器。
 
-## 故障排除
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "my-remote-mcp": {
+      "type": "remote",
+      "url": "https://my-mcp-server.com",
+      "enabled": true,
+      "headers": {
+        "Authorization": "Bearer MY_API_KEY"
+      }
+    }
+  }
+}
+```
+*opencode.json*
 
-### 路径问题
-在配置 `command` 时，尽量使用绝对路径或确保相关可执行文件（如 `node`, `python`）已在你的系统 `PATH` 中。
+`url` 是远程 MCP 服务器的地址，`headers` 可用于传递请求头。
 
-### 环境
-如果服务器依赖特定的环境变量（如 API 密钥），请确保它们已在 `env` 键下正确定义。
+### 远程选项
 
-### 权限
-确保 OpenCode 具有运行指定命令及其关联脚本的必要权限。
+| 选项 | 类型 | 必填 | 说明 |
+| :--- | :--- | :--- | :--- |
+| `type` | String | 是 | 必须为 `"remote"` |
+| `url` | String | 是 | 远程 MCP 服务器的 URL |
+| `enabled` | Boolean | 否 | 是否在启动时启用 |
+| `headers` | Object | 否 | 请求时携带的 HTTP 头 |
+| `oauth` | Object | 否 | OAuth 配置（详见下方 OAuth 部分） |
+| `timeout` | Number | 否 | 获取工具的超时时间（毫秒），默认 5000（5秒） |
+
+---
+
+## OAuth 认证
+
+OpenCode 会自动处理支持 OAuth 的远程 MCP 服务器认证流程：
+
+1. 检测到 401 响应后自动发起 OAuth 流程。
+2. 如果服务器支持，会使用 Dynamic Client Registration (RFC 7591)。
+3. 令牌会被安全存储供后续使用。
+
+### 自动流程（最常见）
+
+大多数支持 OAuth 的服务器无需额外配置：
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "my-oauth-server": {
+      "type": "remote",
+      "url": "https://mcp.example.com/mcp"
+    }
+  }
+}
+```
+*opencode.json*
+
+首次使用时如果需要认证，OpenCode 会提示你登录。你也可以手动触发：`opencode mcp auth <server-name>`。
+
+### 预注册客户端
+
+如果你已经从服务提供方获得了 client credentials，可以这样配置：
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "my-oauth-server": {
+      "type": "remote",
+      "url": "https://mcp.example.com/mcp",
+      "oauth": {
+        "clientId": "{env:MY_MCP_CLIENT_ID}",
+        "clientSecret": "{env:MY_MCP_CLIENT_SECRET}",
+        "scope": "tools:read tools:execute"
+      }
+    }
+  }
+}
+```
+*opencode.json*
+
+### 认证相关命令
+
+*   **触发认证**: `opencode mcp auth my-oauth-server`
+*   **查看状态**: `opencode mcp list`
+*   **退出登录**: `opencode mcp logout my-oauth-server`
+
+认证流程会打开浏览器完成授权。令牌安全存储在 `~/.local/share/opencode/mcp-auth.json`。
+
+### 禁用 OAuth 自动检测
+
+```json
+"oauth": false
+```
+
+### OAuth 配置选项
+
+| 选项 | 类型 | 说明 |
+| :--- | :--- | :--- |
+| `oauth` | Object \| false | OAuth 配置对象，设为 false 可禁用自动检测 |
+| `clientId` | String | OAuth 客户端 ID（未提供时尝试动态注册） |
+| `clientSecret` | String | OAuth 客户端密钥（如果需要） |
+| `scope` | String | 请求的权限范围 |
+
+---
+
+## 调试命令
+
+*   `opencode mcp auth list`
+*   `opencode mcp debug my-oauth-server`
+
+---
+
+## 管理 MCP 工具
+
+MCP 服务器添加后会作为工具出现在 OpenCode 中，与内置工具并列。
+
+### 全局禁用
+
+```json
+"tools": {
+  "my-mcp-foo": false
+}
+```
+
+或使用通配符：
+
+```json
+"tools": {
+  "my-mcp*": false
+}
+```
+
+### 按 Agent 启用
+
+可以在全局禁用某类工具，但对特定 Agent 开启：
+
+```json
+"tools": {
+  "my-mcp*": false
+},
+"agent": {
+  "my-agent": {
+    "tools": {
+      "my-mcp*": true
+    }
+  }
+}
+```
+
+### 支持的通配符
+
+*   `*` 匹配任意数量字符
+*   `?` 匹配单个字符
+
+---
+
+## 示例
+
+### Sentry
+
+```json
+{
+  "mcp": {
+    "sentry": {
+      "type": "remote",
+      "url": "https://mcp.sentry.dev/mcp",
+      "oauth": {}
+    }
+  }
+}
+```
+
+然后运行：`opencode mcp auth sentry`
+提示示例：`Show me the latest unresolved issues in my project. use sentry`
+
+### Context7
+
+```json
+{
+  "mcp": {
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp"
+    }
+  }
+}
+```
+
+使用 API Key：
+```json
+"headers": {
+  "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
+}
+```
+提示示例：`use context7`
+
+### Grep by Vercel
+
+```json
+{
+  "mcp": {
+    "gh_grep": {
+      "type": "remote",
+      "url": "https://mcp.grep.app"
+    }
+  }
+}
+```
+提示示例：`use the gh_grep tool`
