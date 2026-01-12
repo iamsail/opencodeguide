@@ -1,0 +1,64 @@
+---
+title: "This credential is only authorized for use with Claude Code (Opencode Fix)"
+description: "Fix the 'this credential is only authorized for use with Claude Code' error when using opencode. Learn why it happens and how to configure Anthropic keys correctly."
+keywords:
+  - opencode claude credential error
+  - this credential is only authorized for use with claude code
+  - opencode anthropic auth
+---
+
+# This credential is only authorized for use with Claude Code
+
+If you see the following error when using **opencode**:
+
+> This credential is only authorized for use with Claude Code
+
+You are not alone. This is currently one of the most common errors when configuring opencode with Claude.
+
+---
+
+## Why this error happens
+
+This error usually means **you are using the wrong type of Claude credential**.
+
+Common causes:
+
+- Using a **Claude Code–only credential** with the Anthropic API
+- Mixing **Claude Code** and **Anthropic API keys**
+- Incorrect environment variable configuration
+
+---
+
+## Claude Code vs Anthropic API Key
+
+| Credential Type | Works With | Works With Opencode |
+|---|---|---|
+| Claude Code credential | Claude Code UI | ❌ No |
+| Anthropic API key | Anthropic API | ✅ Yes |
+
+Opencode requires an **Anthropic API key**, not a Claude Code–only credential.
+
+---
+
+## How to fix it (Step by step)
+
+1. Create a valid **Anthropic API key**
+2. Set the key in your environment:
+   ```bash
+   export ANTHROPIC_API_KEY=your_api_key_here
+   ```
+3. Restart opencode
+4. Run your command again
+5. Verify your configuration
+   ```bash
+   echo $ANTHROPIC_API_KEY
+   ```
+
+If this prints a value, opencode should be able to authenticate correctly.
+
+---
+
+## Related guides
+
+- [Opencode + Claude Setup](/en/opencode-claude)
+- [Anthropic Auth for Opencode](/en/opencode-anthropic-auth)
