@@ -1,38 +1,81 @@
 export const metadata = {
-  title: "MCP 服务器 | OpenCode 中文文档",
-  description: "配置模型上下文协议 (MCP) 服务器以连接 OpenCode 与外部数据源和工具。",
+  title: "MCP 服务器配置指南 | OpenCode 中文文档",
+  description: "如何配置 MCP 服务器以扩展 OpenCode 的功能，包括连接数据库、GitHub、Slack 等外部工具。",
   alternates: {
     canonical: "/zh/docs/configure/mcp-servers",
     languages: {
-      zh: "/zh/docs/configure/mcp-servers",
-      en: "/en/mcp-configuration",
+      "en-US": "/en/mcp-configuration",
     },
   },
-}
+};
 
 # MCP 服务器 (MCP Servers)
 
-> 👉 **提示**：想了解 MCP 的整体原理、架构与示例？请查看英文完整指南：**[OpenCode MCP Hub](/en/mcp)**
+模型上下文协议 (Model Context Protocol, MCP) 是一项开放标准，允许 OpenCode 连接到各种外部源和工具。
 
-## 这是什么？
-模型上下文协议 (Model Context Protocol, MCP) 是一个开放标准，用于连接 AI 模型与数据源。通过配置 MCP 服务器，你可以让 OpenCode 连接到数据库、Slack、Notion、GitHub 或任何自定义的 API，从而在对话中查询和操作这些外部数据。
+有关 MCP 的工作原理、架构和实际应用示例，请参阅我们的 **[MCP 综述指南](/zh/docs/mcp)**。
 
-## 什么时候你会用到它？
-- 当你需要 AI "查询生产数据库中最近 10 条报错日志"（通过 PostgreSQL MCP Server）时。
-- 当你需要 AI 读取 Notion 里的产品需求文档来编写代码（通过 Notion MCP Server）时。
-- 当你开发了自己的内部工具平台，希望 AI 能直接调用查询接口时。
+## 概览
 
-## 核心概念
-- **MCP Server**：运行在本地或远程的代理服务，暴露了一组 Tools 和 Resources 给 AI。
-- **Resources**：类似文件的数据源（如数据库记录、API 返回值）。
-- **Prompts**：Server 提供的预设交互模版。
+OpenCode 允许你直接在 [opencode.jsonc](/zh/docs/config) 配置文件中配置 MCP 服务器。这些服务器可以提供额外的工具（Tools）、资源（Resources）和提示词（Prompts），供 AI 智能体在与你互动时使用。
 
-## 基本用法 / 配置说明
-> TODO：后续补充如何安装和配置 `mcp-server-postgres` 等官方示例
+## 配置
 
-## 常见误解 / 注意事项
-- MCP 是一套协议，你需要安装具体的 MCP Server 实现才能工作。
-- 安全性至关重要：连接数据库等敏感源时，务必通过只读账号或严格的审计策略。
+在你的 `opencode.jsonc` 文件的 `mcp` 部分添加服务器：
 
-## 延伸阅读
-> TODO：后续补充
+```json
+{
+  "mcp": {
+    "server-name": {
+      "type": "command",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres", "postgresql://localhost/mydb"],
+      "enabled": true,
+      "env": {
+        "MY_ENV_VAR": "value"
+      }
+    }
+  }
+}
+```
+
+### 属性
+
+- `type`: 目前支持 `command`（本地脚本/命令）
+- `command`: 要运行的命令（例如 `npx`, `python`, `node`, `docker`, `poetry`）
+- `args`: 传递给命令的参数列表
+- `enabled`: (可选) 布尔值，用于启用或禁用该服务器（默认为 `true`）
+- `env`: (可选) 要传递给服务器进程的环境变量对象
+
+## 修改配置
+
+修改完成后，OpenCode 将会：
+1. 检测到配置文件的更改。
+2. 自动重启受影响的 MCP 服务器。
+3. 更新该会话中可用的工具列表。
+
+## 调试
+
+你可以通过以下方式检查 MCP 服务器的状态：
+
+1.  **TUI 界面**: 使用 `/mcp` 斜杠命令查看已连接的服务器及其工具。
+2.  **日志**: OpenCode 会将 MCP 相关的错误记录到标准错误输出 (stderr)。
+
+## [优先级顺序](/zh/docs/config#加载优先级顺序从先到后后者覆盖前者)
+
+如果在多个配置文件中定义了同名的 MCP 服务器（例如在全局和项目配置中），则合并规则如下：
+
+-   `enabled` 属性将被覆盖。
+-   `env` 变量将被合并。
+-   如果 `command` 不同，则更高优先级的配置将完全替换旧的配置。
+
+## 故障排除
+
+### 路径问题
+在配置 `command` 时，尽量使用绝对路径或确保相关可执行文件（如 `node`, `python`）已在你的系统 `PATH` 中。
+
+### 环境
+如果服务器依赖特定的环境变量（如 API 密钥），请确保它们已在 `env` 键下正确定义。
+
+### 权限
+确保 OpenCode 具有运行指定命令及其关联脚本的必要权限。
