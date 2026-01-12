@@ -1,9 +1,13 @@
 # Active Context
 
 ## Current Focus
-We have completed the SEO structure optimization (Phase 2.5) and are now shifting focus to **Phase 3: Content Enrichment & Engagement**. The immediate priority is replacing text-based placeholder images with real screenshots ([TASK023]) and continuing to populate the Chinese documentation with technical content.
+We have completed the **MCP Hub SEO Transformation ([TASK025])**, establishing `/en/mcp` as the single authoritative source. Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets.
 
 ## Recent Changes
+-   **MCP Hub Optimization ([TASK025])**: Consolidated all MCP-related traffic to `/en/mcp`.
+    -   **Authority**: Rewrote `/en/mcp` as a comprehensive Hub.
+    -   **Internal Linking**: Updated Home, Comparison, and sub-pages to point to the Hub.
+    -   **Chinese Anchor**: Added a callout in `/zh/docs/configure/mcp-servers` directing to the English Hub.
 -   **SEO Optimization Completed ([TASK022])**: Successfully implemented the "Authority Concentration" strategy.
     -   **Canonicals**: All supplementary articles now point to \`/zh/docs\` as the single source of truth.
     -   **Hreflang**: Established 8+ bidirectional logic pairs between English and Chinese pages.

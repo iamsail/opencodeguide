@@ -1,7 +1,13 @@
 export const metadata = {
-  title: "Opencode MCP Explained: What It Is, How It Works, and Why It Matters",
-  description:
-    "Opencode MCP explained in plain English. Learn what MCP is, how it works, and why it matters for building reliable AI agents.",
+  title: "OpenCode MCP Guide: Setup, Configuration, and Usage (2026)",
+  description: "Learn how OpenCode implements MCP (Model Context Protocol). This guide covers architecture, quick start, configuration examples, usage patterns, and troubleshooting.",
+  keywords: [
+    "opencode mcp",
+    "model context protocol",
+    "mcp configuration",
+    "mcp servers",
+    "opencode mcp setup"
+  ],
   alternates: {
     canonical: "/en/mcp",
     languages: {
@@ -11,89 +17,191 @@ export const metadata = {
   },
 };
 
-# Opencode MCP Explained
+# OpenCode MCP (Model Context Protocol)
 
-Opencode MCP (Model Context Protocol) is the core protocol that allows Opencode agents to **maintain context, coordinate tools, and execute multi-step workflows reliably**.
+MCP (Model Context Protocol) is the foundation that allows OpenCode to connect AI models with **external tools, services, and long-running context**.
 
-This page explains what MCP is, how it works, and why it is fundamental to Opencode’s architecture.
+This page is the **authoritative MCP hub for OpenCode**.  
+It explains what MCP is, why it matters, how it works, and how to configure and use it effectively.
 
----
+If you are looking for:
+- How OpenCode connects to tools like file systems or APIs
+- How to configure MCP servers
+- How MCP compares to built-in tool systems in other editors
 
-## What Is Opencode MCP?
-
-MCP stands for **Model Context Protocol**.
-
-In Opencode, MCP defines how context is:
-
-- Structured
-- Persisted
-- Shared between the model, the agent, and tools
-
-Instead of passing raw prompts, Opencode uses MCP to manage **explicit, structured state**.
+You are in the right place.
 
 ---
 
-## Why MCP Exists
+## What is MCP?
 
-Traditional AI tools rely on stateless prompts, which leads to:
+MCP (Model Context Protocol) is a standardized protocol that enables AI clients to communicate with external servers that expose structured capabilities.
 
-- Context loss between steps
-- Unpredictable tool behavior
-- Difficult debugging
+Instead of hard-coding tools into the editor, MCP allows OpenCode to:
 
-MCP solves these problems by introducing:
+- Discover available tools dynamically
+- Invoke them in a controlled, inspectable way
+- Maintain structured context across multiple interactions
 
-- Deterministic context updates
-- Clear execution boundaries
-- Explicit tool permissions
+In practice, MCP turns OpenCode into a **tool-oriented AI environment**, not just a chat interface.
 
 ---
 
-## How MCP Works (High-Level)
+## Why OpenCode Uses MCP
 
-At a high level, each MCP cycle looks like this:
+Traditional AI coding tools rely on tightly coupled, editor-specific integrations.
 
-1. User input is parsed into structured context
-2. The agent reads and updates context
-3. Tools execute within defined permissions
-4. Results are merged back into context
-5. The loop continues until completion
+OpenCode takes a different approach.
 
-This makes agent behavior **predictable and inspectable**.
+By adopting MCP, OpenCode achieves:
 
----
+- **Extensibility**: Add new capabilities without modifying core editor logic
+- **Transparency**: MCP servers run as explicit processes you can inspect and debug
+- **Local-first workflows**: Use local models and tools without vendor lock-in
+- **Consistency**: The same MCP server can be reused across workflows
 
-## MCP vs Prompt-Based Systems
-
-| Feature | Prompt-Based Systems | Opencode MCP |
-|------|---------------------|-------------|
-| Persistent context | ❌ | ✅ |
-| Tool isolation | ❌ | ✅ |
-| Deterministic flow | ❌ | ✅ |
-| Debuggability | Low | High |
+This design makes OpenCode especially powerful for advanced and repeatable development workflows.
 
 ---
 
-## When Should You Use MCP?
+## MCP Architecture Overview
 
-MCP is especially useful when:
+At a high level, MCP consists of three parts:
 
-- Running multi-step workflows
-- Coordinating multiple tools
-- Building long-running agents
-- Debugging agent behavior
+1. **MCP Client (OpenCode)**  
+   Responsible for discovering servers, sending requests, and managing context.
+
+2. **MCP Servers**  
+   External processes that expose tools and capabilities via MCP.
+
+3. **Transport & Protocol**  
+   A standardized message format that defines how clients and servers communicate.
+
+```
+OpenCode (Client)
+↓
+MCP Protocol
+↓
+MCP Server (Tool / Data / API)
+```
+
+Each MCP server focuses on a **single responsibility**, such as code analysis, file access, or data processing.
 
 ---
 
-## Related Guides
+## Quick Start
 
-- [Opencode MCP Configuration](/en/mcp-configuration)
-- [Opencode MCP Client](/en/mcp-client)
+Most users can get started with MCP in OpenCode in just a few steps.
+
+### 1. Install Required Runtime
+
+Depending on the MCP server you want to use, ensure you have:
+
+- Node.js (for JavaScript-based servers)
+- Python (for data or ML-focused servers)
+
+### 2. Create MCP Configuration File
+
+Create or edit your MCP configuration file (commonly `config.json`).
+
+### 3. Restart OpenCode
+
+Restart OpenCode so the MCP client can load and register the servers.
+
+Once loaded, MCP servers become available to OpenCode workflows automatically.
 
 ---
 
-## Summary
+## MCP Configuration Example
 
-Opencode MCP is the backbone of how Opencode agents reason, act, and persist state.
+Below is a minimal MCP configuration example suitable for most local setups.
 
-If you're building serious agent workflows, MCP is unavoidable.
+```json
+{
+  "mcpServers": {
+    "example-server": {
+      "command": "node",
+      "args": ["./server.js"]
+    }
+  }
+}
+```
+
+### Explanation of Key Fields
+
+* **mcpServers**
+  A map of named MCP server definitions.
+
+* **command**
+  The executable used to start the MCP server.
+
+* **args**
+  Arguments passed to the command.
+
+This configuration is sufficient for most local MCP server setups.
+
+---
+
+## MCP Server Configuration
+
+MCP servers can expose a wide range of capabilities, including:
+
+* Code analysis and refactoring
+* Data access and transformation
+* File system operations
+* External API integrations
+
+Typical server implementations include:
+
+* **Node.js servers** for JavaScript-based tooling
+* **Python servers** for data processing or machine learning workflows
+
+Each MCP server should focus on a **clear responsibility** and expose a stable interface.
+
+---
+
+## MCP Client Usage Examples
+
+Once configured, MCP servers can be used in OpenCode workflows to:
+
+* Fetch structured or external data
+* Execute repeatable tasks
+* Maintain long-running context across interactions
+
+MCP is particularly effective for:
+
+* Multi-step workflows
+* Refactoring or analysis pipelines
+* Tool-heavy development tasks
+
+---
+
+## Common MCP Errors & Troubleshooting
+
+### MCP Server Not Responding
+
+* Ensure the MCP server process is running
+* Check command paths and execution permissions
+* Verify that the server starts without runtime errors
+
+### MCP Configuration File Not Loaded
+
+* Confirm the configuration file path is correct
+* Validate JSON syntax
+* Restart OpenCode after making changes
+
+### Permission or Execution Errors
+
+* Check executable permissions
+* Ensure required runtimes (Node.js, Python) are installed
+* Run the MCP server manually to inspect startup errors
+
+---
+
+## Next Steps
+
+* Explore real-world workflows in the **Use Cases** section
+* Compare MCP support in **OpenCode vs Claude Code**
+* Dive deeper into advanced MCP configuration in the documentation
+
+This page will continue to evolve as MCP support in OpenCode expands.
