@@ -19,6 +19,10 @@ export const docsConfigEn: DocsConfig = [
         title: "MCP Explained",
         href: "/en/mcp",
       },
+      {
+        title: "MCP Use Cases",
+        href: "/en/opencode-mcp-use-cases",
+      },
     ],
   },
   {

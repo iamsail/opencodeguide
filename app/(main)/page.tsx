@@ -14,7 +14,7 @@ export default function Home() {
         </h1>
         <p className="max-w-[42rem] leading-normal text-gray-500 dark:text-gray-400 sm:text-xl sm:leading-8 mb-10">
           OpenCode is the offline-first, plugin-driven alternative to cloud coding assistants. 
-          Learn how to run it with Ollama, connect via MCP, and integrate with Neovim.
+          Learn how to run it with Ollama, connect via <Link href="/en/mcp" className="underline hover:text-gray-900 dark:hover:text-gray-50">Model Context Protocol (MCP)</Link>, and integrate with Neovim.
         </p>
         <div className="flex gap-4">
           <Link

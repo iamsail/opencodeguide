@@ -10,15 +10,21 @@ We utilize **Route Groups** to handle multi-language root layouts completely sep
 -   This avoids complex i18n middleware for a static site and allows distinct UI/Fonts per language.
 
 ### Documentation Routing Strategy
-We distinguish between "Technical Reference" and "Educational Articles/Blog":
--   **Technical Reference**: Tiered hierarchy under `/zh/docs/` (e.g., `/zh/docs/configure/tools`). Used for structured manual-style content.
--   **Educational Articles**: Flat structure under `/zh/` (e.g., `/zh/opencode-shi-yong`). Used for SEO-optimized entry points and deep-dives.
--   **Navigation**: Technical Reference pages feature a functional sidebar and TOC for navigation.
+We distinguish between "Technical Reference" and "Educational Articles/Blog" to create a high-converting content loop:
+-   **Technical Reference**: Tiered hierarchy under `/zh/docs/` (e.g., `/zh/docs/configure/tools`). This is the "Single Source of Truth" for technical precision and community contribution.
+-   **Educational Articles**: Flat structure under `/zh/` (e.g., `/zh/opencode-shi-yong`). These serve as high-intent SEO entry points designed to attract viral traffic and guide them towards the technical documentation.
+-   **Authority Concentration**: 
+    -   Supplementary articles use `canonical` tags pointing to their most relevant technical documentation equivalent.
+    -   Hub pages (like `/en/mcp` and `/zh/opencode`) act as authoritative portals, consolidating weight and distributing it to sub-pages.
+-   **Content Loop Pattern**: 
+    -   Entry Point (Article/Search) -> Contextual Hub -> Deep Dive (Technical Docs) -> Practical Application (Use Cases) -> Ecosystem (Reference).
+    -   This loop ensures high user retention and strong topical authority for search engines.
 
 ### Content Engine
 -   **Source**: Local `.mdx` files stored in `app/(main)/en/**/*.mdx` and `app/(zh)/zh/**/*.mdx`.
 -   **Processor**: `@next/mdx` (Native Next.js MDX implementation).
 -   **Styling**: `@tailwindcss/typography` (`prose` class) handles Markdown rendering.
+-   **Language Sync**: Symmetric `hreflang` implementation across EN/ZH pairs to maintain global authority and signal language parity to search engines.
 
 ### Design System
 -   **Framework**: Tailwind CSS.

@@ -44,11 +44,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       // Get file modification time
       const stats = await fs.stat(file)
 
+      let priority = 0.8
+      if (route === '') priority = 1.0
+      else if (route === '/en/mcp') priority = 0.95
+      else if (route === '/en/mcp-client') priority = 0.7
+      else if (route === '/en/mcp-configuration') priority = 0.7
+
       return {
         url: `${baseUrl}${route}`,
         lastModified: stats.mtime,
         changeFrequency: 'weekly' as const,
-        priority: route === '' ? 1 : 0.8,
+        priority: priority,
       }
     })
   )

@@ -1,0 +1,347 @@
+export const metadata = {
+  title: "OpenCode MCP Use Cases (Practical Workflows & Examples)",
+  description: "Real-world MCP use cases in OpenCode. Learn how to use MCP servers for code analysis, refactoring, data access, automation, and multi-step developer workflows.",
+  date: "2026-01-12",
+  category: "opencode",
+  author: "OpenCode Guide",
+  keywords: [
+    "opencode mcp use cases",
+    "mcp workflows",
+    "model context protocol examples",
+    "opencode tools",
+    "ai coding workflows"
+  ],
+  alternates: {
+    canonical: "/en/opencode-mcp-use-cases",
+    languages: {
+      en: "/en/opencode-mcp-use-cases",
+      zh: "/zh/docs/mcp",
+    },
+  },
+};
+
+> **[!TIP] 中文用户注意**  
+> 如果您正在寻找模型上下文协议 (MCP) 的基础介绍或配置指南，可以先参考我们的中文文档：**[MCP 概览与配置指南](/zh/docs/mcp)**。
+
+# OpenCode MCP Use Cases
+
+MCP (Model Context Protocol) becomes powerful **only when used in real workflows**.
+
+This page focuses on **practical, production-oriented MCP use cases** you can run inside OpenCode today — not abstract protocol explanations.
+
+If you are new to MCP, start with the overview first:
+
+👉 **[What is MCP in OpenCode?](/en/mcp)**
+
+---
+
+## What MCP Is Best At (Quick Summary)
+
+MCP shines when tasks are:
+
+- Multi-step
+- Tool-heavy
+- Repetitive
+- Context-sensitive
+- Too complex for a single prompt
+
+Typical MCP-powered workflows include:
+
+- Codebase-wide analysis
+- Automated refactors
+- Structured data access
+- Long-running development tasks
+- AI + tool orchestration
+
+---
+
+## Use Case 1: Codebase Analysis & Architecture Review
+
+### Problem
+
+You want an AI assistant to:
+
+- Understand a large codebase
+- Identify architecture issues
+- Suggest improvements consistently
+
+Plain prompts fail because:
+- Context is too large
+- Analysis needs tooling (AST, file traversal)
+
+### MCP Solution
+
+Use an MCP server that can:
+
+- Read files
+- Traverse directories
+- Parse code structure
+- Return structured summaries
+
+### Example Workflow
+
+1. OpenCode connects to a **code-analysis MCP server**
+2. MCP scans:
+   - Project structure
+   - Dependency graph
+   - Entry points
+3. MCP returns structured context
+4. AI reasons on top of that context
+
+### Typical MCP Servers
+
+- Node.js-based AST analyzers
+- Language Server Protocol (LSP) adapters
+- Custom static analysis tools
+
+### Result
+
+- Faster onboarding
+- Consistent architecture reviews
+- Reliable high-level insights
+
+---
+
+## Use Case 2: Large-Scale Refactoring Pipelines
+
+### Problem
+
+You need to:
+
+- Rename APIs
+- Migrate patterns
+- Update imports
+- Enforce conventions
+
+Across hundreds of files.
+
+Manual work is slow and error-prone.
+
+### MCP Solution
+
+MCP enables **repeatable refactoring pipelines**.
+
+### Example Workflow
+
+1. MCP server scans for target patterns
+2. MCP applies transformations
+3. MCP validates output
+4. OpenCode reviews or applies changes
+
+### Why MCP Works Well Here
+
+- Deterministic tools do the edits
+- AI focuses on decision-making
+- Changes remain auditable
+
+### Common Refactor Tasks
+
+- Framework migrations
+- Deprecated API removal
+- Monorepo restructuring
+- Style or lint normalization
+
+---
+
+## Use Case 3: Data Access & Transformation
+
+### Problem
+
+You want AI to:
+
+- Query databases
+- Read CSV / JSON / logs
+- Transform data
+- Generate reports
+
+Without leaking credentials or embedding raw data into prompts.
+
+### MCP Solution
+
+Use a **data-access MCP server**.
+
+### Example Workflow
+
+1. MCP connects to:
+   - Databases
+   - Local files
+   - Data warehouses
+2. MCP executes queries
+3. MCP returns structured results
+4. AI interprets and summarizes
+
+### Typical MCP Servers
+
+- Python-based data processors
+- SQL query executors
+- Analytics pipelines
+
+### Benefits
+
+- Secure data handling
+- Structured results
+- Repeatable analysis
+
+---
+
+## Use Case 4: External API Integration
+
+### Problem
+
+You want AI to:
+
+- Fetch live data
+- Trigger actions
+- Integrate with third-party services
+
+Without brittle prompt-based HTTP logic.
+
+### MCP Solution
+
+Expose APIs via MCP servers.
+
+### Example Integrations
+
+- GitHub API (issues, PRs, commits)
+- CI/CD systems
+- Cloud providers
+- Internal services
+
+### Example Workflow
+
+1. MCP server wraps API logic
+2. AI calls MCP functions
+3. MCP handles authentication & retries
+4. AI reasons over responses
+
+### Result
+
+- Safer automation
+- Cleaner separation of concerns
+- Less prompt engineering
+
+---
+
+## Use Case 5: Long-Running Development Context
+
+### Problem
+
+Complex tasks span multiple sessions:
+
+- Feature development
+- Debugging investigations
+- Design iterations
+
+AI loses context between runs.
+
+### MCP Solution
+
+MCP servers can maintain **long-lived state**.
+
+### Example Workflow
+
+1. MCP stores:
+   - Intermediate results
+   - Decisions
+   - Logs
+2. OpenCode reconnects later
+3. Context resumes seamlessly
+
+### Ideal For
+
+- Debug sessions
+- Incremental refactors
+- Research-heavy tasks
+
+---
+
+## Use Case 6: Automation & Tool Orchestration
+
+### Problem
+
+You need AI to coordinate multiple tools:
+
+- Linters
+- Test runners
+- Formatters
+- Build systems
+
+In a controlled way.
+
+### MCP Solution
+
+MCP acts as an **orchestration layer**.
+
+### Example Workflow
+
+1. MCP runs tests
+2. MCP analyzes failures
+3. MCP applies fixes
+4. MCP re-runs validation
+
+### Why MCP Beats Scripts
+
+- AI decides *when* and *why*
+- Tools execute *how*
+- Clear boundaries and logs
+
+---
+
+## When You Should NOT Use MCP
+
+MCP is not always necessary.
+
+Avoid MCP when:
+
+- Task is simple or one-off
+- No external tools are needed
+- Context fits comfortably in prompts
+
+MCP introduces structure — use it when structure pays off.
+
+---
+
+## Choosing the Right MCP Server Type
+
+| Use Case | Recommended Server |
+|--------|--------------------|
+| Code analysis | Node.js / LSP |
+| Refactoring | AST-based tools |
+| Data processing | Python |
+| API integration | Language-native SDKs |
+| Automation | Task runners |
+
+---
+
+## How These Use Cases Fit Into OpenCode
+
+OpenCode acts as:
+
+- The **orchestrator**
+- The **UX layer**
+- The **reasoning engine**
+
+MCP servers act as:
+
+- Tool providers
+- Context managers
+- Execution layers
+
+Together, they enable workflows that plain chat-based coding tools cannot handle.
+
+---
+
+## Next Steps
+
+- Learn how to configure MCP servers  
+  👉 **[MCP Server Configuration Guide](/en/mcp-configuration)**
+
+- Compare MCP support in OpenCode vs Claude Code  
+  👉 **[OpenCode vs Claude Code (MCP Support)](/en/opencode-vs-claude-code)**
+
+- Explore the authoritative guide  
+  👉 **[What is MCP?](/en/mcp)**
+
+---
+
+This page will evolve as new MCP servers and OpenCode workflows emerge.
