@@ -1,13 +1,17 @@
 # Active Context
 
 ## Current Focus
-We have completed the **MCP Hub SEO Transformation ([TASK025])**, establishing `/en/mcp` as the single authoritative source. We have optimized the **sitemap priorities** and **internal linking** to support this authority. All **P0 and P1 SEO tasks are now complete**.
+We have completed the **MCP Authority & Content Loop ([TASK025] & [TASK026])**, establishing `/en/mcp` as the primary authoritative hub and `/en/opencode-mcp-use-cases` as its primary practical extension. This creates a powerful content loop: educational entry point (Hub) -> practical application (Use Cases) -> technical documentation.
 
-Our focus now shifts to **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets.
+Our focus now shifts to **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
 
 ## Recent Changes
+-   **MCP Use Cases ([TASK026])**: Created a new comprehensive guide at `/en/opencode-mcp-use-cases` featuring 6+ real-world workflows.
+    -   **SEO Authority**: Implemented optimized metadata and structured headings to capture "MCP Use Cases" and "Model Context Protocol real world" search intent.
+    -   **Navigation**: Strategic placement in the "Introduction" section of the sidebar.
+    -   **Content Loop**: Established bidirectional internal linking between the MCP Hub, General Use Cases, comparison guides, and integration pages.
 -   **MCP Hub Optimization ([TASK025])**: Consolidated all MCP-related traffic to `/en/mcp`.
-    -   **Authority**: Rewrote `/en/mcp` as a comprehensive Hub.
+    -   **Authority Concentration**: Rewrote `/en/mcp` as a comprehensive Hub to serve as the single source of truth for MCP education.
     -   **Internal Linking**: Updated Home, Comparison, and sub-pages to point to the Hub.
     -   **Chinese Anchor**: Added a callout in `/zh/docs/configure/mcp-servers` directing to the English Hub.
 -   **SEO Optimization Completed ([TASK022])**: Successfully implemented the "Authority Concentration" strategy.

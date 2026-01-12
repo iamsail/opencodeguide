@@ -27,9 +27,11 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
+-   [x] **MCP Use Cases**: Added comprehensive real-world workflow guide ([TASK026]) to strengthen the English content loop.
 -   [ ] Fully translate the 33+ documentation pages (Config is done).
 -   [ ] Add visual screenshots to documentation.
 -   [ ] Implement "Edit this page" links.
 
 ## Known Issues
 -   Screenshots are still text-based placeholders.
+-   Chinese documentation depth still needs to be expanded for Providers/Configuration sections.
