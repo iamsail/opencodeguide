@@ -49,7 +49,7 @@ export default function Home() {
                  First-class support for Ollama. Run Llama 3 or DeepSeek Coder locally without sending code to the cloud.
               </p>
             </div>
-             <div className="bg-white dark:bg-gray-800 p-8 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+            <Link href="/en/mcp" className="block bg-white dark:bg-gray-800 p-8 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm transition-shadow hover:shadow-md">
               <div className="h-10 w-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-4">
                 <Zap className="h-5 w-5 text-gray-700 dark:text-gray-200" />
               </div>
@@ -57,7 +57,7 @@ export default function Home() {
               <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
                 Full implementation of the Model Context Protocol. Connect databases, APIs, and custom tools easily.
               </p>
-            </div>
+            </Link>
           </div>
         </div>
       </section>
