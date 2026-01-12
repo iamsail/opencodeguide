@@ -29,6 +29,7 @@
 ### Phase 3: Content Enrichment & Engagement (In Progress)
 -   [x] **MCP Use Cases**: Added comprehensive real-world workflow guide ([TASK026]) to strengthen the English content loop.
 -   [x] **SEO Landing Pages**: Deployed 6 high-value landing pages ([TASK027]) targeting specific errors (Claude Credential) and integrations (Playwright, MCP), strictly adhering to `/en/` and `/zh/` routing.
+-   [x] **TUI Documentation**: Replaced placeholder with comprehensive Chinese guide ([TASK028]).
 -   [ ] Fully translate the 33+ documentation pages (Config is done).
 -   [ ] Add visual screenshots to documentation.
 -   [ ] Implement "Edit this page" links.
