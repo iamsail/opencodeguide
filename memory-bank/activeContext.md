@@ -1,11 +1,15 @@
 # Active Context
 
 ## Current Focus
-We have completed the **MCP Authority & Content Loop ([TASK025] & [TASK026])**, establishing `/en/mcp` as the primary authoritative hub and `/en/opencode-mcp-use-cases` as its primary practical extension. This creates a powerful content loop: educational entry point (Hub) -> practical application (Use Cases) -> technical documentation.
+We have completed the **SEO Landing Pages Expansion ([TASK027])**, adding 6 targeted pages to capture high-intent search traffic around common errors (Claude credentials) and specific integrations (Playwright). This further solidifies the site's authority by addressing specific user pain points directly.
 
-Our focus now shifts to **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
+Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
 
 ## Recent Changes
+-   **SEO Landing Pages ([TASK027])**: Deployed 6 new pages including:
+    -   **Claude Credential Error Fix**: `/en/opencode/errors/claude-credential-only-authorized`
+    -   **Detailed Integrations**: `/en/opencode-mcp-playwright`, `/en/opencode-claude`, etc.
+    -   **Routing discipline**: Enforced strict `/en/` and `/zh/` prefixes for all new content to match the established SEO structure.
 -   **MCP Use Cases ([TASK026])**: Created a new comprehensive guide at `/en/opencode-mcp-use-cases` featuring 6+ real-world workflows.
     -   **SEO Authority**: Implemented optimized metadata and structured headings to capture "MCP Use Cases" and "Model Context Protocol real world" search intent.
     -   **Navigation**: Strategic placement in the "Introduction" section of the sidebar.

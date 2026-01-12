@@ -1,0 +1,37 @@
+---
+title: "Anthropic Authentication for Opencode"
+description: "How to configure Anthropic API authentication correctly when using opencode."
+keywords:
+  - opencode anthropic auth
+  - anthropic api key opencode
+---
+
+# Anthropic Authentication for Opencode
+
+Opencode requires a valid **Anthropic API key** to work with Claude.
+
+---
+
+## Required environment variable
+
+```bash
+export ANTHROPIC_API_KEY=your_api_key_here
+```
+
+## Common mistakes
+
+- Using Claude Code credentials
+- Forgetting to export the variable
+- Using expired keys
+
+## Test your setup
+
+```bash
+opencode --version
+```
+
+If authentication fails, check your environment variables.
+
+## Related errors
+
+- [Claude credential authorization error](/en/opencode/errors/claude-credential-only-authorized)
