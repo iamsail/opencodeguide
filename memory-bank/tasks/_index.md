@@ -1,10 +1,9 @@
 # Tasks Index
 
 ## In Progress
-- [TASK022] SEO 架构优化 - 权重引导与路由关联
+- [TASK023] Add real screenshots to documentation - Replacing text descriptions with visual aids
 
 ## Pending
-- [TASK023] Add real screenshots to documentation - Replacing text descriptions with visual aids
 - [TASK024] Implement "Edit this page" links - Connecting documentation to GitHub source
 
 ## Completed
