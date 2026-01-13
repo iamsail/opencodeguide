@@ -24,6 +24,7 @@ We distinguish between "Technical Reference" and "Educational Articles/Blog" to 
 -   **Source**: Local `.mdx` files stored in `app/(main)/en/**/*.mdx` and `app/(zh)/zh/**/*.mdx`.
 -   **Processor**: `@next/mdx` (Native Next.js MDX implementation).
     -   **Compiler**: `experimental.mdxRs: true` enabled in `next.config.mjs` for Rust-based compilation. This is the **standardized pattern** to ensure compatibility with Next.js 16 Turbopack while providing built-in GFM support for tables.
+    -   **Stability Fallback**: For complex documentation with deep technical tables, we prefer **Styled HTML `<table>` tags** over Markdown `|` syntax when using Turbopack. This avoids "non-serializable options" errors while maintaining precise control over UI padding and border styles.
 -   **Styling**: `@tailwindcss/typography` (`prose` class) handles Markdown rendering.
 -   **Language Sync**: Symmetric `hreflang` implementation across EN/ZH pairs to maintain global authority and signal language parity to search engines.
 

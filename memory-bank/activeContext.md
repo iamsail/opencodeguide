@@ -6,6 +6,10 @@ We have completed the **SEO Landing Pages Expansion ([TASK027])**, adding 6 targ
 Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
 
 ## Recent Changes
+-   **CLI Documentation Update ([TASK033])**: Replaced the Chinese CLI placeholder at `/zh/docs/cli` with a complete manual.
+    -   **Content**: Added full command references, flags, and an exhaustive list of environment variables.
+    -   **MDX Fix**: Used a hybrid approach with styled HTML `<table>` tags to ensure proper rendering under Next.js 16 + Turbopack, bypassing plugin serialization errors.
+    -   **UI Enhancement**: Added robust styling for table elements in `mdx-components.tsx` to ensure visual consistency across all documentation.
 -   **Introduction Documentation Update ([TASK032])**: Completely overhauled the Chinese introduction guide (`/zh/docs/intro`).
     -   **Simplification**: Replaced the previous fragmented list with a cohesive, logical flow covering prerequisites, installation, initialization, and basic usage.
     -   **Link Integrity**: Synchronized 15+ internal links to match the new tiered routing structure (`/zh/docs/...`).

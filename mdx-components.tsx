@@ -59,6 +59,28 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         {children}
       </ol>
     ),
+    table: ({ children }) => (
+      <div className="my-6 w-full overflow-y-auto">
+        <table className="w-full">
+          {children}
+        </table>
+      </div>
+    ),
+    tr: ({ children }) => (
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        {children}
+      </tr>
+    ),
+    th: ({ children }) => (
+      <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800 [&[align=center]]:text-center [&[align=right]]:text-right">
+        {children}
+      </th>
+    ),
+    td: ({ children }) => (
+      <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 [&[align=center]]:text-center [&[align=right]]:text-right">
+        {children}
+      </td>
+    ),
     ...components,
   }
 }
