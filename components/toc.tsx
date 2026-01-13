@@ -97,13 +97,17 @@ export function TableOfContents({ className }: TableOfContentsProps) {
     }
   }, [pathname])
 
+  const isZh = pathname?.startsWith('/zh')
+
   if (!items?.length) {
     return null
   }
 
   return (
     <div className={cn("space-y-2", className)}>
-      <p className="font-medium text-sm text-gray-900">On This Page</p>
+      <p className="font-medium text-sm text-gray-900 dark:text-gray-100">
+        {isZh ? "本页内容" : "On This Page"}
+      </p>
       <ul className="m-0 list-none text-sm">
         {items.map((item) => (
           <li

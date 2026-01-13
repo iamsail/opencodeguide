@@ -6,6 +6,12 @@ We have completed the **SEO Landing Pages Expansion ([TASK027])**, adding 6 targ
 Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
 
 ## Recent Changes
+-   **MDX & UI Refinement ([TASK030])**: Fixed table rendering and enhanced TOC.
+    -   **Table Rendering**: Enabled `mdxRs: true` in `next.config.mjs` to resolve GFM/Turbopack compatibility issues.
+    -   **Hydration Fix**: Implemented compressed HTML fallback for complex tables in `mcp-servers/page.mdx` to avoid Vercel/Next.js hydration errors.
+    -   **TOC Hierarchy**: Added support for H2/H3 levels with indentation and translated the header to "本页内容" for Chinese routes.
+-   **MCP Servers Documentation ([TASK029])**: Replaced placeholder with detailed Chinese manual.
+-   **TUI Documentation ([TASK028])**: Replaced placeholder with comprehensive Chinese guide.
 -   **SEO Landing Pages ([TASK027])**: Deployed 6 new pages including:
     -   **Claude Credential Error Fix**: `/en/opencode/errors/claude-credential-only-authorized`
     -   **Detailed Integrations**: `/en/opencode-mcp-playwright`, `/en/opencode-claude`, etc.

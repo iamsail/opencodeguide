@@ -3,6 +3,7 @@
 ## In Progress
 
 ## Completed
+- [TASK030] MDX Table Support and UI Refinement - Fixed table rendering and added TOC hierarchy. - Completed on 2026-01-13
 - [TASK029] Update MCP Servers Chinese Documentation - Completed on 2026-01-13
 - [TASK028] Update TUI Chinese Documentation - Replaced TUI placeholder with comprehensive guide - Completed on 2026-01-13
 - [TASK027] Create SEO Landing Pages for High-Traffic Keywords - Captured Claude/MCP specific search intent - Completed on 2026-01-12

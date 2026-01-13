@@ -110,13 +110,9 @@ export const metadata = {
 
 ### 本地选项
 
-| 选项 | 类型 | 必填 | 说明 |
-| :--- | :--- | :--- | :--- |
-| `type` | String | 是 | 必须为 `"local"` |
-| `command` | Array | 是 | 运行 MCP 服务器的命令及参数 |
-| `environment` | Object | 否 | 运行服务器时设置的环境变量 |
-| `enabled` | Boolean | 否 | 是否在启动时启用该服务器 |
-| `timeout` | Number | 否 | 获取工具的超时时间（毫秒），默认 5000（5秒） |
+<div className="my-6 w-full overflow-y-auto">
+<table className="w-full border-collapse border-t border-gray-200 dark:border-gray-800 text-sm"><thead><tr className="border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50"><th className="border border-gray-200 dark:border-gray-800 px-4 py-2 text-left font-bold">选项</th><th className="border border-gray-200 dark:border-gray-800 px-4 py-2 text-left font-bold">类型</th><th className="border border-gray-200 dark:border-gray-800 px-4 py-2 text-left font-bold">必填</th><th className="border border-gray-200 dark:border-gray-800 px-4 py-2 text-left font-bold">说明</th></tr></thead><tbody><tr className="border-t border-gray-200 dark:border-gray-800 p-0"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`type`</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">String</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">是</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">必须为 `"local"`</td></tr><tr className="border-t border-gray-200 dark:border-gray-800 p-0 even:bg-gray-50 dark:even:bg-gray-900/50"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`command`</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">Array</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">是</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">运行 MCP 服务器的命令及参数</td></tr><tr className="border-t border-gray-200 dark:border-gray-800 p-0"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`environment`</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">Object</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">否</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">运行服务器时设置的环境变量</td></tr><tr className="border-t border-gray-200 dark:border-gray-800 p-0 even:bg-gray-50 dark:even:bg-gray-900/50"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`enabled`</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">Boolean</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">否</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">是否在启动时启用该服务器</td></tr><tr className="border-t border-gray-200 dark:border-gray-800 p-0"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`timeout`</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">Number</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">否</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">获取工具的超时时间（毫秒），默认 5000（5秒）</td></tr></tbody></table>
+</div>
 
 ---
 
@@ -145,14 +141,9 @@ export const metadata = {
 
 ### 远程选项
 
-| 选项 | 类型 | 必填 | 说明 |
-| :--- | :--- | :--- | :--- |
-| `type` | String | 是 | 必须为 `"remote"` |
-| `url` | String | 是 | 远程 MCP 服务器的 URL |
-| `enabled` | Boolean | 否 | 是否在启动时启用 |
-| `headers` | Object | 否 | 请求时携带的 HTTP 头 |
-| `oauth` | Object | 否 | OAuth 配置（详见下方 OAuth 部分） |
-| `timeout` | Number | 否 | 获取工具的超时时间（毫秒），默认 5000（5秒） |
+<div className="my-6 w-full overflow-y-auto">
+<table className="w-full border-collapse border-t border-gray-200 dark:border-gray-800 text-sm"><thead><tr className="border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50"><th className="border border-gray-200 dark:border-gray-800 px-4 py-2 text-left font-bold">选项</th><th className="border border-gray-200 dark:border-gray-800 px-4 py-2 text-left font-bold">类型</th><th className="border border-gray-200 dark:border-gray-800 px-4 py-2 text-left font-bold">必填</th><th className="border border-gray-200 dark:border-gray-800 px-4 py-2 text-left font-bold">说明</th></tr></thead><tbody><tr className="border-t border-gray-200 dark:border-gray-800 p-0"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`type`</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">String</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">是</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">必须为 `"remote"`</td></tr><tr className="border-t border-gray-200 dark:border-gray-800 p-0 even:bg-gray-50 dark:even:bg-gray-900/50"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`url`</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">String</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">是</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">远程 MCP 服务器的 URL</td></tr><tr className="border-t border-gray-200 dark:border-gray-800 p-0"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`enabled`</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">Boolean</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">否</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">是否在启动时启用</td></tr><tr className="border-t border-gray-200 dark:border-gray-800 p-0 even:bg-gray-50 dark:even:bg-gray-900/50"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`headers`</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">Object</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">否</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">请求时携带的 HTTP 头</td></tr><tr className="border-t border-gray-200 dark:border-gray-800 p-0"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`oauth`</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">Object</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">否</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">OAuth 配置（详见下方 OAuth 部分）</td></tr><tr className="border-t border-gray-200 dark:border-gray-800 p-0 even:bg-gray-50 dark:even:bg-gray-900/50"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`timeout`</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">Number</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">否</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">获取工具的超时时间（毫秒），默认 5000（5秒）</td></tr></tbody></table>
+</div>
 
 ---
 
