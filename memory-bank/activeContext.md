@@ -6,6 +6,11 @@ We have completed the **SEO Landing Pages Expansion ([TASK027])**, adding 6 targ
 Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
 
 ## Recent Changes
+-   **SEO Comparison Page ([TASK031])**: Added Chinese "OpenCode vs Cursor vs Claude" landing page.
+    -   **Traffic Generation**: Designed to capture search intent for tool comparison.
+    -   **Detailed Implementation**: Fixed MDX table rendering by converting to a styled HTML table + Tailwind.
+    -   **Stability Fix**: Reverted `next.config.mjs` to standard `mdxRs: true` (no plugins) to resolve Turbopack 404 errors.
+    -   **Strategy**: Phase 1 strategy implemented (no initial canonical) to allow independent indexing before consolidating authority later.
 -   **MDX & UI Refinement ([TASK030])**: Fixed table rendering and enhanced TOC.
     -   **Table Rendering**: Enabled `mdxRs: true` in `next.config.mjs` to resolve GFM/Turbopack compatibility issues.
     -   **Hydration Fix**: Implemented compressed HTML fallback for complex tables in `mcp-servers/page.mdx` to avoid Vercel/Next.js hydration errors.
