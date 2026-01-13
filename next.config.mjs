@@ -14,9 +14,9 @@ const options = {
 const nextConfig = {
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
   reactStrictMode: true,
-  experimental: {
-    mdxRs: true,
-  },
+  // experimental: {
+  //   mdxRs: false,
+  // },
   async redirects() {
     return [
       {
@@ -34,10 +34,14 @@ const nextConfig = {
 }
 
 const withMDX = createMDX({
-  options: {
-    remarkPlugins: [],
-    rehypePlugins: [],
-  },
+  // options: {
+  //   remarkPlugins: [remarkGfm],
+  //   rehypePlugins: [
+  //     rehypeSlug,
+  //     [rehypePrettyCode, options],
+  //     [rehypeAutolinkHeadings, { behavior: 'wrap' }],
+  //   ],
+  // },
 })
 
 export default withMDX(nextConfig)
