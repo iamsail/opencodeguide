@@ -3,6 +3,7 @@
 ## In Progress
 
 ## Completed
+- [TASK031] Create SEO Landing Page: OpenCode vs Cursor vs Claude - Added comparison page for traffic generation. - Completed on 2026-01-13
 - [TASK030] MDX Table Support and UI Refinement - Fixed table rendering and added TOC hierarchy. - Completed on 2026-01-13
 - [TASK029] Update MCP Servers Chinese Documentation - Completed on 2026-01-13
 - [TASK028] Update TUI Chinese Documentation - Replaced TUI placeholder with comprehensive guide - Completed on 2026-01-13

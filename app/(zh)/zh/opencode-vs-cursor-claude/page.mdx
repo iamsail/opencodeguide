@@ -1,0 +1,129 @@
+export const metadata = {
+  title: 'OpenCode 是什么？为什么越来越多开发者从 Cursor、Claude Code 转向它',
+  description: 'OpenCode 是一款开源、本地优先的 AI 编程工具。本文从实际使用体验出发，对比 OpenCode、Cursor、Claude Code 的核心差异，解释为什么越来越多开发者开始迁移。',
+  alternates: {
+    languages: {
+      'en': '/en/opencode-vs-claude-code',
+    },
+  },
+}
+
+## OpenCode 是什么？
+
+OpenCode 是一款 **开源（Open Source）、本地优先（Local-first）** 的 AI 编程工具。
+
+它的定位并不是「又一个代码补全插件」，而是一个**可完全由开发者控制的 AI Coding Agent**：
+
+- 你可以自由选择模型（OpenAI / Claude / DeepSeek / 本地模型）
+- 代码和上下文默认不上传到第三方 SaaS
+- 可以在本地、CLI、编辑器中运行
+- 行为逻辑透明、可配置、可二次开发
+
+如果你用过 Cursor 或 Claude Code，会很快意识到：  
+**OpenCode 解决的是“控制权”问题，而不是“更聪明一点”的问题。**
+
+👉 如果你想先快速上手，可以直接看这里：  
+👉 **[OpenCode 中文文档 · 快速开始](/zh/docs/intro)**
+
+---
+
+## 为什么有人开始从 Cursor、Claude Code 转向 OpenCode？
+
+很多开发者最初选择 Cursor 或 Claude Code，原因很简单：
+
+- 上手快
+- 即装即用
+- 体验成熟
+
+但在真实项目中，问题会慢慢出现。
+
+### 1️⃣ 模型被锁死，无法自由切换
+
+- Cursor：高度绑定自家策略
+- Claude Code：只能使用 Claude 系列模型
+- **OpenCode：模型完全由你决定**
+
+你可以：
+- 用 GPT-4o 写架构
+- 用 DeepSeek 写实现
+- 用本地模型处理敏感代码
+
+👉 模型和 Provider 的完整说明在这里：  
+👉 **[OpenCode 模型与 Providers 详解](/zh/docs/providers)**
+
+---
+
+### 2️⃣ 数据和上下文不完全可控
+
+在 Cursor / Claude Code 中：
+
+- 项目代码会被发送到远端
+- 上下文构建逻辑是黑盒
+- 很难确认哪些内容被“记住”了
+
+而 OpenCode：
+
+- 默认本地运行
+- 上下文生成逻辑可追踪
+- 不依赖云端存储你的项目
+
+这对 **企业项目、内部工具、商业代码** 尤其重要。
+
+---
+
+### 3️⃣ 从“工具”到“Agent”的差别
+
+Cursor 更像是：
+> 一个非常聪明的编辑器插件
+
+Claude Code 更像是：
+> 一个依附在 CLI 上的代码助手
+
+OpenCode 更接近：
+> 一个 **可以被你控制、扩展、编排的 AI 编程 Agent**
+
+你不是在“用功能”，而是在**搭自己的工作流**。
+
+---
+
+## OpenCode、Cursor、Claude Code 核心对比
+
+<div className="overflow-x-auto my-8 not-prose">
+  <table className="min-w-full text-left text-sm whitespace-nowrap border-collapse">
+    <thead className="uppercase tracking-wider border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+      <tr><th scope="col" className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">维度</th><th scope="col" className="px-6 py-4 font-bold text-blue-600 dark:text-blue-400">OpenCode</th><th scope="col" className="px-6 py-4 font-medium text-gray-500 dark:text-gray-400">Cursor</th><th scope="col" className="px-6 py-4 font-medium text-gray-500 dark:text-gray-400">Claude Code</th></tr>
+    </thead>
+    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+      <tr><th scope="row" className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">是否开源</th><td className="px-6 py-4 text-gray-700 dark:text-gray-300 font-medium">✅ 是</td><td className="px-6 py-4 text-gray-500">❌ 否</td><td className="px-6 py-4 text-gray-500">❌ 否</td></tr>
+      <tr><th scope="row" className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">是否本地优先</th><td className="px-6 py-4 text-gray-700 dark:text-gray-300 font-medium">✅ 是</td><td className="px-6 py-4 text-gray-500">⚠️ 部分</td><td className="px-6 py-4 text-gray-500">⚠️ 部分</td></tr>
+      <tr><th scope="row" className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">模型自由度</th><td className="px-6 py-4 text-gray-700 dark:text-gray-300 font-medium">✅ 极高</td><td className="px-6 py-4 text-gray-500">❌ 受限</td><td className="px-6 py-4 text-gray-500">❌ 仅 Claude</td></tr>
+      <tr><th scope="row" className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">数据可控性</th><td className="px-6 py-4 text-gray-700 dark:text-gray-300 font-medium">✅ 完全可控</td><td className="px-6 py-4 text-gray-500">❌</td><td className="px-6 py-4 text-gray-500">❌</td></tr>
+      <tr><th scope="row" className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">扩展性</th><td className="px-6 py-4 text-gray-700 dark:text-gray-300 font-medium">✅ 强</td><td className="px-6 py-4 text-gray-500">⚠️ 有限</td><td className="px-6 py-4 text-gray-500">⚠️ 有限</td></tr>
+    </tbody>
+  </table>
+</div>
+
+---
+
+## OpenCode 适合哪些人？
+
+如果你符合下面任意一条，OpenCode 都值得你认真看一眼：
+
+- 想摆脱 AI 工具厂商绑定
+- 需要使用多个模型协同工作
+- 关心代码隐私和本地安全
+- 希望把 AI 编程融入长期工作流，而不是“尝鲜”
+
+---
+
+## 总结
+
+**Cursor 和 Claude Code 很好，但它们是“平台型工具”。**  
+**OpenCode 选择的是另一条路：把控制权交还给开发者。**
+
+如果你只是想快速补全代码，Cursor 已经足够。  
+如果你想真正掌控 AI 编程这件事，OpenCode 更像长期解法。
+
+👉 **下一步建议**  
+- 👉 [OpenCode 中文文档 · 快速开始](/zh/docs/intro)  
+- 👉 [OpenCode 模型与 Providers 详解](/zh/docs/providers)

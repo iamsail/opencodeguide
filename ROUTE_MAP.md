@@ -42,6 +42,7 @@
 | `/zh/install` | `/zh/docs/intro` | 安装教程引流 |
 | `/zh/vs-claude-code` | - | 竞品对比专题 (与 `/en/...` 互链) |
 | `/zh/opencode-claude` | - | **Opencode + Claude 使用指南** |
+| `/zh/opencode-vs-cursor-claude` | - | **OpenCode vs Cursor vs Claude** (暂无 Canonical - Phase 1) |
 
 ## 4. 中文官方文档中心 (Chinese Documentation Center - /zh/docs)
 所有技术细节的唯一事实来源。采用分层路由架构。
