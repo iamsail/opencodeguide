@@ -6,6 +6,9 @@ We have completed the **SEO Landing Pages Expansion ([TASK027])**, adding 6 targ
 Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
 
 ## Recent Changes
+-   **Enterprise Documentation Update ([TASK037])**: Replaced the Chinese Enterprise placeholder at `/zh/docs/enterprise` with a complete guide.
+    -   **Content**: Added full coverage of evaluation, data handling, pricing, and enterprise deployment (SSO, Central Config, Internal AI Gateway).
+    -   **SEO**: Implemented metadata and canonical links for search engine authority.
 -   **Network Documentation Update ([TASK036])**: Replaced the Chinese Network placeholder at `/zh/docs/network` with a complete guide.
     -   **Content**: Added standard environment variables (`HTTPS_PROXY`, `NO_PROXY`), Basic authentication instructions, and custom CA certificate configuration.
     -   **SEO**: Maintained cross-language link integrity and improved content depth for enterprise users.

@@ -1,12 +1,7 @@
 # Tasks Index
 
-## In Progress
-- [TASK023] Add Real Screenshots to Documentation - Replacing placeholders with visual assets.
-
-## Pending
-- [TASK024] Implement "Edit this page" links - Adding GitHub contribution links to docs.
-
 ## Completed
+- [TASK037] 更新中文企业版 (Enterprise) 文档 - 替换 /zh/docs/enterprise 翻译内容 - Completed on 2026-01-13
 - [TASK036] 更新中文网络配置文档 - 将翻译好的网络配置内容替换至 /zh/docs/network - Completed on 2026-01-13
 - [TASK035] 更新中文规则 (Rules) 文档 - 替换 /zh/docs/configure/rules 占位符为完整指南 - Completed on 2026-01-13
 - [TASK034] 更新中文 IDE 文档 - 替换 /zh/docs/ide 占位符为完整指南 - Completed on 2026-01-13
