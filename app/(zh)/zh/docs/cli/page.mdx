@@ -1,6 +1,6 @@
 export const metadata = {
   title: "命令行 (CLI) | OpenCode 中文文档",
-  description: "学习如何通过 OpenCode CLI 进行单行快速命令调用和脚本集成。",
+  description: "掌握 OpenCode CLI 的详细用法，包括启动 TUI、管理模型认证、MCP 服务器配置及自动化指令。",
   alternates: {
     canonical: "/zh/docs/cli",
     languages: {
@@ -9,27 +9,262 @@ export const metadata = {
   },
 }
 
-# 命令行 (CLI)
+# OpenCode CLI 文档
 
-## 这是什么？
-OpenCode CLI（命令行接口）允许用户通过单行命令快速调用 AI 能力。它适用于脚本自动化、管道操作（Piping）或快速且无需持续上下文的简单查询任务。
+OpenCode CLI 提供了丰富的命令行选项和子命令，用于与 OpenCode 进行程序化交互。  
+**不带任何参数**直接运行时，默认会启动 **TUI（终端用户界面）**：
 
-## 什么时候你会用到它？
-- 当你希望将 OpenCode 的输出作为另一个命令的输入（例如生成 git commit message）时。
-- 当你需要快速查询某个 Linux 命令的用法，而不想进入交互式界面时。
-- 当你编写 Shell 脚本，需要集成 AI 处理步骤时。
+```bash
+opencode
+```
 
-## 核心概念
-- **无状态执行**：默认情况下，每次 CLI 调用都是独立的，不保留上一次的对话历史（除非显式传递上下文）。
-- **标准输入/输出 (Stdin/Stdout)**：完全遵循 Unix 管道哲学，能够处理文本流。
-- **参数标记 (Flags)**：通过 `-m`, `-f` 等参数指定使用的模型或读取的文件。
+快速示例（非交互模式直接提问）：
 
-## 基本用法 / 配置说明
-> TODO：后续补充具体用法示例
+```bash
+opencode run "解释一下 JavaScript 中的闭包是如何工作的"
+```
 
-## 常见误解 / 注意事项
-- CLI 模式不适合处理需要多轮对话来澄清需求的复杂任务，这种情况建议使用 TUI。
-- 使用管道传输大量代码时，需注意 Tokens 限制。
+## tui - 启动终端用户界面
 
-## 延伸阅读
-> TODO：后续补充
+```bash
+opencode [project]
+```
+
+- `[project]`：可选，指定项目路径
+
+常用选项（Flags）：
+
+- `--continue` / `-c`：继续上一次会话
+- `--session` / `-s`：指定会话 ID 继续
+- `--prompt`：指定使用的提示词（prompt）
+- `--model` / `-m`：指定模型，格式 `provider/model`
+- `--agent`：指定使用的 Agent（代理）
+- `--port`：监听端口
+- `--hostname`：监听主机名
+
+## 主要命令一览
+
+### agent - 管理 Agents（代理）
+
+```bash
+opencode agent [子命令]
+```
+
+- `opencode agent create`  
+  交互式创建自定义 Agent（设置 system prompt 和工具）
+
+- `opencode agent list`  
+  列出所有可用 Agent
+
+### auth - 管理模型提供商认证
+
+```bash
+opencode auth [子命令]
+```
+
+凭证存储在 `~/.local/share/opencode/auth.json`，也支持读取环境变量和项目 `.env` 文件。
+
+- `opencode auth list` / `ls`  
+  列出已认证的提供商
+
+- `opencode auth logout`  
+  注销/清除某个提供商的凭证
+
+### github - 管理 GitHub 自动化代理
+
+- `opencode github install`  
+  在当前仓库安装 GitHub Agent（会设置 GitHub Actions 工作流）
+
+- `opencode github run`  
+  运行 GitHub Agent（常用于 Actions 环境）
+
+  选项：
+  - `--event`：模拟的 GitHub 事件
+  - `--token`：GitHub Personal Access Token
+
+### mcp - 管理 Model Context Protocol 服务器
+
+- `opencode mcp add` → 交互式添加本地/远程 MCP 服务器
+- `opencode mcp list` / `ls` → 列出已配置的 MCP 服务器及连接状态
+- `opencode mcp auth [name]` → 对支持 OAuth 的 MCP 服务器进行认证
+- `opencode mcp auth list/ls` → 列出支持 OAuth 的服务器及认证状态
+- `opencode mcp logout [name]` → 移除 OAuth 凭证
+- `opencode mcp debug <name>` → 调试 OAuth 连接问题
+
+### models - 列出可用模型
+
+```bash
+opencode models [provider]
+```
+
+示例：
+```bash
+opencode models anthropic
+opencode models --refresh          # 从 models.dev 刷新缓存
+opencode models --verbose          # 显示更多信息（含价格等元数据）
+```
+
+### run - 非交互模式快速运行
+
+```bash
+opencode run [消息内容...]
+```
+
+示例：
+```bash
+opencode run "Go 语言中的 context 具体有什么用？"
+```
+
+支持附加到已运行的服务器（避免冷启动）：
+```bash
+opencode run --attach http://localhost:4096 "解释 JavaScript async/await"
+```
+
+常用选项：
+
+- `--command`：把消息当作命令参数执行
+- `--continue` / `-c`：继续上一次会话
+- `--session` / `-s`：指定会话 ID
+- `--share`：分享本次会话
+- `--model` / `-m`：指定模型
+- `--agent`：指定 Agent
+- `--file` / `-f`：附加文件
+- `--format`：输出格式（default / json）
+- `--title`：会话标题
+- `--attach`：附加到已有服务器 URL
+- `--port`：本地服务器端口
+
+### serve - 启动无头 HTTP API 服务器
+
+```bash
+opencode serve
+```
+
+选项：
+- `--port` / `--hostname` / `--mdns` / `--cors`
+
+可设置环境变量 `OPENCODE_SERVER_PASSWORD` 启用基本认证（默认用户名为 `opencode`）。
+
+### web - 启动带网页界面的服务器
+
+```bash
+opencode web
+```
+
+自动打开浏览器，选项同 `serve`。
+
+### session - 管理会话
+
+- `opencode session list`  
+  列出所有会话
+
+  选项：
+  - `--max-count` / `-n`：显示最近 N 条
+  - `--format`：table 或 json
+
+### stats - 显示使用统计
+
+```bash
+opencode stats
+```
+
+选项：
+- `--days`：最近 N 天
+- `--tools` / `--models`：显示工具/模型明细
+- `--project`：按项目过滤
+
+### export & import - 会话导出/导入
+
+```bash
+opencode export [sessionID]          # 导出为 JSON
+opencode import session.json         # 从文件导入
+opencode import https://opncd.ai/s/xxx  # 从分享链接导入
+```
+
+### acp - 启动 Agent Client Protocol 服务器
+
+```bash
+opencode acp
+```
+
+通过 stdin/stdout 使用 ndjson 通信。
+
+选项：`--cwd` / `--port` / `--hostname`
+
+### uninstall & upgrade
+
+- `opencode uninstall`  
+  卸载（可加 `--keep-config` `--keep-data` `--dry-run` `--force`）
+
+- `opencode upgrade [版本号]`  
+  升级（不带参数 → 最新版；可指定版本如 v0.1.48）
+
+  选项：`--method`（curl/npm/pnpm/bun/brew）
+
+## 全局选项（任何命令都可用）
+
+- `--help` / `-h`
+- `--version` / `-v`
+- `--print-logs`
+- `--log-level` （DEBUG / INFO / WARN / ERROR）
+
+## 环境变量
+
+OpenCode 可以通过环境变量进行配置。
+
+<table>
+  <thead>
+    <tr>
+      <th>变量</th>
+      <th>类型</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><code>OPENCODE_AUTO_SHARE</code></td><td>boolean</td><td>自动分享会话</td></tr>
+    <tr><td><code>OPENCODE_GIT_BASH_PATH</code></td><td>string</td><td>Windows 上 Git Bash 可执行文件的路径</td></tr>
+    <tr><td><code>OPENCODE_CONFIG</code></td><td>string</td><td>配置文件路径</td></tr>
+    <tr><td><code>OPENCODE_CONFIG_DIR</code></td><td>string</td><td>配置目录路径</td></tr>
+    <tr><td><code>OPENCODE_CONFIG_CONTENT</code></td><td>string</td><td>内联 JSON 配置内容</td></tr>
+    <tr><td><code>OPENCODE_DISABLE_AUTOUPDATE</code></td><td>boolean</td><td>禁用自动更新检查</td></tr>
+    <tr><td><code>OPENCODE_DISABLE_PRUNE</code></td><td>boolean</td><td>禁用旧数据清理</td></tr>
+    <tr><td><code>OPENCODE_DISABLE_TERMINAL_TITLE</code></td><td>boolean</td><td>禁用自动终端标题更新</td></tr>
+    <tr><td><code>OPENCODE_PERMISSION</code></td><td>string</td><td>内联 JSON 权限配置</td></tr>
+    <tr><td><code>OPENCODE_DISABLE_DEFAULT_PLUGINS</code></td><td>boolean</td><td>禁用默认插件</td></tr>
+    <tr><td><code>OPENCODE_DISABLE_LSP_DOWNLOAD</code></td><td>boolean</td><td>禁用自动 LSP 服务器下载</td></tr>
+    <tr><td><code>OPENCODE_ENABLE_EXPERIMENTAL_MODELS</code></td><td>boolean</td><td>启用实验性模型</td></tr>
+    <tr><td><code>OPENCODE_DISABLE_AUTOCOMPACT</code></td><td>boolean</td><td>禁用自动上下文压缩</td></tr>
+    <tr><td><code>OPENCODE_DISABLE_CLAUDE_CODE</code></td><td>boolean</td><td>禁用从 .claude 读取（提示词 + 技能）</td></tr>
+    <tr><td><code>OPENCODE_DISABLE_CLAUDE_CODE_PROMPT</code></td><td>boolean</td><td>禁用读取 ~/.claude/CLAUDE.md</td></tr>
+    <tr><td><code>OPENCODE_DISABLE_CLAUDE_CODE_SKILLS</code></td><td>boolean</td><td>禁用加载 .claude/skills</td></tr>
+    <tr><td><code>OPENCODE_CLIENT</code></td><td>string</td><td>客户端标识符（默认为 cli）</td></tr>
+    <tr><td><code>OPENCODE_ENABLE_EXA</code></td><td>boolean</td><td>启用 Exa 网络搜索工具</td></tr>
+    <tr><td><code>OPENCODE_SERVER_PASSWORD</code></td><td>string</td><td>为 serve/web 启用基本身份验证</td></tr>
+    <tr><td><code>OPENCODE_SERVER_USERNAME</code></td><td>string</td><td>覆盖基本身份验证用户名（默认为 opencode）</td></tr>
+  </tbody>
+</table>
+
+### 实验性选项
+
+这些环境变量启用了可能会更改或删除的实验性功能。
+
+<table>
+  <thead>
+    <tr>
+      <th>变量</th>
+      <th>类型</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><code>OPENCODE_EXPERIMENTAL</code></td><td>boolean</td><td>启用所有实验性功能</td></tr>
+    <tr><td><code>OPENCODE_EXPERIMENTAL_ICON_DISCOVERY</code></td><td>boolean</td><td>启用图标发现</td></tr>
+    <tr><td><code>OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT</code></td><td>boolean</td><td>在 TUI 中禁用选中即复制</td></tr>
+    <tr><td><code>OPENCODE_EXPERIMENTAL_BASH_MAX_OUTPUT_LENGTH</code></td><td>number</td><td>Bash 命令的最大输出长度</td></tr>
+    <tr><td><code>OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS</code></td><td>number</td><td>Bash 命令的默认超时时间（毫秒）</td></tr>
+    <tr><td><code>OPENCODE_EXPERIMENTAL_OUTPUT_TOKEN_MAX</code></td><td>number</td><td>LLM 响应的最大输出 Token 数</td></tr>
+    <tr><td><code>OPENCODE_EXPERIMENTAL_FILEWATCHER</code></td><td>boolean</td><td>对整个目录启用文件监听 (File watcher)</td></tr>
+    <tr><td><code>OPENCODE_EXPERIMENTAL_OXFMT</code></td><td>boolean</td><td>启用 oxfmt 格式化程序</td></tr>
+    <tr><td><code>OPENCODE_EXPERIMENTAL_LSP_TOOL</code></td><td>boolean</td><td>启用实验性 LSP 工具</td></tr>
+  </tbody>
+</table>
