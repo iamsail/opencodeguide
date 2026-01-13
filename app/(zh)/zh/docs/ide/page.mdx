@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "编辑器集成 (IDE) | OpenCode 中文文档",
-  description: "在 VS Code, Neovim 等编辑器中配置和使用 OpenCode 插件。",
+  title: "IDE 指南 (VS Code & Cursor) | OpenCode 中文文档",
+  description: "了解如何在 VS Code, Cursor 及其他 IDE 中安装 and 使用 OpenCode 扩展，包括快捷键、上下文感知和故障排除。",
   alternates: {
     canonical: "/zh/docs/ide",
     languages: {
@@ -9,27 +9,52 @@ export const metadata = {
   },
 }
 
-# 编辑器集成 (IDE)
+# IDE
 
-## 这是什么？
-OpenCode 提供了 VS Code 和 Neovim 等主流编辑器的扩展/插件，允许开发者在最熟悉的代码编辑环境中无缝使用 AI 辅助功能。它通常以侧边栏聊天窗口或内联代码补全的形式存在。
+OpenCode 是适用于 VS Code、Cursor 以及其他 IDE 的扩展。
 
-## 什么时候你会用到它？
-- 当你正在编写代码，需要 AI 实时生成函数体或补全逻辑时。
-- 当你需要对当前打开的文件进行解释、重构或生成单元测试时。
-- 当你不希望频繁在编辑器和终端/浏览器之间切换时。
+## 使用方法
 
-## 核心概念
-- **内联交互 (Inline Chat)**：直接在代码编辑器中选中文本并发起对话。
-- **上下文自动获取**：插件会自动读取当前打开的文件、选中的代码行作为 AI 的上下文。
-- **Diff 预览**：在应用更改前，以 IDE 原生的 Diff 视图展示修改建议。
+- **快速启动**：使用 `Cmd+Esc`（Mac）或 `Ctrl+Esc`（Windows/Linux）在分屏终端视图中打开 OpenCode；如果已经有运行中的会话，则会聚焦到现有终端会话。
+- **新建会话**：使用 `Cmd+Shift+Esc`（Mac）或 `Ctrl+Shift+Esc`（Windows/Linux）启动一个全新的 OpenCode 终端会话（即使已经有一个在运行）。你也可以点击界面中的 OpenCode 按钮。
+- **上下文感知**：会自动把当前选中的代码或当前打开的标签页内容分享给 OpenCode。
+- **文件引用快捷键**：使用 `Cmd+Option+K`（Mac）或 `Alt+Ctrl+K`（Linux/Windows）插入文件引用。例如：`@File#L37-42`。
 
-## 基本用法 / 配置说明
-> TODO：后续补充具体用法示例
+## 安装方法
 
-## 常见误解 / 注意事项
-- 安装 IDE 插件后，通常仍需要确保本地安装了 OpenCode 的核心二进制文件或配置了正确的 API 连接。
-- 插件的快捷键可能与 IDE 其他插件冲突，建议首次使用时检查设置。
+要在 VS Code 及其常见分支版本（Cursor、Windsurf、VSCodium 等）上安装 OpenCode：
 
-## 延伸阅读
-> TODO：后续补充
+1. 打开 VS Code（或对应 IDE）
+2. 打开集成终端
+3. 直接运行命令：
+   ```bash
+   opencode
+   ```
+   → 扩展会自动安装完成
+
+**另一种场景**：如果你希望在 TUI 中使用 `/editor` 或 `/export` 命令时打开你自己的 IDE，需要设置环境变量：
+
+```bash
+export EDITOR="code --wait"
+```
+
+（更多关于 TUI 中编辑器设置的内容可参考：[/zh/docs/tui/#editor-setup](/zh/docs/tui/#editor-setup)）
+
+### 手动安装
+
+在 VS Code 的扩展市场（Extensions Marketplace）中搜索 **OpenCode**，然后点击 **Install** 安装即可。
+
+## 故障排除
+
+如果扩展未能自动安装，请检查以下几点：
+
+- 确保你是在**集成终端**中运行的 `opencode` 命令
+- 确认你的 IDE 已正确安装对应的 CLI 命令：
+  - VS Code → `code` 命令
+  - Cursor → `cursor` 命令
+  - Windsurf → `windsurf` 命令
+  - VSCodium → `codium` 命令
+- 如果缺少对应命令：
+  - 按 `Cmd+Shift+P`（Mac）或 `Ctrl+Shift+P`（Windows/Linux）打开命令面板
+  - 搜索并执行 “Shell Command: Install ‘code’ command in PATH”（或你所用 IDE 的对应命令）
+- 确保 VS Code（或对应 IDE）有权限安装扩展

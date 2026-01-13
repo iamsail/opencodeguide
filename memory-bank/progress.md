@@ -27,6 +27,7 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
+-   [x] **IDE Documentation**: Replaced placeholder with full Chinese guide for VS Code and Cursor ([TASK034]).
 -   [x] **CLI Documentation**: Replaced placeholder with full Chinese CLI manual using optimized HTML tables ([TASK033]).
 -   [x] **MDX & UI Refinement**: Fixed table rendering and added TOC hierarchy ([TASK030]).
 -   [x] **MCP Use Cases**: Added comprehensive real-world workflow guide ([TASK026]) to strengthen the English content loop.
