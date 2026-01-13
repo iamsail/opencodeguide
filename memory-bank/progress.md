@@ -27,6 +27,8 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
+-   [x] **Enterprise Documentation**: Replaced placeholder with full Chinese guide for evaluation, data handling, and deployment ([TASK037]).
+-   [x] **Network Documentation**: Replaced placeholder with full Chinese guide for proxy, authentication, and certificates ([TASK036]).
 -   [x] **Rules Documentation**: Replaced placeholder with full Chinese guide for custom instructions and `AGENTS.md` ([TASK035]).
 -   [x] **IDE Documentation**: Replaced placeholder with full Chinese guide for VS Code and Cursor ([TASK034]).
 -   [x] **CLI Documentation**: Replaced placeholder with full Chinese CLI manual using optimized HTML tables ([TASK033]).

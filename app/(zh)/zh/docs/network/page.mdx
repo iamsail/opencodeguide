@@ -1,24 +1,52 @@
 # 网络 (Network)
 
-## 这是什么？
-网络配置模块主要处理 OpenCode 与外部服务（如模型 API、插件仓库）之间的通信设置。这包括代理设置、证书管理以及自定义 API 端点配置，确保在各种网络环境下都能顺畅连接。
+**配置代理和自定义证书。**
 
-## 什么时候你会用到它？
-- 当你处于公司内网或通过 VPN 访问互联网，需要通过 HTTP/HTTPS 代理连接模型服务时。
-- 当你需要连接到自托管的 LLM 服务或企业内部的代理网关时。
-- 当遇到 SSL 证书验证错误，需要配置自定义证书或暂时忽略验证时。
+OpenCode 支持标准代理环境变量以及适用于企业网络环境的自定义证书。
 
-## 核心概念
-- **HTTP/HTTPS 代理**：转发网络请求的中介服务器地址。
-- **自定义 CA 证书**：用于验证企业内部 HTTPS 连接的受信任证书。
-- **直连/代理模式**：控制特定流量是直接访问还是通过代理转发。
+## 代理 (Proxy)
 
-## 基本用法 / 配置说明
-> TODO：后续补充具体用法示例
+OpenCode 遵循标准的代理环境变量。
 
-## 常见误解 / 注意事项
-- 配置了系统代理并不意味着 OpenCode 会自动使用，通常需要显式在配置文件中指定。
-- 只有在通过 OpenAI 或 Anthropic 等云端服务时才需要复杂的网络配置，本地 Ollama 通常使用 localhost 连接。
+**终端窗口示例：**
 
-## 延伸阅读
-> TODO：后续补充
+```bash
+# HTTPS 代理（推荐）
+export HTTPS_PROXY=https://proxy.example.com:8080
+
+# HTTP 代理（如果 HTTPS 不可用）
+export HTTP_PROXY=http://proxy.example.com:8080
+
+# 为本地服务器绕过代理（必填）
+export NO_PROXY=localhost,127.0.0.1
+```
+
+> **注意：**
+> TUI（终端用户界面）会与本地 HTTP 服务器进行通信。你必须为此连接绕过代理（NO_PROXY），以防止路由循环。你可以使用 CLI 标志来配置服务器的端口和主机名。
+
+## 身份验证 (Authenticate)
+
+如果你的代理需要基本身份验证（Basic Authentication），请在 URL 中包含凭据。
+
+**终端窗口示例：**
+
+```bash
+export HTTPS_PROXY=http://username:password@proxy.example.com:8080
+```
+
+> **注意：**
+> 避免硬编码密码。建议使用环境变量或安全的凭据存储方式。
+
+对于需要 NTLM 或 Kerberos 等高级身份验证的代理，请考虑使用支持你身份验证方法的 LLM 网关（LLM Gateway）。
+
+## 自定义证书 (Custom certificates)
+
+如果你的企业在 HTTPS 连接中使用自定义 CA（证书颁发机构），请配置 OpenCode 信任它们。
+
+**终端窗口示例：**
+
+```bash
+export NODE_EXTRA_CA_CERTS=/path/to/ca-cert.pem
+```
+
+此设置同时适用于代理连接和直接 API 访问。
