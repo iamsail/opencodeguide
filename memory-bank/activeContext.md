@@ -6,6 +6,10 @@ We have completed the **SEO Landing Pages Expansion ([TASK027])**, adding 6 targ
 Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
 
 ## Recent Changes
+-   **Introduction Documentation Update ([TASK032])**: Completely overhauled the Chinese introduction guide (`/zh/docs/intro`).
+    -   **Simplification**: Replaced the previous fragmented list with a cohesive, logical flow covering prerequisites, installation, initialization, and basic usage.
+    -   **Link Integrity**: Synchronized 15+ internal links to match the new tiered routing structure (`/zh/docs/...`).
+    -   **SEO**: Enhanced metadata and content keywords for "OpenCode tutorial" and "AI agent installation" in Chinese.
 -   **SEO Comparison Page ([TASK031])**: Added Chinese "OpenCode vs Cursor vs Claude" landing page.
     -   **Traffic Generation**: Designed to capture search intent for tool comparison.
     -   **Detailed Implementation**: Fixed MDX table rendering by converting to a styled HTML table + Tailwind.

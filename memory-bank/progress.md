@@ -32,7 +32,8 @@
 -   [x] **SEO Landing Pages**: Deployed 6 high-value landing pages ([TASK027]) targeting specific errors (Claude Credential) and integrations (Playwright, MCP), strictly adhering to `/en/` and `/zh/` routing.
 -   [x] **TUI Documentation**: Replaced placeholder with comprehensive Chinese guide ([TASK028]).
 -   [x] **MCP Servers Documentation**: Replaced placeholder with detailed Chinese manual ([TASK029]).
--   [ ] Fully translate the 33+ documentation pages (Config/TUI/MCP are done).
+-   [x] **Introduction Update**: Simplified and overhauled the Chinese introduction guide with full tiered links ([TASK032]).
+-   [ ] Fully translate the 33+ documentation pages (Config/TUI/MCP/Intro are done).
 -   [ ] Add visual screenshots to documentation.
 -   [ ] Implement "Edit this page" links.
 

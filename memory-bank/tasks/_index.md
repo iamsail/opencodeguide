@@ -1,8 +1,13 @@
 # Tasks Index
 
 ## In Progress
+- [TASK023] Add Real Screenshots to Documentation - Replacing placeholders with visual assets.
+
+## Pending
+- [TASK024] Implement "Edit this page" links - Adding GitHub contribution links to docs.
 
 ## Completed
+- [TASK032] Update Chinese Documentation Introduction - Replaced /zh/docs/intro content with comprehensive guide. - Completed on 2026-01-13
 - [TASK031] Create SEO Landing Page: OpenCode vs Cursor vs Claude - Added comparison page for traffic generation. - Completed on 2026-01-13
 - [TASK030] MDX Table Support and UI Refinement - Fixed table rendering and added TOC hierarchy. - Completed on 2026-01-13
 - [TASK029] Update MCP Servers Chinese Documentation - Completed on 2026-01-13

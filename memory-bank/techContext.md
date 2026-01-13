@@ -1,7 +1,7 @@
 # Tech Context
 
 ## Technology Stack
-*   **Framework**: Next.js 16 (App Router)
+*   **Framework**: Next.js 16.1.1 (App Router - confirmed via Turbopack build)
 *   **Language**: TypeScript
 *   **Styling**: Tailwind CSS
 *   **Content**: MDX (`@next/mdx`)
@@ -10,7 +10,9 @@
 *   **Package Manager**: NPM
 *   **Deployment Target**: Vercel (Zero-config assumed)
 
-## Development Environment
+## Performance & Build
+*   **Compiler**: `experimental.mdxRs: true` (Rust-based) is required for stability with Turbopack and to support GFM tables without external JS plugins.
+*   **Dev Mode**: Turbopack enabled (`next dev --turbo`).
 *   **Node Version**: >= 18.0.0
 *   **PostCSS**: Configured via `postcss.config.mjs` for Tailwind processing.
 *   **TypeScript**: Strict mode enabled.

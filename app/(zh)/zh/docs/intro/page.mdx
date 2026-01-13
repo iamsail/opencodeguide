@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "介绍 (Intro) | OpenCode 中文文档",
-  description: "了解 OpenCode 的核心理念、适用场景以及它如何帮助开发者提升效率。",
+  title: "入门指南 | OpenCode 中文文档",
+  description: "快速了解如何安装、配置和开始使用 OpenCode，一个开源的 AI 编码助手。",
   alternates: {
     canonical: "/zh/docs/intro",
     languages: {
@@ -9,27 +9,124 @@ export const metadata = {
   },
 }
 
-# 介绍 (Intro)
+# OpenCode 文档（中文版）
 
-## 这是什么？
-OpenCode 是一个开源的智能编程助手，旨在通过自然语言交互来辅助开发者完成代码编写、调试和重构等任务。它不仅支持主流的商业大模型（如 GPT-4、Claude 3.5 Sonnet），还完美兼容本地模型（如 Ollama），为开发者提供灵活、高效且隐私安全的编程体验。
+**OpenCode** 是一个开源的 AI 编码代理，支持终端界面、桌面应用或 IDE 扩展使用。
 
-## 什么时候你会用到它？
-- 当你需要快速理解复杂的代码逻辑或项目结构时。
-- 当你希望通过对话方式自动生成代码片段或完整功能模块时。
-- 当你需要对现有的代码进行重构、优化或查找潜在 Bug 时。
+## 前提条件
 
-## 核心概念
-- **自然语言交互**：直接使用中文或英文描述你的需求，OpenCode 会自动转换为代码操作。
-- **多模型支持**：无缝切换云端商业模型和本地开源模型。
-- **上下文感知**：能够理解当前项目的代码结构和上下文信息，提供更精准的建议。
+要在终端中使用 OpenCode，需要：
+1. 一个现代终端模拟器，例如：
+   - [WezTerm](https://wezterm.org)（跨平台）
+   - [Alacritty](https://alacritty.org)（跨平台）
+   - [Ghostty](https://ghostty.org)（Linux 和 macOS）
+   - [Kitty](https://sw.kovidgoyal.net/kitty/)（Linux 和 macOS）
+2. 所用 LLM 提供商的 API 密钥。
 
-## 基本用法 / 配置说明
-> TODO：后续补充具体用法示例
+## 安装
 
-## 常见误解 / 注意事项
-- OpenCode 不是 IDE，而是一个可以集成到 IDE 或终端中的辅助工具。
-- 虽然支持自然语言，但在描述复杂逻辑时，尽量提供清晰、具体的指令。
+安装 OpenCode 最简单的方法是通过安装脚本：
 
-## 延伸阅读
-> TODO：后续补充
+```bash
+curl -fsSL https://opencode.ai/install | bash
+```
+
+其他安装方式：
+
+**使用 Node.js**
+
+```bash
+npm install -g opencode-ai
+```
+
+**macOS 和 Linux 使用 Homebrew**
+
+```bash
+brew install anomalyco/tap/opencode
+```
+
+**Arch Linux 使用 Paru**
+
+```bash
+paru -S opencode-bin
+```
+
+**Windows**
+
+- **Chocolatey**：`choco install opencode`
+- **Scoop**：`scoop bucket add extras` 然后 `scoop install extras/opencode`
+- **NPM**：`npm install -g opencode-ai`
+- **Mise**：`mise use -g github:anomalyco/opencode`
+- **Docker**：`docker run -it --rm ghcr.io/anomalyco/opencode`
+
+也可以从 [Releases](https://github.com/anomalyco/opencode/releases) 下载二进制文件。
+
+## 配置
+
+配置 API 密钥以使用任意 LLM 提供商。
+
+推荐使用 [OpenCode Zen](/zh/docs/zen)（团队验证的模型列表）。
+
+1. 在 TUI 中运行 `/connect`，选择 `opencode`，访问 [opencode.ai/auth](https://opencode.ai/auth)。
+2. 登录并添加计费信息，复制 API 密钥。
+3. 粘贴密钥。
+
+或者选择其他提供商，详见 [提供商配置](/zh/docs/providers)。
+
+## 初始化
+
+进入项目目录：
+
+```bash
+cd /path/to/project
+opencode
+```
+
+运行：
+
+```bash
+/init
+```
+
+这会生成 `AGENTS.md` 文件，帮助 OpenCode 理解项目结构。
+
+## 使用
+
+现在可以自由提问！
+
+### 提问示例
+
+```text
+How is authentication handled in @packages/functions/src/api/index.ts
+```
+
+### 添加功能
+
+1. **创建计划**：按 **Tab** 切换到计划模式，描述需求。
+2. **迭代计划**：提供反馈或图片。
+3. **构建**：切换回构建模式，执行更改。
+
+### 进行更改
+
+直接要求更改，例如：
+
+```text
+We need to add authentication to the /settings route...
+```
+
+### 撤销/重做更改
+
+- `/undo`：撤销
+- `/redo`：重做
+
+### 分享对话
+
+`/share` 生成分享链接。
+
+## 自定义
+
+- [选择主题](/zh/docs/configure/themes)
+- [自定义键绑定](/zh/docs/configure/keybinds)
+- [配置代码格式化工具](/zh/docs/configure/formatters)
+- [创建自定义命令](/zh/docs/configure/commands)
+- [OpenCode 配置](/zh/docs/config)
