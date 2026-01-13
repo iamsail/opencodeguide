@@ -7,6 +7,7 @@
 - [TASK024] Implement "Edit this page" links - Adding GitHub contribution links to docs.
 
 ## Completed
+- [TASK036] 更新中文网络配置文档 - 将翻译好的网络配置内容替换至 /zh/docs/network - Completed on 2026-01-13
 - [TASK035] 更新中文规则 (Rules) 文档 - 替换 /zh/docs/configure/rules 占位符为完整指南 - Completed on 2026-01-13
 - [TASK034] 更新中文 IDE 文档 - 替换 /zh/docs/ide 占位符为完整指南 - Completed on 2026-01-13
 - [TASK033] Update Chinese CLI Documentation - Replaced /zh/docs/cli placeholder with full content and styled HTML tables. - Completed on 2026-01-13
