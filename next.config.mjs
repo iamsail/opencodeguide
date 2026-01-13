@@ -1,5 +1,8 @@
 import createMDX from '@next/mdx'
 import rehypePrettyCode from 'rehype-pretty-code'
+import rehypeSlug from 'rehype-slug'
+import rehypeAutolinkHeadings from 'rehype-autolink-headings'
+import remarkGfm from 'remark-gfm'
 import { visit } from 'unist-util-visit'
 
 /** @type {import('rehype-pretty-code').Options} */
@@ -11,6 +14,9 @@ const options = {
 const nextConfig = {
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
   reactStrictMode: true,
+  experimental: {
+    mdxRs: true,
+  },
   async redirects() {
     return [
       {
@@ -31,9 +37,6 @@ const withMDX = createMDX({
   options: {
     remarkPlugins: [],
     rehypePlugins: [], 
-    // rehypePlugins: [
-    //   [rehypePrettyCode, options],
-    // ], 
   },
 })
 

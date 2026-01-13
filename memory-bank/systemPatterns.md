@@ -23,6 +23,7 @@ We distinguish between "Technical Reference" and "Educational Articles/Blog" to 
 ### Content Engine
 -   **Source**: Local `.mdx` files stored in `app/(main)/en/**/*.mdx` and `app/(zh)/zh/**/*.mdx`.
 -   **Processor**: `@next/mdx` (Native Next.js MDX implementation).
+    -   **Compiler**: `experimental.mdxRs: true` enabled in `next.config.mjs` for Rust-based compilation, ensuring Compatibility with Turbopack and built-in GFM support for tables.
 -   **Styling**: `@tailwindcss/typography` (`prose` class) handles Markdown rendering.
 -   **Language Sync**: Symmetric `hreflang` implementation across EN/ZH pairs to maintain global authority and signal language parity to search engines.
 
@@ -31,9 +32,9 @@ We distinguish between "Technical Reference" and "Educational Articles/Blog" to 
 -   **Theme**: "Clean & Calm" (Zinc/Neutral colors, Inter font).
 -   **Dark Mode**: Implemented via `next-themes` with data-attribute strategy (`class` mode in Tailwind). Defaults to system preference.
 -   **Components**:
-    -   `mdx-components.tsx`: Maps standard HTML (h1, p, code) to styled Tailwind components.
+    -   `mdx-components.tsx`: Maps standard HTML (h1, p, code, table, th, td) to styled Tailwind components with custom border and spacing.
     -   `copy-button`: Client component using DOM traversal to extract text at runtime (Turbopack compatible).
-    -   `toc`: Dynamic TOC generator that re-scans for headers on route changes using `usePathname`.
+    -   `toc`: Dynamic TOC generator that re-scans for headers (H2, H3) on route changes. Supports hierarchical indentation (`pl-4` for H3) and multilingual headers ("On This Page" / "本页内容").
 
 ## Key Technical Decisions
 1.  **No next-mdx-remote**: Chosen `@next/mdx` for better build-time optimization.

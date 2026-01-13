@@ -1,38 +1,327 @@
 export const metadata = {
   title: "MCP 服务器 | OpenCode 中文文档",
-  description: "配置模型上下文协议 (MCP) 服务器以连接 OpenCode 与外部数据源和工具。",
+  description: "配置模型上下文协议 (MCP) 服务器以连接本地和远程工具，扩展 OpenCode 的功能。",
   alternates: {
     canonical: "/zh/docs/configure/mcp-servers",
     languages: {
-      zh: "/zh/docs/configure/mcp-servers",
-      en: "/en/mcp-configuration",
+      "en-US": "/en/mcp-configuration",
     },
   },
+};
+
+# MCP 服务器
+
+你可以使用模型上下文协议（Model Context Protocol，简称 MCP）将外部工具添加到 OpenCode 中。OpenCode 支持**本地**和**远程**两种类型的服务器。
+
+添加完成后，MCP 工具会自动与内置工具一起提供给大语言模型（LLM）使用。
+
+> [!CAUTION]
+> **注意事项**
+> 使用 MCP 服务器会增加上下文内容。如果工具数量很多，上下文 token 消耗会迅速增加。因此建议谨慎选择要使用的 MCP 服务器。
+> 某些 MCP 服务器（例如 GitHub 的 MCP 服务器）往往会产生大量 token，很容易超出上下文限制。
+
+## 启用
+
+你可以在 [OpenCode 配置文件](/zh/docs/config) 中的 `mcp` 字段下定义 MCP 服务器。为每个 MCP 指定一个唯一的名称。在提示 LLM 时，可以通过这个名称来引用对应的 MCP。
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "name-of-mcp-server": {
+      // ...
+      "enabled": true
+    },
+    "name-of-other-mcp-server": {
+      // ...
+    }
+  }
 }
+```
+*opencode.jsonc*
 
-# MCP 服务器 (MCP Servers)
+你也可以将 `enabled` 设置为 `false` 来禁用某个服务器。这在你想暂时停用但又不想删除配置时很有用。
 
-> 👉 **提示**：想了解 MCP 的整体原理、架构与示例？请查看英文完整指南：**[OpenCode MCP Hub](/en/mcp)**
+### 覆盖组织默认远程配置
 
-## 这是什么？
-模型上下文协议 (Model Context Protocol, MCP) 是一个开放标准，用于连接 AI 模型与数据源。通过配置 MCP 服务器，你可以让 OpenCode 连接到数据库、Slack、Notion、GitHub 或任何自定义的 API，从而在对话中查询和操作这些外部数据。
+组织可以通过 `.well-known/opencode` 端点提供默认的 MCP 服务器。这些默认服务器可能默认是禁用的，用户需要手动选择启用需要的服务器。
 
-## 什么时候你会用到它？
-- 当你需要 AI "查询生产数据库中最近 10 条报错日志"（通过 PostgreSQL MCP Server）时。
-- 当你需要 AI 读取 Notion 里的产品需求文档来编写代码（通过 Notion MCP Server）时。
-- 当你开发了自己的内部工具平台，希望 AI 能直接调用查询接口时。
+要启用组织远程配置中的某个服务器，只需在本地配置中添加它并设置 `enabled: true`：
 
-## 核心概念
-- **MCP Server**：运行在本地或远程的代理服务，暴露了一组 Tools 和 Resources 给 AI。
-- **Resources**：类似文件的数据源（如数据库记录、API 返回值）。
-- **Prompts**：Server 提供的预设交互模版。
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "jira": {
+      "type": "remote",
+      "url": "https://jira.example.com/mcp",
+      "enabled": true
+    }
+  }
+}
+```
+*opencode.json*
 
-## 基本用法 / 配置说明
-> TODO：后续补充如何安装和配置 `mcp-server-postgres` 等官方示例
+本地配置会覆盖远程默认值。更多详情见 [配置优先级](/zh/docs/config#加载优先级顺序从先到后后者覆盖前者)。
 
-## 常见误解 / 注意事项
-- MCP 是一套协议，你需要安装具体的 MCP Server 实现才能工作。
-- 安全性至关重要：连接数据库等敏感源时，务必通过只读账号或严格的审计策略。
+---
 
-## 延伸阅读
-> TODO：后续补充
+## 本地 MCP
+
+将 `type` 设置为 `"local"` 来添加本地 MCP 服务器。
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "my-local-mcp-server": {
+      "type": "local",
+      // 或 ["bun", "x", "my-mcp-command"]
+      "command": ["npx", "-y", "my-mcp-command"],
+      "enabled": true,
+      "environment": {
+        "MY_ENV_VAR": "my_env_var_value"
+      }
+    }
+  }
+}
+```
+*opencode.jsonc*
+
+`command` 是启动本地 MCP 服务器的命令（数组形式）。你也可以传入环境变量对象。
+
+例如，以下是如何添加官方测试服务器 `@modelcontextprotocol/server-everything`：
+
+```json
+{
+  "mcp": {
+    "mcp_everything": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-everything"]
+    }
+  }
+}
+```
+*opencode.jsonc*
+
+**使用方式：** 在提示中加入 `use the mcp_everything tool` 即可。
+
+> **示例提示：** `use the mcp_everything tool to add the number 3 and 4`
+
+### 本地选项
+
+<div className="my-6 w-full overflow-y-auto">
+<table className="w-full border-collapse border-t border-gray-200 dark:border-gray-800 text-sm"><thead><tr className="border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50"><th className="border border-gray-200 dark:border-gray-800 px-4 py-2 text-left font-bold">选项</th><th className="border border-gray-200 dark:border-gray-800 px-4 py-2 text-left font-bold">类型</th><th className="border border-gray-200 dark:border-gray-800 px-4 py-2 text-left font-bold">必填</th><th className="border border-gray-200 dark:border-gray-800 px-4 py-2 text-left font-bold">说明</th></tr></thead><tbody><tr className="border-t border-gray-200 dark:border-gray-800 p-0"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`type`</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">String</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">是</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">必须为 `"local"`</td></tr><tr className="border-t border-gray-200 dark:border-gray-800 p-0 even:bg-gray-50 dark:even:bg-gray-900/50"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`command`</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">Array</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">是</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">运行 MCP 服务器的命令及参数</td></tr><tr className="border-t border-gray-200 dark:border-gray-800 p-0"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`environment`</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">Object</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">否</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">运行服务器时设置的环境变量</td></tr><tr className="border-t border-gray-200 dark:border-gray-800 p-0 even:bg-gray-50 dark:even:bg-gray-900/50"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`enabled`</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">Boolean</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">否</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">是否在启动时启用该服务器</td></tr><tr className="border-t border-gray-200 dark:border-gray-800 p-0"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`timeout`</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">Number</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">否</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">获取工具的超时时间（毫秒），默认 5000（5秒）</td></tr></tbody></table>
+</div>
+
+---
+
+## 远程 MCP
+
+将 `type` 设置为 `"remote"` 来添加远程 MCP 服务器。
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "my-remote-mcp": {
+      "type": "remote",
+      "url": "https://my-mcp-server.com",
+      "enabled": true,
+      "headers": {
+        "Authorization": "Bearer MY_API_KEY"
+      }
+    }
+  }
+}
+```
+*opencode.json*
+
+`url` 是远程 MCP 服务器的地址，`headers` 可用于传递请求头。
+
+### 远程选项
+
+<div className="my-6 w-full overflow-y-auto">
+<table className="w-full border-collapse border-t border-gray-200 dark:border-gray-800 text-sm"><thead><tr className="border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50"><th className="border border-gray-200 dark:border-gray-800 px-4 py-2 text-left font-bold">选项</th><th className="border border-gray-200 dark:border-gray-800 px-4 py-2 text-left font-bold">类型</th><th className="border border-gray-200 dark:border-gray-800 px-4 py-2 text-left font-bold">必填</th><th className="border border-gray-200 dark:border-gray-800 px-4 py-2 text-left font-bold">说明</th></tr></thead><tbody><tr className="border-t border-gray-200 dark:border-gray-800 p-0"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`type`</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">String</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">是</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">必须为 `"remote"`</td></tr><tr className="border-t border-gray-200 dark:border-gray-800 p-0 even:bg-gray-50 dark:even:bg-gray-900/50"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`url`</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">String</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">是</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">远程 MCP 服务器的 URL</td></tr><tr className="border-t border-gray-200 dark:border-gray-800 p-0"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`enabled`</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">Boolean</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">否</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">是否在启动时启用</td></tr><tr className="border-t border-gray-200 dark:border-gray-800 p-0 even:bg-gray-50 dark:even:bg-gray-900/50"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`headers`</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">Object</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">否</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">请求时携带的 HTTP 头</td></tr><tr className="border-t border-gray-200 dark:border-gray-800 p-0"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`oauth`</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">Object</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">否</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">OAuth 配置（详见下方 OAuth 部分）</td></tr><tr className="border-t border-gray-200 dark:border-gray-800 p-0 even:bg-gray-50 dark:even:bg-gray-900/50"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`timeout`</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">Number</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">否</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">获取工具的超时时间（毫秒），默认 5000（5秒）</td></tr></tbody></table>
+</div>
+
+---
+
+## OAuth 认证
+
+OpenCode 会自动处理支持 OAuth 的远程 MCP 服务器认证流程：
+
+1. 检测到 401 响应后自动发起 OAuth 流程。
+2. 如果服务器支持，会使用 Dynamic Client Registration (RFC 7591)。
+3. 令牌会被安全存储供后续使用。
+
+### 自动流程（最常见）
+
+大多数支持 OAuth 的服务器无需额外配置：
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "my-oauth-server": {
+      "type": "remote",
+      "url": "https://mcp.example.com/mcp"
+    }
+  }
+}
+```
+*opencode.json*
+
+首次使用时如果需要认证，OpenCode 会提示你登录。你也可以手动触发：`opencode mcp auth <server-name>`。
+
+### 预注册客户端
+
+如果你已经从服务提供方获得了 client credentials，可以这样配置：
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "my-oauth-server": {
+      "type": "remote",
+      "url": "https://mcp.example.com/mcp",
+      "oauth": {
+        "clientId": "{env:MY_MCP_CLIENT_ID}",
+        "clientSecret": "{env:MY_MCP_CLIENT_SECRET}",
+        "scope": "tools:read tools:execute"
+      }
+    }
+  }
+}
+```
+*opencode.json*
+
+### 认证相关命令
+
+*   **触发认证**: `opencode mcp auth my-oauth-server`
+*   **查看状态**: `opencode mcp list`
+*   **退出登录**: `opencode mcp logout my-oauth-server`
+
+认证流程会打开浏览器完成授权。令牌安全存储在 `~/.local/share/opencode/mcp-auth.json`。
+
+### 禁用 OAuth 自动检测
+
+```json
+"oauth": false
+```
+
+### OAuth 配置选项
+
+| 选项 | 类型 | 说明 |
+| :--- | :--- | :--- |
+| `oauth` | Object \| false | OAuth 配置对象，设为 false 可禁用自动检测 |
+| `clientId` | String | OAuth 客户端 ID（未提供时尝试动态注册） |
+| `clientSecret` | String | OAuth 客户端密钥（如果需要） |
+| `scope` | String | 请求的权限范围 |
+
+---
+
+## 调试命令
+
+*   `opencode mcp auth list`
+*   `opencode mcp debug my-oauth-server`
+
+---
+
+## 管理 MCP 工具
+
+MCP 服务器添加后会作为工具出现在 OpenCode 中，与内置工具并列。
+
+### 全局禁用
+
+```json
+"tools": {
+  "my-mcp-foo": false
+}
+```
+
+或使用通配符：
+
+```json
+"tools": {
+  "my-mcp*": false
+}
+```
+
+### 按 Agent 启用
+
+可以在全局禁用某类工具，但对特定 Agent 开启：
+
+```json
+"tools": {
+  "my-mcp*": false
+},
+"agent": {
+  "my-agent": {
+    "tools": {
+      "my-mcp*": true
+    }
+  }
+}
+```
+
+### 支持的通配符
+
+*   `*` 匹配任意数量字符
+*   `?` 匹配单个字符
+
+---
+
+## 示例
+
+### Sentry
+
+```json
+{
+  "mcp": {
+    "sentry": {
+      "type": "remote",
+      "url": "https://mcp.sentry.dev/mcp",
+      "oauth": {}
+    }
+  }
+}
+```
+
+然后运行：`opencode mcp auth sentry`
+提示示例：`Show me the latest unresolved issues in my project. use sentry`
+
+### Context7
+
+```json
+{
+  "mcp": {
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp"
+    }
+  }
+}
+```
+
+使用 API Key：
+```json
+"headers": {
+  "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
+}
+```
+提示示例：`use context7`
+
+### Grep by Vercel
+
+```json
+{
+  "mcp": {
+    "gh_grep": {
+      "type": "remote",
+      "url": "https://mcp.grep.app"
+    }
+  }
+}
+```
+提示示例：`use the gh_grep tool`
