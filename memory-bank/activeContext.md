@@ -6,6 +6,12 @@ We have completed the **SEO Landing Pages Expansion ([TASK027])**, adding 6 targ
 Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
 
 ## Recent Changes
+-   **Rules Documentation Update ([TASK035])**: Replaced the Chinese Rules placeholder at `/zh/docs/configure/rules` with a complete guide.
+    -   **Content**: Added comprehensive instructions for `AGENTS.md` and `opencode.json` configuration, covering project-level and global rules.
+    -   **SEO**: Implemented optimized metadata and canonical links for search engine authority.
+-   **IDE Documentation Update ([TASK034])**: Replaced the Chinese IDE placeholder at `/zh/docs/ide` with a complete guide.
+    -   **Content**: Added full coverage of VS Code and Cursor integrations, usage shortcuts, and troubleshooting steps.
+    -   **SEO**: Optimized metadata for Chinese search intent and maintained cross-language links.
 -   **CLI Documentation Update ([TASK033])**: Replaced the Chinese CLI placeholder at `/zh/docs/cli` with a complete manual.
     -   **Content**: Added full command references, flags, and an exhaustive list of environment variables.
     -   **MDX Fix**: Used a hybrid approach with styled HTML `<table>` tags to ensure proper rendering under Next.js 16 + Turbopack, bypassing plugin serialization errors.
