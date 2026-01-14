@@ -66,7 +66,7 @@
 | `/zh/docs/tui` | 终端交互界面 (TUI) 指南 |
 | `/zh/docs/cli` | 命令行工具 (CLI) 指南 |
 | `/zh/docs/ide` | VS Code / Neovim 编辑器集成 |
-| `/zh/docs/zen` | 专注模式 (Zen Mode) |
+| `/zh/docs/zen` | OpenCode Zen 精选模型列表 |
 | `/zh/docs/share` | 会话分享功能 |
 | `/zh/docs/github` | GitHub 集成 |
 | `/zh/docs/gitlab` | GitLab 集成 |
