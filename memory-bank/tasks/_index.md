@@ -3,6 +3,7 @@
 ## In Progress
 
 ## Completed
+- [TASK040] 更新中文工具 (Tools) 文档 - 替换 /zh/docs/configure/tools 翻译内容 - Completed on 2026-01-14
 - [TASK039] 更新中文 OpenCode Zen 文档内容 - 替换 /zh/docs/zen 内容为模型网关指南 - Completed on 2026-01-14
 - [TASK038] 更新中文故障排除 (Troubleshooting) 文档 - 替换 /zh/docs/troubleshooting 翻译内容 - Completed on 2026-01-14
 - [TASK037] 更新中文企业版 (Enterprise) 文档 - 替换 /zh/docs/enterprise 翻译内容 - Completed on 2026-01-13

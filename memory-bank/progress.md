@@ -29,6 +29,7 @@
 ### Phase 3: Content Enrichment & Engagement (In Progress)
 -   [x] **Memory Bank Sync**: Reviewed and updated core documentation to reflect "OpenCode Zen" shift.
 -   [x] **OpenCode Zen 文档**: 将 `/zh/docs/zen` 更新为模型网关指南 ([TASK039])。
+-   [x] **工具 (Tools) 文档**: 替换了中文工具指南，涵盖内置、自定义工具以及权限配置 ([TASK040])。
 -   [x] **故障排除文档**: 替换了中文故障排除指南，包含日志、存储和常见问题解决方案 ([TASK038])。
 -   [x] **Enterprise Documentation**: Replaced placeholder with full Chinese guide for evaluation, data handling, and deployment ([TASK037]).
 -   [x] **Network Documentation**: Replaced placeholder with full Chinese guide for proxy, authentication, and certificates ([TASK036]).
@@ -41,7 +42,8 @@
 -   [x] **TUI Documentation**: Replaced placeholder with comprehensive Chinese guide ([TASK028]).
 -   [x] **MCP Servers Documentation**: Replaced placeholder with detailed Chinese manual ([TASK029]).
 -   [x] **Introduction Update**: Simplified and overhauled the Chinese introduction guide with full tiered links ([TASK032]).
--   [ ] Fully translate the 33+ documentation pages (Config/TUI/MCP/Intro are done).
+-   [x] **Fully translate the core documentation pages**: (Intro, CLI, IDE, Zen, Network, Enterprise, Rules, Tools, Troubleshooting, Confg, TUI, MCP are done).
+-   [ ] Translate remaining documentation pages (Providers, etc.).
 -   [ ] Add visual screenshots to documentation.
 -   [ ] Implement "Edit this page" links.
 
