@@ -6,6 +6,10 @@ We have completed the **SEO Landing Pages Expansion ([TASK027])**, adding 6 targ
 Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
 
 ## Recent Changes
+-   **OpenCode Zen 文档更新 ([TASK039])**: 将 `/zh/docs/zen` 的内容从“专注模式”UI 特性替换为“OpenCode Zen”模型网关服务指南。
+    -   **内容**: 详细说明了 Zen 的背景、运行方式、模型列表、定价方案、定价机制、隐私政策及团队功能。
+    -   **导航一致性**: 根据用户要求，虽然内容已更迭，但侧边栏标题保留为“专注模式 (Zen)”。
+    -   **路由与 SEO**: 更新了 `ROUTE_MAP.md`，并在 MDX 中使用了优化的表格展示模型信息。
 -   **故障排除文档更新 ([TASK038])**: 将故障排除指南替换为详细的中文内容。
     -   **内容**: 增加了日志路径、存储说明、身份验证修复、模型引用格式示例以及 Linux 剪贴板解决方案。
     -   **SEO**: 实现了优化的 metadata 和 canonical 链接。
