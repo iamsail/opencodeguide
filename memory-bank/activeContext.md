@@ -6,6 +6,13 @@ We have completed the **Memory Bank Core Review**, ensuring that the foundationa
 Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
 
 ## Recent Changes
+-   **权限 (Permissions) 文档更新 ([TASK048])**: 替换了 `/zh/docs/configure/permissions` 的占位符，提供了完整的权限控制系统指南。
+    -   **内容**: 涵盖了操作类型（Allow, Deny, Ask）、全局与特定工具配置、细粒度规则（模式匹配）以及各可用权限项的说明。
+    -   **SEO**: 实现了优化的 metadata 和 canonical 链接，确保 metadata 描述结尾无中文句号以维持构建稳定。
+-   **LSP 服务器 (LSP Servers) 文档更新 ([TASK049])**: 替换了 `/zh/docs/configure/lsp-servers` 的占位符，提供了完整的 LSP 集成指南。
+    -   **内容**: 涵盖了各常用语言的内置支持要求、禁用方法、自定义配置及 PHP 说明。
+    -   **修复**: 针对 Turbopack 下 Markdown 表格渲染不稳定的问题，将内置支持列表转换为样式化的 HTML 表格以确保一致性。
+    -   **SEO**: 实现了优化的 metadata 和 canonical 链接。
 -   **格式化工具 (Formatters) 文档更新 ([TASK047])**: 替换了 `/zh/docs/configure/formatters` 的占位符，提供了完整的代码格式化配置指南。
     -   **内容**: 涵盖了工作原理、内置格式化工具（gofmt, mix, prettier, biome）的要求、禁用方法以及基于 `opencode.json` 的自定义配置。
     -   **SEO**: 实现了优化的 metadata 和 canonical 链接。

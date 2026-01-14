@@ -27,6 +27,8 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
+-   [x] **权限 (Permissions) 文档**: 替换了中文权限控制指南，详细说明了 Allow/Deny/Ask 策略及细粒度规则 ([TASK048])。
+-   [x] **LSP 服务器 (LSP Servers) 文档**: 替换了中文 LSP 集成指南，涵盖内置支持、配置禁用及自定义 LSP ([TASK049])。
 -   [x] **格式化 (Formatters) 文档**: 替换了中文格式化工具配置指南，涵盖内置工具、禁用方法及自定义配置 ([TASK047])。
 -   [x] **Build Stability**: Fixed critical SWC panic in `keybinds`, `themes` and `commands` docs caused by multibyte char boundaries.
 -   [x] **Memory Bank Sync**: Reviewed and updated core documentation to reflect "OpenCode Zen" shift.

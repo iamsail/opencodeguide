@@ -1,24 +1,107 @@
+export const metadata = {
+  title: "LSP 服务器 (LSP Servers) | OpenCode 中文文档",
+  description: "OpenCode 与您的语言服务器集成，帮助 LLM 交互并获取诊断反馈",
+  alternates: {
+    canonical: "/zh/docs/configure/lsp-servers",
+  },
+}
+
 # LSP 服务器 (LSP Servers)
 
-## 这是什么？
-语言服务器协议 (LSP) 集成允许 OpenCode 利用现有的语言服务器（如 `tsserver`, `gopls`, `pyright`）来获取精准的代码智能信息。这意味着 AI 不仅是基于文本预测，还能理解函数定义、类型签名和错误提示。
+**OpenCode 与您的语言服务器集成，帮助 LLM 交互并获取诊断反馈**
 
-## 什么时候你会用到它？
-- 当你希望 AI 能准确知道某个函数的具体参数类型和返回值，而不是根据函数名瞎猜时。
-- 当你需要 AI 帮你修复编译器报错（AI 可以直接读取 LSP 返回的 Diagnostic 错误信息）时。
-- 当你在使用一种小众编程语言，希望通过接入该语言的 LSP 来增强 AI 的理解能力时。
+### 内置支持 (Built-in)
 
-## 核心概念
-- **Diagnostics**：即时的语法错误和警告信息。
-- **Definitions/References**：代码符号的跳转和引用查找能力。
-- **Capabilities Negotiation**：客户端与服务器之间的功能协商。
+OpenCode 为多种流行语言内置了 LSP 服务支持。当检测到相应扩展名且满足要求时，会自动启用：
 
-## 基本用法 / 配置说明
-> TODO：后续补充如何在配置文件中注册新的 LSP Server
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">LSP 服务器</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">支持扩展名</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">要求 / 备注</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">typescript</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">.ts, .tsx, .js...</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">项目中需有 typescript 依赖</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">gopls</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">.go</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">需安装 go 命令</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">rust-analyzer</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">.rs</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">需安装 rust-analyzer</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">pyright</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">.py, .pyi</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">需安装 pyright 依赖</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">clangd</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">.c, .cpp...</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">自动为 C/C++ 项目安装</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">bash</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">.sh, .bash...</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">自动安装 bash-language-server</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">lua-ls</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">.lua</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">自动为 Lua 项目安装</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
-## 常见误解 / 注意事项
-- 启用 LSP 支持会增加内存开销，因为需要在后台运行额外的语言服务器进程。
-- 不是所有 LSP 的功能 OpenCode 都能利用，目前主要集中在读取定义和错误信息上。
+> [!TIP]
+> 可以通过设置环境变量 `OPENCODE_DISABLE_LSP_DOWNLOAD=true` 来禁用自动下载。
 
-## 延伸阅读
-> TODO：后续补充
+### 配置 (Configure)
+
+您可以在 `opencode.json` 的 `lsp` 部分进行自定义：
+
+```json
+{
+  "lsp": {
+    "typescript": {
+      "disabled": false,
+      "command": ["typescript-language-server", "--stdio"],
+      "extensions": [".ts", ".tsx"]
+    }
+  }
+}
+```
+
+### 禁用 LSP 服务器 (Disabling)
+
+* **全局禁用：** 将 `lsp` 设置为 `false`。
+* **禁用特定服务器：** 在对应服务器配置中设置 `"disabled": true`。
+
+### 自定义 LSP 服务器 (Custom)
+
+您可以手动添加新的 LSP 服务器：
+
+```json
+{
+  "lsp": {
+    "my-custom-lsp": {
+      "command": ["custom-lsp-server", "--stdio"],
+      "extensions": [".custom"]
+    }
+  }
+}
+```
+
+### 补充信息：PHP Intelephense
+
+如果使用 PHP Intelephense 的高级功能，请将许可证密钥放在 `~/intelephense/licence.txt` 文件中。
