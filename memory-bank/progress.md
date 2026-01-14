@@ -27,6 +27,7 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
+-   [x] **Memory Bank Sync**: Reviewed and updated core documentation to reflect "OpenCode Zen" shift.
 -   [x] **OpenCode Zen 文档**: 将 `/zh/docs/zen` 更新为模型网关指南 ([TASK039])。
 -   [x] **故障排除文档**: 替换了中文故障排除指南，包含日志、存储和常见问题解决方案 ([TASK038])。
 -   [x] **Enterprise Documentation**: Replaced placeholder with full Chinese guide for evaluation, data handling, and deployment ([TASK037]).
