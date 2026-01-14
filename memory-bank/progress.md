@@ -27,7 +27,7 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
--   [x] **Build Stability**: Fixed critical SWC panic in `keybinds` and `themes` docs caused by multibyte char boundaries.
+-   [x] **Build Stability**: Fixed critical SWC panic in `keybinds`, `themes` and `commands` docs caused by multibyte char boundaries.
 -   [x] **Memory Bank Sync**: Reviewed and updated core documentation to reflect "OpenCode Zen" shift.
 -   [x] **Critical Fix**: Resolved SWC panic caused by Chinese punctuation in metadata descriptions across all core Chinese documentation pages ([TASK044]).
 -   [x] **模型 (Models) 文档**: 替换了中文模型配置指南，涵盖服务商、变体及全局设置 ([TASK042])。- [x] **主题 (Themes) 文档**: 替换了中文主题配置指南，涵盖内置主题、系统高亮及自定义 JSON 主题 ([TASK043])。

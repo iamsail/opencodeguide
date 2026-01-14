@@ -34,3 +34,4 @@
 - 完成了 `page.mdx` 的内容迁移，涵盖了命令创建、配置、提示词语法等核心部分。
 - 确认了 `metadata` 的 `title`、`description` 和 `canonical` 指向。
 - 同步更新了 Memory Bank。
+- **修复**: 解决了 Vercel 构建时的 SWC Panic 报错，移除了第一段加粗文本末尾的中文句号。
