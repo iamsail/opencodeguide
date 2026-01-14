@@ -7,6 +7,13 @@ Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediat
 
 ## Recent Changes
 -   **Memory Bank Core Update**: Updated `projectbrief.md` and `productContext.md` to integrate "OpenCode Zen" as a core component of the ecosystem alongside the OpenCode framework. Verified `systemPatterns.md` and `techContext.md` for architectural consistency.
+-   **智能体 (Agents) 文档更新 ([TASK041])**: 替换了 `/zh/docs/configure/agents` 的占位符，提供了完整的智能体配置指南。
+    -   **内容**: 涵盖了主代理（Build, Plan）和子代理（General, Explore）的概念、用法及配置方式（JSON/Markdown）。
+    -   **配置详情**: 详细说明了 JSON 模式和 Markdown frontmatter 中的各项参数（Tools, Permissions, Model 等）。
+    -   **SEO**: 实现了优化的 metadata 和 canonical 链接。
+-   **工具 (Tools) 文档更新 ([TASK040])**: 替换了 `/zh/docs/configure/tools` 的占位符，提供了完整的工具管理指南。
+    -   **内容**: 涵盖了内置工具（bash, edit, read, grep, webfetch 等）、权限控制（allow, deny, ask）、自定义工具和 MCP 服务器集成。
+    -   **格式优化**: 采用了 GFM 警告语法（`[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`）并为配置示例添加了文件名注释（如 `*opencode.json*`）。
 -   **OpenCode Zen 文档更新与全量内存银行同步 ([TASK039])**: 将 `/zh/docs/zen` 的内容从“专注模式”UI 特性替换为“OpenCode Zen”模型网关服务指南，并完成了全量 Memory Bank 审查与更新。
     -   **内容**: 详细说明了 Zen 的背景、运行方式、模型列表及团队功能。同步更新了 `projectbrief.md` 和 `productContext.md`。
     -   **导航一致性**: 根据用户要求，虽然内容已更迭，但侧边栏标题保留为“专注模式 (Zen)”。
