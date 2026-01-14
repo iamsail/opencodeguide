@@ -1,24 +1,79 @@
+export const metadata = {
+  title: "权限 (Permissions) | OpenCode 中文文档",
+  description: "配置 OpenCode 的操作权限，决定哪些操作应当自动运行、向您提示、还是被阻止",
+  alternates: {
+    canonical: "/zh/docs/configure/permissions",
+  },
+}
+
 # 权限 (Permissions)
 
-## 这是什么？
-权限系统是 OpenCode 的安全基石。它决定了 AI 助手在你的计算机上能做什么，不能做什么。你可以精确控制 AI 对于文件系统的读写范围、网络访问白名单以及命令执行权限。
+**控制哪些操作需要运行许可**
 
-## 什么时候你会用到它？
-- 当你在处理敏感项目（如公司机密代码），只允许 AI 读取当前目录，禁止访问 `~/.ssh` 或其他系统目录时。
-- 当你希望完全禁止 AI 发起任何对外的网络请求（除了连接模型 API 本身）时。
-- 当你需要设置“命令执行白名单”，只允许 AI 运行 `ls`, `cat` 等安全命令，禁止 `rm`, `curl` 等危险命令时。
+OpenCode 使用权限配置来决定给定的操作应当自动运行、向您提示、还是被阻止。
 
-## 核心概念
-- **Filesystem Sandbox**：限制文件读写的根目录范围。
-- **Command Whitelist/Blacklist**：命令执行的黑白名单策略。
-- **Network Policy**：出站网络连接的管控规则。
+### 操作类型 (Actions)
 
-## 基本用法 / 配置说明
-> TODO：后续补充 `policy.yml` 或类似的权限配置示例
+每个权限规则解析为以下结果之一：
 
-## 常见误解 / 注意事项
-- 权限配置越严格，AI 完成复杂任务的能力可能越受限（例如无法安装 npm 包）。
-- Docker 容器化运行 OpenCode 是最彻底的隔离方案。
+* `"allow"` — 无需批准即可运行。
+* `"ask"` — 运行前提示用户批准。
+* `"deny"` — 阻止该操作。
 
-## 延伸阅读
-> TODO：后续补充
+### 配置方式 (Configuration)
+
+您可以全局设置权限（使用 `*`），并覆盖特定工具。
+
+*opencode.json*
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "*": "ask",
+    "bash": "allow",
+    "edit": "deny"
+  }
+}
+```
+
+### 细粒度规则 (对象语法)
+
+对于大多数权限，您可以使用对象语法根据工具输入应用不同的操作。
+
+```json
+{
+  "permission": {
+    "bash": {
+      "*": "ask",
+      "git *": "allow",
+      "rm *": "deny"
+    },
+    "edit": {
+      "*": "deny",
+      "packages/web/src/content/docs/*.mdx": "allow"
+    }
+  }
+}
+```
+
+*注：规则按模式匹配评估，最后一个匹配的规则获胜。通常先放通配符 `*`，再放具体的规则。*
+
+### 可用权限项
+
+权限按工具名称分类，包括：
+
+* `read`: 读取文件。
+* `edit`: 所有的文件修改操作（涵盖 edit, write, patch, multiedit）。
+* `bash`: 运行 shell 命令。
+* `task`: 启动子代理（Subagents）。
+* `lsp`: 运行 LSP 查询。
+* `webfetch`: 获取 URL 内容。
+* `external_directory`: 当工具触及项目工作目录外的路径时触发。
+* `doom_loop`: 当同一工具调用以完全相同的输入重复 3 次时触发。
+
+### 默认值 (Defaults)
+
+* 大多数权限默认为 `"allow"`。
+* `doom_loop` 和 `external_directory` 默认为 `"ask"`。
+* `read` 默认允许，但 `.env` 相关文件默认被拒绝 (`deny`)。

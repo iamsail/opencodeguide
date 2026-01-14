@@ -6,6 +6,17 @@ We have completed the **Memory Bank Core Review**, ensuring that the foundationa
 Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
 
 ## Recent Changes
+-   **权限 (Permissions) 文档更新 ([TASK048])**: 替换了 `/zh/docs/configure/permissions` 的占位符，提供了完整的权限控制系统指南。
+    -   **内容**: 涵盖了操作类型（Allow, Deny, Ask）、全局与特定工具配置、细粒度规则（模式匹配）以及各可用权限项的说明。
+    -   **SEO**: 实现了优化的 metadata 和 canonical 链接，确保 metadata 描述结尾无中文句号以维持构建稳定。
+-   **LSP 服务器 (LSP Servers) 文档更新 ([TASK049])**: 替换了 `/zh/docs/configure/lsp-servers` 的占位符，提供了完整的 LSP 集成指南。
+    -   **内容**: 涵盖了各常用语言的内置支持要求、禁用方法、自定义配置及 PHP 说明。
+    -   **修复**: 针对 Turbopack 下 Markdown 表格渲染不稳定的问题，将内置支持列表转换为样式化的 HTML 表格以确保一致性。
+    -   **SEO**: 实现了优化的 metadata 和 canonical 链接。
+-   **格式化工具 (Formatters) 文档更新 ([TASK047])**: 替换了 `/zh/docs/configure/formatters` 的占位符，提供了完整的代码格式化配置指南。
+    -   **内容**: 涵盖了工作原理、内置格式化工具（gofmt, mix, prettier, biome）的要求、禁用方法以及基于 `opencode.json` 的自定义配置。
+    -   **SEO**: 实现了优化的 metadata 和 canonical 链接。
+    -   **构建修复**: 遵循 TASK046 经验，移除了 metadata description 和关键标题末尾的中文句号以确保稳定构建。
 -   **命令 (Commands) 文档更新 ([TASK045])**: 替换了 `/zh/docs/configure/commands` 的占位符，提供了完整的自定义命令配置指南。
     -   **内容**: 涵盖了 Markdown 和 JSON 两种配置方式、命令占位符（$ARGUMENTS, $1, $2）、Shell 输出注入（!）以及文件引用（@）。
     -   **语法增强**: 使用了 GFM 警告语法（`[!NOTE]`）并确保了代码块的正确渲染。
@@ -100,7 +111,7 @@ Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediat
 -   **Documentation Sovereignty**: The \`/zh/docs/\` path is now explicitly confirmed as the "Single Source of Truth" for all technical details.
 
 ## Next Steps
-1.  **Deployment Verification**: Monitor Vercel build for TASK046 fix success.
-2.  **Visual Assets ([TASK023])**: Start capturing and implementing screenshots for the "Installation" and "CLI" sections.
-3.  **Content Population**: Continue filling in the technical details for the `config` and `providers` sections in Chinese.
-4.  **Edit Links ([TASK024])**: Add "Edit this page on GitHub" links to the footer of all documentation pages to encourage community contribution.
+1.  **Providers 文档更新**: 替换 `/zh/docs/providers` 的占位符，完成模型服务商配置指南的中文化。
+2.  **Visual Assets ([TASK023])**: 开始为“安装”和“命令行”章节制作并集成实际截图。
+3.  **Edit Links ([TASK024])**: 在所有文档页面底部添加“在 GitHub 上编辑此页”链接。
+4.  **Deployment Verification**: 监控 Vercel 构建状态，确保 SWC Panic 修复（TASK046）生效。

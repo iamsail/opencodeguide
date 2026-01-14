@@ -1,24 +1,89 @@
-# 格式化 (Formatters)
+export const metadata = {
+  title: "格式化工具 (Formatters) | OpenCode 中文文档",
+  description: "使用特定语言的格式化程序自动美化代码，确保生成的代码风格对齐",
+  alternates: {
+    canonical: "/zh/docs/configure/formatters",
+  },
+}
 
-## 这是什么？
-格式化配置用于定义 OpenCode 生成代码后的自动美化规则。OpenCode 可以在生成代码块后，自动调用项目中的 Prettier, ESLint, Black, Rustfmt 等工具，确保生成的代码风格与你的项目保持一致。
+# 格式化工具 (Formatters)
 
-## 什么时候你会用到它？
-- 当你发现 AI 生成的代码缩进（2空格 vs 4空格）总是与你项目的 `.editorconfig` 不符时。
-- 当你希望生成的 Python 代码自动符合 PEP8 规范，而不需要手动调整时。
-- 当你需要 AI 在修改文件后自动运行 `go imports` 清理未使用的引用时。
+**使用特定语言的格式化程序自动美化代码**
 
-## 核心概念
-- **Auto-formatting**：生成即格式化，无需人工干预。
-- **Linter Integration**：在格式化的同时运行静态检查。
-- **Fallback Formatter**：当项目中未检测到特定语言的格式化工具时，OpenCode 内置的默认格式化逻辑。
+OpenCode 在写入或编辑文件后，会自动使用特定语言的格式化工具。这确保了生成的代码符合您项目的代码风格。
 
-## 基本用法 / 配置说明
-> TODO：后续补充如何配置 OpenCode 调用本地 Prettier 的示例
+## 工作原理 (How it works)
 
-## 常见误解 / 注意事项
-- OpenCode 不会自带所有语言的格式化工具，它通常是调用你环境中已安装的 CLI 工具。
-- 如果格式化工具运行过慢，可能会导致 AI 生成内容的显示有延迟。
+当 OpenCode 写入或修改文件时，它会执行以下操作：
 
-## 延伸阅读
-> TODO：后续补充
+1. 根据所有已启用的格式化工具检查文件的 **扩展名**
+2. 对该文件运行相应的 **格式化命令**
+3. 自动应用格式化更改
+
+## 内置格式化工具 (Built-in)
+
+OpenCode 为流行语言和框架预置了多种格式化工具。以下是内置列表及其要求：
+
+| 格式化工具 | 支持的扩展名 | 运行要求 |
+| --- | --- | --- |
+| **gofmt** | `.go` | 环境中需安装 `gofmt` 命令 |
+| **mix** | `.ex`, `.exs`, `.eex`, `.heex`, `.leex` 等 | 环境中需安装 `mix` 命令 |
+| **prettier** | `.js`, `.ts`, `.jsx`, `.tsx`, `.html`, `.css`, `.md`, `.json`, `.yaml` 等 | `package.json` 中需包含 `prettier` 依赖 |
+| **biome** | `.js`, `.ts`, `.jsx`, `.tsx`, `.json`, `.jsonc` | `package.json` 中需包含 `@biomejs/biome` 依赖 |
+
+## 配置 (Configure)
+
+您可以通过 `opencode.json` 中的 `formatter` 字段自定义格式化行为。
+
+每个格式化配置支持以下属性：
+
+* **disabled**: (boolean) 设置为 `true` 可禁用该格式化工具。
+* **command**: (string[]) 要运行的格式化命令。
+* **environment**: (object) 运行命令时的环境变量。
+* **extensions**: (string[]) 该工具适用的文件扩展名列表。
+
+### 禁用格式化工具 (Disabling formatters)
+
+* **全局禁用：** 将 `formatter` 设置为 `false`。
+
+```json
+{
+  "formatter": false
+}
+```
+
+* **禁用特定工具：**
+
+```json
+{
+  "formatter": {
+    "prettier": {
+      "disabled": true
+    }
+  }
+}
+```
+
+## 自定义格式化工具 (Custom formatters)
+
+您可以覆盖内置工具或添加全新的格式化程序。例如，自定义 `prettier` 的运行方式或添加不支持的语言：
+
+**opencode.json**
+
+```json
+{
+  "formatter": {
+    "prettier": {
+      "command": ["npx", "prettier", "--write", "$FILE"],
+      "environment": {
+        "NODE_ENV": "development"
+      },
+      "extensions": [".js", ".ts", ".jsx", ".tsx"]
+    }
+  }
+}
+```
+
+> [!TIP]
+> 在命令中使用 `$FILE` 占位符来代表当前正在被格式化的文件。
+
