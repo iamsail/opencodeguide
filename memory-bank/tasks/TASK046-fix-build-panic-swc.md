@@ -33,3 +33,4 @@ It appears SWC (or Next.js build process) has a bug where it likely tries to tru
 - Removed `。` from `**选择内置主题或定义您自己的主题。**` in `themes/page.mdx`.
 - Updated metadata description in `themes/page.mdx`.
 - Verified dev server startup (Success).
+- Committed and pushed fixes to `dev` branch.

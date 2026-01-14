@@ -99,6 +99,7 @@ Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediat
 -   **Documentation Sovereignty**: The \`/zh/docs/\` path is now explicitly confirmed as the "Single Source of Truth" for all technical details.
 
 ## Next Steps
-1.  **Visual Assets ([TASK023])**: Start capturing and implementing screenshots for the "Installation" and "CLI" sections.
-2.  **Content Population**: Continue filling in the technical details for the \`config\` and \`providers\` sections in Chinese.
-3.  **Edit Links ([TASK024])**: Add "Edit this page on GitHub" links to the footer of all documentation pages to encourage community contribution.
+1.  **Deployment Verification**: Monitor Vercel build for TASK046 fix success.
+2.  **Visual Assets ([TASK023])**: Start capturing and implementing screenshots for the "Installation" and "CLI" sections.
+3.  **Content Population**: Continue filling in the technical details for the `config` and `providers` sections in Chinese.
+4.  **Edit Links ([TASK024])**: Add "Edit this page on GitHub" links to the footer of all documentation pages to encourage community contribution.
