@@ -1,11 +1,19 @@
 # Active Context
 
 ## Current Focus
-We have completed the **SEO Landing Pages Expansion ([TASK027])**, adding 6 targeted pages to capture high-intent search traffic around common errors (Claude credentials) and specific integrations (Playwright). This further solidifies the site's authority by addressing specific user pain points directly.
+We have completed the **Memory Bank Core Review**, ensuring that the foundational documents (`projectbrief.md`, `productContext.md`, `systemPatterns.md`, and `techContext.md`) accurately reflect the recent shift to "OpenCode Zen" terminology and the expanded documentation scope.
 
 Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
 
 ## Recent Changes
+-   **Memory Bank Core Update**: Updated `projectbrief.md` and `productContext.md` to integrate "OpenCode Zen" as a core component of the ecosystem alongside the OpenCode framework. Verified `systemPatterns.md` and `techContext.md` for architectural consistency.
+-   **OpenCode Zen 文档更新与全量内存银行同步 ([TASK039])**: 将 `/zh/docs/zen` 的内容从“专注模式”UI 特性替换为“OpenCode Zen”模型网关服务指南，并完成了全量 Memory Bank 审查与更新。
+    -   **内容**: 详细说明了 Zen 的背景、运行方式、模型列表及团队功能。同步更新了 `projectbrief.md` 和 `productContext.md`。
+    -   **导航一致性**: 根据用户要求，虽然内容已更迭，但侧边栏标题保留为“专注模式 (Zen)”。
+    -   **路由与 SEO**: 更新了 `ROUTE_MAP.md`，并在 MDX 中使用了优化的表格展示模型信息。
+-   **故障排除文档更新 ([TASK038])**: 将故障排除指南替换为详细的中文内容。
+    -   **内容**: 增加了日志路径、存储说明、身份验证修复、模型引用格式示例以及 Linux 剪贴板解决方案。
+    -   **SEO**: 实现了优化的 metadata 和 canonical 链接。
 -   **Enterprise Documentation Update ([TASK037])**: Replaced the Chinese Enterprise placeholder at `/zh/docs/enterprise` with a complete guide.
     -   **Content**: Added full coverage of evaluation, data handling, pricing, and enterprise deployment (SSO, Central Config, Internal AI Gateway).
     -   **SEO**: Implemented metadata and canonical links for search engine authority.

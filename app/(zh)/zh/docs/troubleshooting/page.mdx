@@ -1,24 +1,143 @@
-# 故障排查 (Troubleshooting)
+export const metadata = {
+  title: "故障排除 (Troubleshooting) | OpenCode 中文文档",
+  description: "常见问题及解决方法。了解如何调试 OpenCode 日志、解决身份验证问题以及修复模型不可用错误。",
+  alternates: {
+    canonical: "/zh/docs/troubleshooting",
+  },
+}
 
-## 这是什么？
-故障排查指南汇总了 OpenCode 使用过程中可能遇到的常见问题及其解决方案。涵盖安装失败、模型连接超时、配置不生效、插件冲突等各类异常情况的处理步骤。
+# 故障排除 (Troubleshooting)
 
-## 什么时候你会用到它？
-- 当你输入指令后，OpenCode 长时间无响应或报错时。
-- 当你修改了配置文件，但并没有按预期生效时。
-- 当你遇到 IDE 插件崩溃或无法加载的情况时。
+**常见问题及解决方法。**
 
-## 核心概念
-- **日志文件 (Logs)**：OpenCode 运行时的详细记录，是定位问题的关键依据。
-- **调试模式 (Debug Mode)**：开启后会输出更详细的内部状态信息，辅助开发者诊断问题。
-- **环境检查**：验证 Node.js 版本、网络连通性等基础运行环境。
+要调试 OpenCode 的任何问题，您可以查看其存储在本地的日志或会话数据。
 
-## 基本用法 / 配置说明
-> TODO：后续补充具体用法示例
+## 日志 (Logs)
 
-## 常见误解 / 注意事项
-- 很多连接问题是由于本地网络环境或代理配置不当引起的，优先检查网络。
-- 在社区提问或反馈 Bug 时，附上脱敏后的日志文件能大大加快问题解决速度。
+日志文件写入路径如下：
 
-## 延伸阅读
-> TODO：后续补充
+* **macOS/Linux:** `~/.local/share/opencode/log/`
+* **Windows:** `%USERPROFILE%\.local\share\opencode\log\`
+
+日志文件以时间戳命名（例如 `2025-01-09T123456.log`），系统会保留最近的 10 个日志文件。
+
+您可以通过命令行选项 `--log-level` 设置日志级别以获取更详细的调试信息。例如：`opencode --log-level DEBUG`。
+
+## 存储 (Storage)
+
+OpenCode 将会话数据和其他应用程序数据存储在磁盘上的以下路径：
+
+* **macOS/Linux:** `~/.local/share/opencode/`
+* **Windows:** `%USERPROFILE%\.local\share\opencode`
+
+该目录包含：
+
+* `auth.json` - 身份验证数据（如 API 密钥、OAuth 令牌）。
+* `log/` - 应用程序日志。
+* `project/` - 特定项目的数据（如会话和消息数据）。
+* 如果项目位于 Git 仓库内，数据存储在 `./<project-slug>/storage/`。
+* 如果不是 Git 仓库，则存储在 `./global/storage/`。
+
+
+
+## 获取帮助 (Getting help)
+
+如果您在使用 OpenCode 时遇到问题：
+
+### 在 GitHub 上报告问题
+
+报告 Bug 或提交功能请求的最佳方式是通过我们的 GitHub 仓库：
+[github.com/anomalyco/opencode/issues](https://github.com/anomalyco/opencode/issues)
+在创建新 Issue 之前，请先搜索现有 Issue，查看您的问题是否已被报告过。
+
+### 加入我们的 Discord
+
+如需实时帮助 and 社区讨论，请加入我们的 Discord 服务器：
+[opencode.ai/discord](https://www.google.com/search?q=https://opencode.ai/discord)
+
+## 常见问题 (Common issues)
+
+以下是一些常见问题及其解决方法：
+
+### OpenCode 无法启动
+
+* 检查日志中的错误信息。
+* 尝试运行 `opencode --print-logs` 在终端查看输出。
+* 确保您使用的是最新版本，运行 `opencode upgrade` 进行升级。
+
+### 身份验证问题
+
+* 尝试在 TUI（终端界面）中使用 `/connect` 命令重新进行身份验证。
+* 检查您的 API 密钥是否有效。
+* 确保您的网络允许连接到服务商的 API。
+
+### 模型不可用
+
+* 检查您是否已完成该服务商的身份验证。
+* 验证配置文件中的模型名称是否正确。
+* 某些模型可能需要特定的访问权限或订阅。
+
+如果您遇到 `ProviderModelNotFoundError`，通常是因为某处引用的模型格式不正确。模型的引用格式应为：`<providerId>/<modelId>`。
+**示例：**
+
+* `openai/gpt-4o`
+* `openrouter/google/gemini-2.0-flash`
+* `opencode/kimi-k1`
+
+运行 `opencode models` 可以查看您有权访问的所有模型。
+
+### ProviderInitError
+
+如果您遇到 `ProviderInitError`，通常意味着您的配置无效或已损坏。
+**解决方法：**
+
+1. 首先，参考[服务商指南](/zh/docs/providers)确认服务商设置是否正确。
+2. 如果问题依旧存在，尝试清除存储的配置：
+```bash
+rm -rf ~/.local/share/opencode
+```
+
+
+3. 在 TUI 中使用 `/connect` 命令重新连接服务商。
+
+### AI_APICallError 和服务商包问题
+
+如果您遇到 API 调用错误，可能是由于服务商软件包过时。OpenCode 会根据需要动态安装服务商包（OpenAI, Anthropic, Google 等）并进行本地缓存。
+**解决方法：**
+
+1. 清除服务商包缓存：
+```bash
+rm -rf ~/.cache/opencode
+```
+
+
+2. 重启 OpenCode 以重新安装最新的服务商包。
+这会强制 OpenCode 下载最新版本的服务商包，通常可以解决与模型参数或 API 更改相关的兼容性问题。
+
+### Linux 上无法复制/粘贴
+
+Linux 用户需要安装以下剪贴板实用程序之一才能正常使用复制/粘贴功能：
+
+* **对于 X11 系统：**
+```bash
+apt install -y xclip
+# 或
+apt install -y xsel
+```
+
+
+* **对于 Wayland 系统：**
+```bash
+apt install -y wl-clipboard
+```
+
+
+* **对于无头（Headless）环境：**
+```bash
+apt install -y xvfb
+# 并运行：
+Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+export DISPLAY=:99.0
+```
+
+OpenCode 会检测您是否在使用 Wayland 并优先选择 `wl-clipboard`，否则会按顺序查找 `xclip` 和 `xsel`。
