@@ -6,6 +6,10 @@ We have completed the **Memory Bank Core Review**, ensuring that the foundationa
 Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
 
 ## Recent Changes
+-   **命令 (Commands) 文档更新 ([TASK045])**: 替换了 `/zh/docs/configure/commands` 的占位符，提供了完整的自定义命令配置指南。
+    -   **内容**: 涵盖了 Markdown 和 JSON 两种配置方式、命令占位符（$ARGUMENTS, $1, $2）、Shell 输出注入（!）以及文件引用（@）。
+    -   **语法增强**: 使用了 GFM 警告语法（`[!NOTE]`）并确保了代码块的正确渲染。
+    -   **SEO**: 实现了优化的 metadata 和 canonical 链接，描述结尾不带句号以确保稳定构建。
 -   **快捷键 (Keybinds) 文档更新 ([TASK044])**: 替换了 `/zh/docs/configure/keybinds` 的占位符，提供了完整的快捷键自定义指南。
     -   **内容**: 涵盖了引导键 (Leader key) 概念、配置文件示例、禁用快捷键的方法、桌面端内置快捷键对照表以及 Shift+Enter 在 Windows Terminal 等环境下的配置。
     -   **格式优化**: 将复杂表格转换为 HTML 表格以确保 MDX 渲染一致性。

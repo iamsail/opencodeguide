@@ -1,6 +1,7 @@
 # Tasks Index
 
 ## Completed
+- [TASK045] 更新中文命令 (Commands) 文档 - 替换 /zh/docs/configure/commands 翻译内容 - Completed on 2026-01-14
 - [TASK044] 更新中文快捷键 (Keybinds) 文档 - 替换 /zh/docs/configure/keybinds 翻译内容 - Completed on 2026-01-14
 - [TASK043] 更新中文主题 (Themes) 文档 - 替换 /zh/docs/configure/themes 翻译内容 - Completed on 2026-01-14
 - [TASK042] 更新中文模型 (Models) 文档 - 替换 /zh/docs/configure/models 翻译内容 - Completed on 2026-01-14
