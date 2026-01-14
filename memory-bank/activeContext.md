@@ -6,6 +6,10 @@ We have completed the **Memory Bank Core Review**, ensuring that the foundationa
 Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
 
 ## Recent Changes
+-   **格式化工具 (Formatters) 文档更新 ([TASK047])**: 替换了 `/zh/docs/configure/formatters` 的占位符，提供了完整的代码格式化配置指南。
+    -   **内容**: 涵盖了工作原理、内置格式化工具（gofmt, mix, prettier, biome）的要求、禁用方法以及基于 `opencode.json` 的自定义配置。
+    -   **SEO**: 实现了优化的 metadata 和 canonical 链接。
+    -   **构建修复**: 遵循 TASK046 经验，移除了 metadata description 和关键标题末尾的中文句号以确保稳定构建。
 -   **命令 (Commands) 文档更新 ([TASK045])**: 替换了 `/zh/docs/configure/commands` 的占位符，提供了完整的自定义命令配置指南。
     -   **内容**: 涵盖了 Markdown 和 JSON 两种配置方式、命令占位符（$ARGUMENTS, $1, $2）、Shell 输出注入（!）以及文件引用（@）。
     -   **语法增强**: 使用了 GFM 警告语法（`[!NOTE]`）并确保了代码块的正确渲染。

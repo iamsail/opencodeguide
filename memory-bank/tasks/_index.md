@@ -1,6 +1,9 @@
 # Tasks Index
 
+## In Progress
+
 ## Completed
+- [TASK047] 更新中文格式化工具 (Formatters) 文档 - 替换 /zh/docs/configure/formatters 翻译内容 - Completed on 2026-01-14
 - [TASK046] Fix SWC Build Panic - Fixed "char boundary" panic in build by removing problematic punctuation in MDX - Completed on 2026-01-14
 - [TASK045] 更新中文命令 (Commands) 文档 - 替换 /zh/docs/configure/commands 翻译内容 - Completed on 2026-01-14
 - [TASK044] 更新中文快捷键 (Keybinds) 文档 - 替换 /zh/docs/configure/keybinds 翻译内容 - Completed on 2026-01-14
