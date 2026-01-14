@@ -28,7 +28,7 @@
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
 -   [x] **Memory Bank Sync**: Reviewed and updated core documentation to reflect "OpenCode Zen" shift.
--   [x] **Critical Fix**: Resolved SWC panic caused by Chinese punctuation in metadata/headers.
+-   [x] **Critical Fix**: Resolved SWC panic caused by Chinese punctuation in metadata descriptions across all core Chinese documentation pages ([TASK044]).
 -   [x] **模型 (Models) 文档**: 替换了中文模型配置指南，涵盖服务商、变体及全局设置 ([TASK042])。- [x] **主题 (Themes) 文档**: 替换了中文主题配置指南，涵盖内置主题、系统高亮及自定义 JSON 主题 ([TASK043])。
 - [x] **快捷键 (Keybinds) 文档**: 替换了中文快捷键配置指南，涵盖引导键、配置示例及 Shift+Enter 设置 ([TASK044])。
 -   [x] **智能体 (Agents) 文档**: 替换了中文 Agents 指南，涵盖主代理、子代理及 JSON/Markdown 配置 ([TASK041])。
