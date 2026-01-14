@@ -1,24 +1,149 @@
+export const metadata = {
+  title: "工具 (Tools) | OpenCode 中文文档",
+  description: "管理 LLM 可以使用的内置和自定义工具，控制文件编辑、终端执行和网页抓取权限。",
+  alternates: {
+    canonical: "/zh/docs/configure/tools",
+  },
+};
+
 # 工具 (Tools)
 
-## 这是什么？
-工具 (Tools) 是 OpenCode 执行具体任务的能力单元。与只能生成文本的普通聊天机器人不同，OpenCode 可以通过调用工具来执行系统命令、读写文件、搜索代码库或访问互联网。
+**管理 LLM 可以使用的工具。**
 
-## 什么时候你会用到它？
-- 当你要求 AI "查找所有引用了 User 类的地方" 时（AI 会调用 `grep` 或 `ripgrep` 工具）。
-- 当你要求 AI "创建一个新文件" 或 "修改这个函数" 时（AI 会调用文件系统工具）。
-- 当你需要 AI 运行测试用例并根据输出修复 Bug 时（AI 会调用终端执行工具）。
+工具允许 LLM 在您的代码库中执行操作。OpenCode 内置了一系列工具，您也可以通过自定义工具或 MCP 服务器进行扩展。
 
-## 核心概念
-- **Read/Write**：基础的文件读写能力。
-- **Terminal Execution**：在沙箱或受控环境中执行 Shell 命令的能力。
-- **Web Browsing**：通过浏览器工具获取最新网络实时信息的能力（如果启用）。
+默认情况下，所有工具都是启用的，并且不需要权限即可运行。您可以通过权限设置来控制工具的行为。
 
-## 基本用法 / 配置说明
-> TODO：后续补充如何启用/禁用特定工具的配置示例
+## 配置 (Configure)
 
-## 常见误解 / 注意事项
-- 工具调用通常需要消耗额外的 Token，因为工具的输出会作为新的上下文反哺给模型。
-- 某些高风险工具（如删除文件、网络请求）默认可能需要用户确认。
+使用 `permission` 字段来控制工具行为。您可以为每个工具设置允许（allow）、拒绝（deny）或需要批准（ask）。
 
-## 延伸阅读
-> TODO：后续补充
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "edit": "deny",
+    "bash": "ask",
+    "webfetch": "allow"
+  }
+}
+```
+*opencode.json*
+
+您还可以使用通配符同时控制多个工具。例如，要求批准来自某个 MCP 服务器的所有工具：
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "mymcp_*": "ask"
+  }
+}
+```
+*opencode.json*
+
+[了解更多关于配置权限的信息。](/zh/docs/configure/permissions)
+
+## 内置工具 (Built-in)
+
+以下是 OpenCode 中提供的所有内置工具：
+
+### bash
+
+在您的项目环境中执行 Shell 命令。允许 LLM 运行终端命令，如 `npm install`、`git status` 或任何其他 Shell 命令。
+
+### edit
+
+使用精确的字符串替换来修改现有文件。这是 LLM 修改代码的主要方式。
+
+### write
+
+创建新文件或覆盖现有文件。
+
+> [!NOTE]
+> `write` 工具受 `edit` 权限控制，该权限涵盖了所有文件修改操作（`edit`、`write`、`patch`、`multiedit`）。
+
+### read
+
+从代码库中读取文件内容。支持大型文件的特定行范围读取。
+
+### grep
+
+使用正则表达式搜索文件内容。在代码库中进行快速内容搜索，支持完整的正则语法和文件模式过滤。
+
+### glob
+
+通过模式匹配查找文件。使用 Glob 模式（如 `**/*.js` 或 `src/**/*.ts`）搜索文件。返回按修改时间排序的匹配文件路径。
+
+### list
+
+列出给定路径下的文件和目录。支持使用 Glob 模式过滤结果。
+
+### lsp (实验性)
+
+与配置的 LSP 服务器交互，获取代码智能功能，如定义跳转、引用查找、悬停信息和调用层级。
+
+> [!IMPORTANT]
+> 仅当 `OPENCODE_EXPERIMENTAL_LSP_TOOL=true` 时可用。
+
+### patch
+
+将补丁应用于文件。适用于应用来自各种来源的 Diff 和补丁文件。
+
+> [!NOTE]
+> 受 `edit` 权限控制。
+
+### skill
+
+加载一个技能（`SKILL.md` 文件）并在对话中返回其内容。
+
+### todowrite
+
+在编码会话期间管理待办事项列表。用于跟踪复杂操作的进度。
+
+> [!TIP]
+> 默认情况下子代理（subagents）禁用此工具，但可以手动开启。
+
+### todoread
+
+读取现有的待办事项列表。供 LLM 跟踪待完成或已完成的任务。
+
+### webfetch
+
+获取网页内容。允许 LLM 获取并读取网页，适用于查阅文档或在线研究。
+
+### question
+
+在执行任务期间向用户提问。用于：
+
+* 收集用户偏好或需求。
+* 澄清模糊的指令。
+* 征求实现方案的选择决策。
+* 询问下一步的方向。
+
+## 自定义工具 (Custom tools)
+
+自定义工具允许您定义自己的函数供 LLM 调用。这些函数在配置文件中定义，可以执行任意代码。
+[了解更多关于创建自定义工具的信息。](/zh/docs/configure/custom-tools)
+
+## MCP 服务器 (MCP servers)
+
+MCP（模型上下文协议）服务器允许您集成外部工具和服务，包括数据库访问、API 集成和第三方服务。
+[了解更多关于配置 MCP 服务器的信息。](/zh/docs/configure/mcp-servers)
+
+## 内部机制 (Internals)
+
+在内部，`grep`、`glob` 和 `list` 等工具底层使用了 **ripgrep**。默认情况下，ripgrep 遵循 `.gitignore` 模式，这意味着 `.gitignore` 中列出的文件和目录将被排除在搜索和列表之外。
+
+### 忽略模式 (Ignore patterns)
+
+如果需要包含通常被忽略的文件，请在项目根目录创建一个 `.ignore` 文件来显式允许某些路径。
+
+```text
+!node_modules/
+!dist/
+!build/
+```
+*.ignore*
+
+例如，上面的文件允许 ripgrep 搜索这些目录，即使它们在 `.gitignore` 中。
