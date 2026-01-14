@@ -6,6 +6,10 @@ We have completed the **Memory Bank Core Review**, ensuring that the foundationa
 Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
 
 ## Recent Changes
+-   **模型 (Models) 文档更新 ([TASK042])**: 替换了 `/zh/docs/configure/models` 的占位符，提供了完整的模型配置指南。
+    -   **内容**: 涵盖了服务商 (Providers)、模型选择、推荐列表、默认模型设置、全局选项配置及变体 (Variants) 手册。
+    -   **变体管理**: 详细说明了内置变体（Anthropic, OpenAI, Google）及自定义变体的覆盖方法。
+    -   **链接修复**: 成功将“了解更多”链接指向本地化的 `/zh/docs/providers` 页面，保持了文档系统的闭环。
 -   **Memory Bank Core Update**: Updated `projectbrief.md` and `productContext.md` to integrate "OpenCode Zen" as a core component of the ecosystem alongside the OpenCode framework. Verified `systemPatterns.md` and `techContext.md` for architectural consistency.
 -   **智能体 (Agents) 文档更新 ([TASK041])**: 替换了 `/zh/docs/configure/agents` 的占位符，提供了完整的智能体配置指南。
     -   **内容**: 涵盖了主代理（Build, Plan）和子代理（General, Explore）的概念、用法及配置方式（JSON/Markdown）。
