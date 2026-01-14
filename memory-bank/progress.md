@@ -28,6 +28,7 @@
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
 -   [x] **Memory Bank Sync**: Reviewed and updated core documentation to reflect "OpenCode Zen" shift.
+-   [x] **智能体 (Agents) 文档**: 替换了中文 Agents 指南，涵盖主代理、子代理及 JSON/Markdown 配置 ([TASK041])。
 -   [x] **OpenCode Zen 文档**: 将 `/zh/docs/zen` 更新为模型网关指南 ([TASK039])。
 -   [x] **工具 (Tools) 文档**: 替换了中文工具指南，涵盖内置、自定义工具以及权限配置 ([TASK040])。
 -   [x] **故障排除文档**: 替换了中文故障排除指南，包含日志、存储和常见问题解决方案 ([TASK038])。
