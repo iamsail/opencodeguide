@@ -28,6 +28,7 @@
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
 -   [x] **Memory Bank Sync**: Reviewed and updated core documentation to reflect "OpenCode Zen" shift.
+-   [x] **Critical Fix**: Resolved SWC panic caused by Chinese punctuation in metadata/headers.
 -   [x] **模型 (Models) 文档**: 替换了中文模型配置指南，涵盖服务商、变体及全局设置 ([TASK042])。
 -   [x] **智能体 (Agents) 文档**: 替换了中文 Agents 指南，涵盖主代理、子代理及 JSON/Markdown 配置 ([TASK041])。
 -   [x] **OpenCode Zen 文档**: 将 `/zh/docs/zen` 更新为模型网关指南 ([TASK039])。
