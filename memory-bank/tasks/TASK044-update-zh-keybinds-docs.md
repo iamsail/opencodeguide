@@ -14,6 +14,7 @@
 - [x] 创建任务文件并更新索引
 - [x] 替换 `/zh/docs/configure/keybinds/page.mdx` 的内容
 - [x] 确保代码块和表格格式正确
+- [x] 修复 SWC Build Panic：移除 metadata description 中的中文句号以规避多字节字符边界解析错误
 - [x] 更新 Memory Bank 进度
 
 ## Progress Tracking

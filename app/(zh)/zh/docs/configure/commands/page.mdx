@@ -1,24 +1,119 @@
+export const metadata = {
+  title: "命令 (Commands) | OpenCode 中文文档",
+  description: "为重复性任务创建自定义斜杠命令，支持提示词模板、Shell 输出注入和动态参数",
+  alternates: {
+    canonical: "/zh/docs/configure/commands",
+  },
+}
+
 # 命令 (Commands)
 
-## 这是什么？
-命令 (Commands) 配置允许你定义自定义的 "Slash Commands"（斜杠命令）。就像在聊天框输入 `/explain` 或 `/test` 一样，你可以创建自己的 `/my-script` 来触发预设的 Prompt 或脚本。
+**为重复性任务创建自定义命令**
 
-## 什么时候你会用到它？
-- 当你发现自己经常重复输入同一段复杂的 Prompt（比如：“请帮我按以下格式写单元测试...”）时，可以将其封装为 `/test-gen`。
-- 当你需要一键触发某个项目特定的构建脚本并让 AI 分析输出时。
-- 当你想为团队定义一套标准的操作指令集时。
+自定义命令允许您指定在 TUI（终端界面）中执行该命令时要运行的提示词（Prompt）。
 
-## 核心概念
-- **Slash Command**：以 `/` 开头的触发词。
-- **Alias**：命令的简写别名。
-- **Template**：命令背后对应的预设文本模版或动作序列。
+```text
+/my-command
+```
 
-## 基本用法 / 配置说明
-> TODO：后续补充如何定义自定义 Slash Command 的示例
+自定义命令是除内置命令（如 `/init`、`/undo`、`/redo`、`/share`、`/help`）之外的补充。
 
-## 常见误解 / 注意事项
-- 自定义命令的名字不要与系统内置命令（如 `/help`, `/clear`）冲突。
-- 命令不仅可以填入文本，还可以配置为自动附带特定的上下文文件。
+## 创建命令文件
 
-## 延伸阅读
-> TODO：后续补充
+您可以在 `command/` 目录下创建 Markdown 文件来定义自定义命令。
+
+例如，创建 `.opencode/command/test.md`：
+
+**.opencode/command/test.md**
+
+```markdown
+---
+description: 运行带覆盖率的测试
+agent: build
+model: anthropic/claude-3-5-sonnet-20241022
+---
+
+运行完整的测试套件及覆盖率报告，并显示任何失败项。
+专注于失败的测试并建议修复方案。
+```
+
+* **Frontmatter** 定义了命令的属性。
+* **内容部分** 则是命令的模板。
+* 使用时，在 TUI 中输入 `/` 后跟命令名称即可，例如 `/test`。
+
+## 配置方式
+
+您可以通过 OpenCode 配置文件或在 `command/` 目录中创建 Markdown 文件来添加自定义命令。
+
+### JSON 方式
+
+在 `opencode.jsonc` 中使用 `command` 选项：
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "command": {
+    "test": {
+      "template": "运行完整的测试套件及覆盖率报告，并显示任何失败项。\\n专注于失败的测试并建议修复方案。",
+      "description": "运行带覆盖率的测试",
+      "agent": "build",
+      "model": "anthropic/claude-3-5-sonnet-20241022"
+    }
+  }
+}
+```
+
+### Markdown 方式
+
+将文件放置在以下位置：
+
+* **全局配置：** `~/.config/opencode/command/`
+* **项目特定配置：** `.opencode/command/`
+
+文件名即为命令名（例如 `test.md` 对应的命令是 `/test`）。
+
+## 提示词配置 (Prompt config)
+
+自定义命令的提示词支持多种特殊占位符和语法：
+
+### 参数 (Arguments)
+
+使用 `$ARGUMENTS` 占位符向命令传递参数。
+
+* **示例模板：** `创建一个名为 $ARGUMENTS 的 React 组件。`
+* **执行：** `/component Button` -> `$ARGUMENTS` 会被替换为 `Button`。
+* **位置参数：** 也可以使用 `$1`、`$2`、`$3` 等访问单个参数。
+
+### Shell 输出 (Shell output)
+
+使用 `! 脚本命令` 将 Bash 命令的输出注入到提示词中。
+
+* **示例：**
+```text
+这是目前的测试结果：
+!`npm test`
+根据这些结果建议改进方案。
+```
+
+命令在项目根目录下运行，其输出会成为提示词的一部分。
+
+### 文件引用 (File references)
+
+使用 `@` 后跟文件名将文件内容包含在命令中。
+
+* **示例：** `请审查 @src/components/Button.tsx 中的组件。`
+
+## 配置选项 (Options)
+
+* **Template (必需):** 执行命令时发送给 LLM 的提示词模板。
+* **Description:** 在 TUI 中输入命令时显示的简短说明。
+* **Agent:** 指定执行此命令的代理（可选）。如果是子代理，默认会触发子代理调用。
+* **Subtask:** 布尔值。设置为 `true` 可强制该命令作为子任务运行，避免污染主上下文。
+* **Model:** 覆盖此命令默认使用的模型。
+
+## 内置命令 (Built-in)
+
+OpenCode 包含 `/init`、`/undo`、`/redo`、`/share`、`/help` 等内置命令。
+
+> [!NOTE]
+> 自定义命令可以覆盖内置命令。如果您定义了一个同名的自定义命令，它将优先运行。
