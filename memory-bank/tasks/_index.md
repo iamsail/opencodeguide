@@ -1,6 +1,9 @@
 # Tasks Index
 
+## In Progress
+
 ## Completed
+- [TASK038] 更新中文故障排除 (Troubleshooting) 文档 - 替换 /zh/docs/troubleshooting 翻译内容 - Completed on 2026-01-14
 - [TASK037] 更新中文企业版 (Enterprise) 文档 - 替换 /zh/docs/enterprise 翻译内容 - Completed on 2026-01-13
 - [TASK036] 更新中文网络配置文档 - 将翻译好的网络配置内容替换至 /zh/docs/network - Completed on 2026-01-13
 - [TASK035] 更新中文规则 (Rules) 文档 - 替换 /zh/docs/configure/rules 占位符为完整指南 - Completed on 2026-01-13

@@ -6,6 +6,9 @@ We have completed the **SEO Landing Pages Expansion ([TASK027])**, adding 6 targ
 Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
 
 ## Recent Changes
+-   **故障排除文档更新 ([TASK038])**: 将故障排除指南替换为详细的中文内容。
+    -   **内容**: 增加了日志路径、存储说明、身份验证修复、模型引用格式示例以及 Linux 剪贴板解决方案。
+    -   **SEO**: 实现了优化的 metadata 和 canonical 链接。
 -   **Enterprise Documentation Update ([TASK037])**: Replaced the Chinese Enterprise placeholder at `/zh/docs/enterprise` with a complete guide.
     -   **Content**: Added full coverage of evaluation, data handling, pricing, and enterprise deployment (SSO, Central Config, Internal AI Gateway).
     -   **SEO**: Implemented metadata and canonical links for search engine authority.
