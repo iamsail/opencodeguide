@@ -6,6 +6,11 @@ We have completed the **Memory Bank Core Review**, ensuring that the foundationa
 Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
 
 ## Recent Changes
+-   **快捷键 (Keybinds) 文档更新 ([TASK044])**: 替换了 `/zh/docs/configure/keybinds` 的占位符，提供了完整的快捷键自定义指南。
+    -   **内容**: 涵盖了引导键 (Leader key) 概念、配置文件示例、禁用快捷键的方法、桌面端内置快捷键对照表以及 Shift+Enter 在 Windows Terminal 等环境下的配置。
+    -   **格式优化**: 将复杂表格转换为 HTML 表格以确保 MDX 渲染一致性。
+    -   **关键修复**: 为规避 Next.js/SWC 构建阶段的 Panic 报错，移除并修复了包括 Keybinds 在内的 14 个中文 MDX 文件的元数据描述（description）结尾的句号。
+    -   **SEO**: 实现了优化的 metadata 和 canonical 链接。
 -   **主题 (Themes) 文档更新 ([TASK043])**: 替换了 `/zh/docs/configure/themes` 的占位符，提供了完整的主题配置指南。
     -   **内容**: 涵盖了终端真彩色要求、内置主题列表、系统主题原理以及基于 JSON 的自定义主题配置。
     -   **格式优化**: 将内置主题列表转换为样式化的 HTML 表格，以确保构建稳定性并对齐 UI 风格。
