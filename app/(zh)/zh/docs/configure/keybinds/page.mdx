@@ -1,24 +1,137 @@
+export const metadata = {
+  title: "快捷键 (Keybinds) | OpenCode 中文文档",
+  description: "自定义您的 OpenCode 快捷键，包括引导键设置、配置文件示例以及终端特殊按键配置。",
+  alternates: {
+    canonical: "/zh/docs/configure/keybinds",
+  },
+}
+
 # 快捷键 (Keybinds)
 
-## 这是什么？
-快捷键配置允许你自定义 OpenCode 中的所有键盘操作指令。无论是触发 AI 对话、接受代码建议、切换面板还是中断操作，你都可以根据自己的肌肉记忆进行调整。
+**自定义您的快捷键。**
 
-## 什么时候你会用到它？
-- 当默认的快捷键与你系统全局快捷键（如 Spotlight 或输入法切换）冲突时。
-- 当你是一个 Vim/Emacs 高级用户，希望将 OpenCode 的操作映射为类 Vim 的按键风格时。
-- 当你希望为某些高频操作（如“解释选中代码”）绑定一键触发时。
+OpenCode 提供了一系列快捷键，您可以通过 OpenCode 的配置文件进行自定义。
 
-## 核心概念
-- **Chord**：组合键（如 `Ctrl+K`）。
-- **Sequence**：按键序列（如 `g` 然后按 `d`）。
-- **Context**：快捷键生效的上下文（例如：仅在编辑器聚焦时生效，或仅在终端面板生效）。
+## 引导键 (Leader key)
 
-## 基本用法 / 配置说明
-> TODO：后续补充快捷键映射表和配置文件的写法
+OpenCode 的大多数快捷键都使用“引导键（Leader key）”。这可以避免与您的终端快捷键发生冲突。
 
-## 常见误解 / 注意事项
-- 配置快捷键时要当心不要覆盖了最基础的文本编辑功能（如 `Ctrl+C` 复制）。
-- IDE 插件模式下的快捷键通常需要在 IDE 自身的快捷键设置界面中修改，而非 OpenCode 配置文件。
+默认情况下，`ctrl+x` 是引导键。大多数操作需要您先按下引导键，然后再按下具体的快捷键。例如，要开始一个新会话，您需要先按 `ctrl+x`，然后按 `n`。
 
-## 延伸阅读
-> TODO：后续补充
+虽然您可以不使用引导键来配置快捷键，但我们建议您保留此设置。
+
+## 配置示例 (opencode.json)
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "keybinds": {
+    "leader": "ctrl+x",
+    "app_exit": "ctrl+c,ctrl+d,<leader>q",
+    "editor_open": "<leader>e",
+    "theme_list": "<leader>t",
+    "sidebar_toggle": "<leader>b",
+    "status_view": "<leader>s",
+    "session_export": "<leader>x",
+    "session_new": "<leader>n",
+    "session_list": "<leader>l",
+    "session_timeline": "<leader>g",
+    "session_interrupt": "escape",
+    "session_compact": "<leader>c",
+    "session_child_cycle": "<leader>right",
+    "session_child_cycle_reverse": "<leader>left",
+    "session_parent": "<leader>up",
+    "messages_page_up": "pageup",
+    "messages_page_down": "pagedown",
+    "messages_copy": "<leader>y",
+    "messages_undo": "<leader>u",
+    "messages_redo": "<leader>r",
+    "messages_toggle_conceal": "<leader>h",
+    "model_list": "<leader>m",
+    "model_cycle_recent": "f2",
+    "model_cycle_recent_reverse": "shift+f2",
+    "variant_cycle": "ctrl+t",
+    "command_list": "ctrl+p",
+    "agent_list": "<leader>a",
+    "agent_cycle": "tab",
+    "agent_cycle_reverse": "shift+tab",
+    "input_clear": "ctrl+c",
+    "input_submit": "return",
+    "input_newline": "shift+return,ctrl+return,alt+return,ctrl+j",
+    "history_previous": "up",
+    "history_next": "down",
+    "tips_toggle": "<leader>h"
+  }
+}
+```
+
+## 禁用快捷键 (Disable keybind)
+
+您可以通过将快捷键的值设置为 `"none"` 来禁用它。
+
+```json
+{
+  "keybinds": {
+    "session_compact": "none"
+  }
+}
+```
+
+## 桌面端提示框快捷键 (Desktop prompt shortcuts)
+
+OpenCode 桌面应用的输入框支持常见的 Readline/Emacs 风格的文本编辑快捷键。这些是内置的，目前无法通过 `opencode.json` 配置。
+
+<table>
+  <thead>
+    <tr>
+      <th>快捷键</th>
+      <th>动作</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><code>ctrl+a</code></td><td>移动到当前行首</td></tr>
+    <tr><td><code>ctrl+e</code></td><td>移动到当前行尾</td></tr>
+    <tr><td><code>ctrl+b</code></td><td>向后移动一个字符</td></tr>
+    <tr><td><code>ctrl+f</code></td><td>向前移动一个字符</td></tr>
+    <tr><td><code>alt+b</code></td><td>向后移动一个单词</td></tr>
+    <tr><td><code>alt+f</code></td><td>向前移动一个单词</td></tr>
+    <tr><td><code>ctrl+d</code></td><td>删除光标下的字符</td></tr>
+    <tr><td><code>ctrl+k</code></td><td>删除至行尾</td></tr>
+    <tr><td><code>ctrl+u</code></td><td>删除至行首</td></tr>
+    <tr><td><code>ctrl+w</code></td><td>删除前一个单词</td></tr>
+    <tr><td><code>alt+d</code></td><td>删除后一个单词</td></tr>
+    <tr><td><code>ctrl+t</code></td><td>交换字符</td></tr>
+    <tr><td><code>ctrl+g</code></td><td>取消弹出层 / 中止运行中的响应</td></tr>
+  </tbody>
+</table>
+
+## Shift+Enter 设置
+
+某些终端默认不会随 Enter 键发送修饰键。您可能需要配置终端将 `Shift+Enter` 作为转义序列发送。
+
+### Windows Terminal 配置示例
+
+在 `settings.json` 中添加以下内容：
+
+1. 在 `actions` 数组中添加：
+
+```json
+{
+  "command": {
+    "action": "sendInput",
+    "input": "\u001b[13;2u"
+  },
+  "id": "User.sendInput.ShiftEnterCustom"
+}
+```
+
+2. 在 `keybindings` 数组中添加：
+
+```json
+{
+  "keys": "shift+enter",
+  "id": "User.sendInput.ShiftEnterCustom"
+}
+```
+
+保存并重启终端即可。

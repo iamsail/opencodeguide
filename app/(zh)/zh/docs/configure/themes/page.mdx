@@ -1,23 +1,135 @@
+export const metadata = {
+  title: "主题 (Themes) | OpenCode 中文文档",
+  description: "选择 OpenCode 内置主题或定义您自己的主题。了解终端真彩色要求、系统主题自适应及基于 JSON 的自定义主题配置。",
+  alternates: {
+    canonical: "/zh/docs/configure/themes",
+  },
+}
+
 # 主题 (Themes)
 
-## 这是什么？
-主题配置决定了 OpenCode 界面（特别是 TUI 模式）的视觉外观。通过自定义颜色方案，你可以让代码高亮、状态栏和对话气泡更加符合你的审美习惯。
+**选择内置主题或定义您自己的主题。**
 
-## 什么时候你会用到它？
-- 当你觉得默认的配色方案对比度不够，长时间盯着屏幕眼睛疲劳时。
-- 当你希望 OpenCode 的配色与你使用的终端（如 iTerm2）或 IDE 主题保持一致时。
-- 当你需要区分不同的环境（如：开发环境用绿色主题，生产环境操作用红色警告主题）时。
+通过 OpenCode，您可以从多个内置主题中进行选择，也可以使用能够根据您的终端主题自动适应的主题，或者定义您自己的自定义主题。默认情况下，OpenCode 使用官方的 `opencode` 主题。
 
-## 核心概念
-- **Syntax Highlighting**：代码块的语法着色规则。
-- **UI Colors**：界面边框、背景、按钮的颜色定义。
-- **Icons**：文件类型图标或状态图标的样式。
+## 终端要求 (Terminal requirements)
 
-## 基本用法 / 配置说明
-> TODO：后续补充如何导入 VS Code 主题或编写 JSON 主题文件
+为了让主题以全色彩范围正确显示，您的终端必须支持 **真彩色 (Truecolor/24-bit color)**。大多数现代终端默认支持此功能，但您可能需要手动启用：
 
-## 常见误解 / 注意事项
-- 修改 TUI 主题可能需要终端模拟器本身支持 "True Color" (24-bit color) 才能获得最佳效果。
+* **检查支持情况：** 运行 `echo $COLORTERM`，输出应为 `truecolor` 或 `24bit`。
+* **启用真彩色：** 在 shell 配置文件中设置环境变量 `export COLORTERM=truecolor`。
+* **终端兼容性：** 确保您的终端仿真器支持 24 位颜色（如 iTerm2、Alacritty、Kitty、Windows Terminal 以及较新版本的 GNOME Terminal）。
 
-## 延伸阅读
-> TODO：后续补充
+如果没有真彩色支持，主题颜色可能会出现偏差，或者回退到最接近的 256 色。
+
+## 内置主题 (Built-in themes)
+
+OpenCode 附带了多个内置主题：
+
+<table>
+  <thead>
+    <tr>
+      <th>名称</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>system</strong></td><td>自动适应终端的背景颜色</td></tr>
+    <tr><td><strong>tokyonight</strong></td><td>基于 Tokyonight 主题</td></tr>
+    <tr><td><strong>everforest</strong></td><td>基于 Everforest 主题</td></tr>
+    <tr><td><strong>ayu</strong></td><td>基于 Ayu 暗色主题</td></tr>
+    <tr><td><strong>catppuccin</strong></td><td>基于 Catppuccin 主题</td></tr>
+    <tr><td><strong>gruvbox</strong></td><td>基于 Gruvbox 主题</td></tr>
+    <tr><td><strong>nord</strong></td><td>基于 Nord 主题</td></tr>
+    <tr><td><strong>matrix</strong></td><td>黑底绿字的黑客风格主题</td></tr>
+    <tr><td><strong>one-dark</strong></td><td>基于 Atom One Dark 主题</td></tr>
+  </tbody>
+</table>
+
+*(系统正在不断添加更多新主题)*
+
+## 系统主题 (System theme)
+
+系统主题旨在自动适应您终端的配色方案。与使用固定颜色的传统主题不同，系统主题：
+
+* **生成灰度：** 根据您的终端背景颜色创建自定义灰度，确保最佳对比度。
+* **使用 ANSI 颜色：** 利用标准 ANSI 颜色 (0-15) 进行语法高亮和 UI 元素显示，遵循您的终端调色板。
+* **保留终端默认值：** 文本和背景颜色使用 `none`，以保持终端的原生外观。
+
+## 使用主题 (Using a theme)
+
+您可以通过以下方式选择主题：
+
+1. 在 TUI 中输入 `/theme` 命令调出主题选择菜单。
+2. 在配置文件 `opencode.json` 中指定：
+
+**opencode.json**
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "theme": "tokyonight"
+}
+```
+
+## 自定义主题 (Custom themes)
+
+OpenCode 支持灵活的基于 JSON 的主题系统。
+
+### 优先级 (Hierarchy)
+
+主题按以下顺序从多个目录加载（后面的目录会覆盖前面的）：
+
+1. **内置主题：** 嵌入在二进制文件中。
+2. **用户配置目录：** `~/.config/opencode/themes/*.json`。
+3. **项目根目录：** `<project-root>/.opencode/themes/*.json`。
+4. **当前工作目录：** `./.opencode/themes/*.json`。
+
+### 创建主题
+
+在上述目录之一中创建 JSON 文件。例如，创建用户全局主题：
+
+```bash
+mkdir -p ~/.config/opencode/themes
+vim ~/.config/opencode/themes/my-theme.json
+```
+
+### JSON 格式支持
+
+* **十六进制颜色：** `"#ffffff"`
+* **ANSI 颜色：** `3` (0-255)
+* **颜色引用：** `"primary"` 或自定义定义。
+* **深色/浅色变体：** `{"dark": "#000", "light": "#fff"}`
+* **无颜色：** `"none"`（使用终端默认色或透明）。
+
+### 示例 (Example)
+
+以下是一个自定义主题文件的示例：
+
+**my-theme.json**
+
+```json
+{
+  "$schema": "https://opencode.ai/theme.json",
+  "defs": {
+    "nord0": "#2E3440",
+    "nord8": "#88C0D0"
+  },
+  "theme": {
+    "primary": {
+      "dark": "nord8",
+      "light": "#5E81AC"
+    },
+    "text": {
+      "dark": "#D8DEE9",
+      "light": "nord0"
+    },
+    "background": {
+      "dark": "nord0",
+      "light": "#ECEFF4"
+    }
+  }
+}
+```
+
+*(注：完整的主题配置可以涵盖 UI、Diff 视图、Markdown 渲染及各种语法高亮颜色。)*
