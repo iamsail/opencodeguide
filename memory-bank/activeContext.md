@@ -23,6 +23,9 @@ Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediat
     -   **内容**: 涵盖了服务商 (Providers)、模型选择、推荐列表、默认模型设置、全局选项配置及变体 (Variants) 手册。
     -   **变体管理**: 详细说明了内置变体（Anthropic, OpenAI, Google）及自定义变体的覆盖方法。
     -   **链接修复**: 成功将“了解更多”链接指向本地化的 `/zh/docs/providers` 页面，保持了文档系统的闭环。
+-   **Critical Build Fix (SWC Panic) ([TASK046])**: Resolved a persistent build error (`byte index is not a char boundary`) in `keybinds` and `themes` documentation.
+    -   **Root Cause**: Chinese periods (`。`) located at specific byte offsets (332 and 380) in bold markdown headers (`**...。**`) immediately following the metadata block caused `swc` compiler to panic.
+    -   **Fix**: Removed the Chinese periods from the bold headers and safeproofed metadata descriptions in `themes/page.mdx`. verified with local build.
 -   **Critical Build Fix**: Resolved a Next.js/SWC compiler panic caused by multi-byte character boundary issues (specifically Chinese periods `。`) in metadata descriptions and bold markdown headers.
     -   **Affected Files**: `troubleshooting/page.mdx`, `network/page.mdx`, `enterprise/page.mdx`, `zen/page.mdx`, `tools/page.mdx`.
     -   **Action**: Removed or replaced problematic punctuation to ensure stable builds.
