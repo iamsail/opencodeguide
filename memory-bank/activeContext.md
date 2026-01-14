@@ -6,6 +6,10 @@ We have completed the **Memory Bank Core Review**, ensuring that the foundationa
 Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
 
 ## Recent Changes
+-   **主题 (Themes) 文档更新 ([TASK043])**: 替换了 `/zh/docs/configure/themes` 的占位符，提供了完整的主题配置指南。
+    -   **内容**: 涵盖了终端真彩色要求、内置主题列表、系统主题原理以及基于 JSON 的自定义主题配置。
+    -   **格式优化**: 将内置主题列表转换为样式化的 HTML 表格，以确保构建稳定性并对齐 UI 风格。
+    -   **SEO**: 实现了优化的 metadata 和 canonical 链接。
 -   **模型 (Models) 文档更新 ([TASK042])**: 替换了 `/zh/docs/configure/models` 的占位符，提供了完整的模型配置指南。
     -   **内容**: 涵盖了服务商 (Providers)、模型选择、推荐列表、默认模型设置、全局选项配置及变体 (Variants) 手册。
     -   **变体管理**: 详细说明了内置变体（Anthropic, OpenAI, Google）及自定义变体的覆盖方法。
