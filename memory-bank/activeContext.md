@@ -104,7 +104,7 @@ Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediat
 -   **Documentation Sovereignty**: The \`/zh/docs/\` path is now explicitly confirmed as the "Single Source of Truth" for all technical details.
 
 ## Next Steps
-1.  **Deployment Verification**: Monitor Vercel build for TASK046 fix success.
-2.  **Visual Assets ([TASK023])**: Start capturing and implementing screenshots for the "Installation" and "CLI" sections.
-3.  **Content Population**: Continue filling in the technical details for the `config` and `providers` sections in Chinese.
-4.  **Edit Links ([TASK024])**: Add "Edit this page on GitHub" links to the footer of all documentation pages to encourage community contribution.
+1.  **Providers 文档更新**: 替换 `/zh/docs/providers` 的占位符，完成模型服务商配置指南的中文化。
+2.  **Visual Assets ([TASK023])**: 开始为“安装”和“命令行”章节制作并集成实际截图。
+3.  **Edit Links ([TASK024])**: 在所有文档页面底部添加“在 GitHub 上编辑此页”链接。
+4.  **Deployment Verification**: 监控 Vercel 构建状态，确保 SWC Panic 修复（TASK046）生效。
