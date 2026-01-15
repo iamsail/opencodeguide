@@ -3,6 +3,7 @@
 ## In Progress
 
 ## Completed
+- [TASK050] Fix MDX Paragraph Hydration Error - Resolved "p cannot be a descendant of p" by using div wrapper - Completed on 2026-01-15
 - [TASK049] 更新中文 LSP 服务器 (LSP Servers) 文档 - 替换 /zh/docs/configure/lsp-servers 翻译内容 - Completed on 2026-01-14
 - [TASK048] 更新中文权限 (Permissions) 文档 - 替换 /zh/docs/configure/permissions 翻译内容 - Completed on 2026-01-14
 - [TASK047] 更新中文格式化工具 (Formatters) 文档 - 替换 /zh/docs/configure/formatters 翻译内容 - Completed on 2026-01-14

@@ -20,9 +20,9 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       </h3>
     ),
     p: ({ children }) => (
-      <p className="leading-7 [&:not(:first-child)]:mt-6 text-gray-700 dark:text-gray-400">
+      <div className="leading-7 [&:not(:first-child)]:mt-6 text-gray-700 dark:text-gray-400">
         {children}
-      </p>
+      </div>
     ),
     a: ({ href, children }) => {
       const isInternal = href?.startsWith('/') || href?.startsWith('#');

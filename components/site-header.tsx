@@ -15,7 +15,9 @@ export function SiteHeader({ lang = "en" }: SiteHeaderProps) {
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <span className="font-bold inline-block text-gray-900 dark:text-gray-100">OpenCode Guide</span>
           </Link>
-          <nav className="flex items-center space-x-6 text-sm font-medium">
+        </div>
+        <div className="flex-1 flex items-center justify-end space-x-4">
+          <nav className="flex items-center space-x-6 text-sm font-medium mr-4">
             {lang === "zh" ? (
                <>
                  <Link href="/zh/opencode" className="transition-colors hover:text-gray-800/80 text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
@@ -33,8 +35,6 @@ export function SiteHeader({ lang = "en" }: SiteHeaderProps) {
                 </>
             )}
           </nav>
-        </div>
-        <div className="flex-1 flex items-center justify-end space-x-4">
           <Search />
           <ThemeToggle />
           <LanguageSwitcher />
