@@ -52,7 +52,7 @@ export function LanguageSwitcher() {
             English
           </Link>
           <Link
-            href="/zh/install"
+            href="/zh/docs"
             className={cn(
               "flex w-full items-center rounded-sm px-2 py-1.5 text-sm transition-colors hover:bg-gray-100",
               isZh && "bg-gray-50 font-medium text-gray-900"

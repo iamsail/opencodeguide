@@ -6,6 +6,16 @@ We have completed the **Memory Bank Core Review**, ensuring that the foundationa
 Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
 
 ## Recent Changes
+-   **Language Switcher Update ([TASK055])**: Updated the language switcher's Chinese option to default to `/zh/docs` instead of `/zh/install`, providing a more comprehensive landing point for Chinese users.
+-   **Landing Page UI Cleanup ([TASK054])**: Removed "The Unofficial OpenCode Guide" badge from the hero section of the home page to clean up the UI as per user request.
+-   **Layout Restructure ([TASK053])**: Implemented Route Groups `(docs)` and `(articles)` to separate technical documentation (with Sidebar) from narrative articles (Full width/Centered).
+    -   **English**: Moved to `app/(main)/en/(docs)` and `app/(main)/en/(articles)`.
+    -   **Chinese**: Moved to `app/(zh)/zh/(docs)` and `app/(zh)/zh/(articles)`.
+    -   **Fix**: Resolved Sidebar incorrectly appearing on "Best Practices" guide.
+    -   **Navigation**: Added top-level "Docs/指南" links to `SiteHeader` to ensure navigability from articles.
+-   **Hydration Error Fix ([TASK050])**: Resolved `In HTML, <p> cannot be a descendant of <p>` error by replacing MDX `p` wrapper with `div`.
+    -   **Root Cause**: MDX nesting block elements (custom components or others) inside `p` tags.
+    -   **Fix**: Updated `mdx-components.tsx` to render `div` with paragraph styling.
 -   **权限 (Permissions) 文档更新 ([TASK048])**: 替换了 `/zh/docs/configure/permissions` 的占位符，提供了完整的权限控制系统指南。
     -   **内容**: 涵盖了操作类型（Allow, Deny, Ask）、全局与特定工具配置、细粒度规则（模式匹配）以及各可用权限项的说明。
     -   **SEO**: 实现了优化的 metadata 和 canonical 链接，确保 metadata 描述结尾无中文句号以维持构建稳定。

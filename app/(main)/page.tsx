@@ -6,9 +6,6 @@ export default function Home() {
     <div className="flex flex-col items-center">
       {/* Hero Section */}
       <section className="w-full py-24 lg:py-32 flex flex-col items-center text-center px-4 max-w-4xl mx-auto">
-        <div className="mb-6 rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-          The Unofficial OpenCode Guide
-        </div>
         <h1 className="text-4xl font-bold tracking-tighter sm:text-6xl md:text-7xl lg:text-8xl text-gray-900 dark:text-gray-50 mb-6">
           Master your local <br className="hidden sm:inline" /> coding agent.
         </h1>

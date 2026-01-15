@@ -20,9 +20,9 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       </h3>
     ),
     p: ({ children }) => (
-      <p className="leading-7 [&:not(:first-child)]:mt-6 text-gray-700 dark:text-gray-400">
+      <div className="leading-7 [&:not(:first-child)]:mt-6 text-gray-700 dark:text-gray-400">
         {children}
-      </p>
+      </div>
     ),
     a: ({ href, children }) => {
       const isInternal = href?.startsWith('/') || href?.startsWith('#');
@@ -31,11 +31,24 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       }
       return <a href={href} className="font-medium text-gray-900 dark:text-gray-100 underline underline-offset-4 hover:text-gray-600 dark:hover:text-gray-300" target="_blank" rel="noopener noreferrer">{children}</a>
     },
-    code: ({ children, ...props }) => (
-      <code className="relative rounded bg-gray-100 dark:bg-gray-800 px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold text-gray-900 dark:text-gray-100" {...props}>
-        {children}
-      </code>
-    ),
+    code: ({ children, className, ...props }) => {
+      // Check if the code has a language class, implying it's a block
+      const isBlock = className?.includes('language-');
+      
+      if (isBlock) {
+        return (
+          <code className={className} {...props}>
+            {children}
+          </code>
+        );
+      }
+
+      return (
+        <code className={`relative rounded bg-gray-100 dark:bg-gray-800 px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold text-gray-900 dark:text-gray-100 ${className || ''}`} {...props}>
+          {children}
+        </code>
+      )
+    },
     pre: ({ children, ...props }) => {
       return (
         <div className="group relative mt-6 mb-4">
