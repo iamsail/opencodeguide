@@ -1,32 +1,67 @@
+export const metadata = {
+  title: "自定义工具 (Custom Tools) | OpenCode 中文文档",
+  description: "使用 TypeScript、Python 或任何语言开发并扩展 OpenCode 的功能",
+  alternates: {
+    canonical: "/zh/docs/configure/custom-tools",
+  },
+}
+
 # 自定义工具 (Custom Tools)
 
-## 这是什么？
-OpenCode 允许用户通过编写简单的脚本（Shell, Python, JavaScript）来扩展 AI 的工具箱。一旦注册，AI 就能像调用内置工具一样，智能地决定何时以及如何调用你编写的脚本来解决问题。
+**创建 LLM 可以在 OpenCode 中调用的工具**
 
-## 什么时候你会用到它？
-- 当你有一个内部使用的命令行工具（Cli），希望 AI 能直接操作它（例如：触发内部部署流程）时。
-- 当你需要执行特定的数据处理逻辑（如：将 CSV 转换为 JSON 并上传到 S3），而通用工具无法满足时。
-- 当你希望封装复杂的 API 调用流程，简化 AI 的操作步骤时。
+自定义工具是您创建的函数，LLM 可以在对话中调用它们。它们与 `read`、`write` 和 `bash` 等内置工具并列运行。
 
-## 核心概念
-- **Tool Definition**：描述工具名称、功能描述、参数结构的元数据（通常使用 JSON Schema）。
-- **Executable Path**：脚本在本地文件系统中的执行路径。
-- **Output Parsing**：将脚本的标准输出解析为 AI 可理解的自然语言反馈。
+### 基本结构
 
-## 基本用法 / 配置说明
-```json
-// 示例：tools.json
-{
-  "name": "check_weather",
-  "description": "Get current weather for a city",
-  "command": "python scripts/weather.py"
-}
+工具使用 TypeScript 或 JavaScript 定义，但定义内部可以调用任何语言编写的脚本。
+
+* **位置：** `.opencode/tool/` (项目级) 或 `~/.config/opencode/tool/` (全局)
+* **工具名称：** 文件名即为工具名
+
+**代码示例 (TypeScript)**
+
+```typescript
+import { tool } from "@opencode-ai/plugin"
+
+export default tool({
+  description: "查询项目数据库",
+  args: {
+    query: tool.schema.string().describe("要执行的 SQL 查询"),
+  },
+  async execute(args) {
+    // 数据库逻辑
+    return `执行了查询: ${args.query}`
+  },
+})
 ```
-> TODO：后续补充完整的参数定义和脚本编写指南
 
-## 常见误解 / 注意事项
-- 描述（Description）非常重要！AI 依靠描述来判断何时通过该工具来解决用户的问题。
-- 自定义工具的稳定性直接影响 AI 的表现，请确保脚本有完善的错误处理。
+### 使用其他语言 (如 Python)
 
-## 延伸阅读
-> TODO：后续补充
+您可以编写 Python 脚本，然后通过工具定义来调用它。
+
+1. **Python 脚本 (`add.py`)**
+
+```python
+import sys
+print(int(sys.argv[1]) + int(sys.argv[2]))
+```
+
+2. **工具定义 (`python-add.ts`)**
+
+```typescript
+import { tool } from "@opencode-ai/plugin"
+export default tool({
+  description: "使用 Python 加法",
+  args: { a: tool.schema.number(), b: tool.schema.number() },
+  async execute(args) {
+    const result = await Bun.$`python3 .opencode/tool/add.py ${args.a} ${args.b}`.text()
+    return result.trim()
+  },
+})
+```
+
+### 参数与上下文
+
+* **参数：** 使用 `tool.schema` (基于 Zod) 定义参数类型和描述
+* **上下文：** 工具执行时会接收 `context`，包含 `agent`、`sessionID` 和 `messageID` 等信息

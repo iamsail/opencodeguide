@@ -27,6 +27,7 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
+-   [x] **中文配置文档更新**: 完成了 ACP 支持、代理技能 (Agent Skills) 和自定义工具 (Custom Tools) 的中文指南更新 ([TASK056])。
 -   [x] **Language Navigation**: Updated header language switcher to point Chinese users directly to the documentation center ([TASK055]).
 -   [x] **Landing Page Polishing**: Removed unofficial badge from the hero section to simplify the messaging ([TASK054]).
 -   [x] **Layout Architecture**: Restructured project using Route Groups `(docs)` and `(articles)` to assign appropriate layouts (Sidebar vs Centered) to different content types ([TASK053]).

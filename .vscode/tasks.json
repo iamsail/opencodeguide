@@ -35,6 +35,24 @@
 			"command": "git status",
 			"isBackground": false,
 			"group": "test"
+		},
+		{
+			"label": "Start Next.js Dev Server",
+			"type": "shell",
+			"command": "npm run dev",
+			"isBackground": true,
+			"problemMatcher": [
+				"$nextjs"
+			]
+		},
+		{
+			"label": "Start Next.js Dev Server",
+			"type": "shell",
+			"command": "npm run dev",
+			"isBackground": true,
+			"problemMatcher": [
+				"$nextjs"
+			]
 		}
 	]
 }
