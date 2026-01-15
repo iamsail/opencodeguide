@@ -1,0 +1,147 @@
+export const metadata = {
+  title: "Oh My OpenCode 快速上手指南：多智能体执行与最佳实践",
+  description: "本文详细介绍如何安装、配置并快速使用 Oh My OpenCode，包括多智能体（Sisyphus 等）架构理解、实用配置和最佳实践，让你在 OpenCode 生态中轻松上手。",
+  alternates: {
+    canonical: "/zh/docs/usage",
+  },
+  keywords: ["Oh My OpenCode", "OpenCode", "MCP", "多智能体", "快速上手", "最佳实践"]
+}
+
+<div className="mx-auto max-w-3xl py-10 lg:py-14">
+  <div className="mb-8 border-b border-gray-200 py-6 dark:border-gray-800">
+    <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-2">
+      <time dateTime="2026-01-14">2026年1月14日</time>
+      <span>•</span>
+      <span>教程</span>
+    </div>
+    <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl text-gray-900 dark:text-gray-50 mb-4">
+      Oh My OpenCode 快速上手指南：多智能体执行与最佳实践
+    </h1>
+    <p className="text-xl text-gray-600 dark:text-gray-300">
+      本文详细介绍如何安装、配置并快速使用 Oh My OpenCode，包括多智能体（Sisyphus 等）架构理解、实用配置和最佳实践。
+    </p>
+  </div>
+
+  <article className="prose prose-gray max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-bold prose-h2:mt-12 prose-h2:border-b prose-h2:pb-2">
+
+## 一、Oh My OpenCode 是什么？
+
+Oh My OpenCode 是 OpenCode 的开源智能体执行框架，核心特点：
+
+- **多智能体架构**
+  - **Sisyphus**：主智能体，任务拆解与执行
+  - **Librarian**：文档检索与知识查询
+  - **Oracle**：推理和建议
+  - **Explore**：探索式任务
+  - 其他智能体：前端、文档生成、多模态处理
+
+- **任务自动化执行**
+  智能体可以独立或协作完成复杂任务，减少手动干预。
+
+- **LSP 与 AST 支持**
+  支持语言服务器和抽象语法树操作，智能体可以做精细代码修改和重构。
+
+---
+
+## 二、快速安装
+
+假设你已经安装了 **OpenCode**：
+
+```bash
+# 克隆 Oh My OpenCode 仓库
+git clone https://github.com/code-yeongyu/oh-my-opencode.git
+cd oh-my-opencode
+
+# 安装依赖
+pip install -r requirements.txt
+```
+
+> ⚠️ 注意：当前需要 Python >= 3.10，并建议安装虚拟环境。
+
+---
+
+## 三、配置 MCP 与智能体
+
+1. **配置 MCP 服务器**
+
+编辑 `config/mcp.yml`：
+
+```yaml
+agents:
+  - name: Sisyphus
+    role: main
+    model: gpt-4
+  - name: librarian
+    role: doc-helper
+    model: gpt-3.5
+```
+
+2. **设置环境变量**
+
+```bash
+export OPENAI_API_KEY="你的 API Key"
+export OH_MY_OPENCODE_MODE="production"
+```
+
+3. **启用 Claude 兼容层**（可选）
+
+```yaml
+compatibility:
+  claude: true
+```
+
+---
+
+## 四、启动智能体
+
+```bash
+python run_agent.py --agent Sisyphus
+```
+
+* 默认会执行示例任务
+* 可通过 `--task "生成 README"` 自定义任务
+
+> 小技巧：用 `--debug` 可以观察智能体执行的每一步，方便调试。
+
+---
+
+## 五、最佳实践
+
+1. **任务拆解优先**
+
+   * 在给 Sisyphus 或其他智能体下任务前，尽量明确目标和分步逻辑。
+
+2. **合理配置多智能体**
+
+   * 根据任务复杂度调整 agent 数量和角色
+   * 小任务建议只启用主智能体和 librarian
+
+3. **善用本地 + 云模型组合**
+
+   * 本地 Ollama 模型处理私有数据
+   * 云模型处理复杂推理
+
+4. **定期检查日志**
+
+   * 智能体执行复杂任务时，偶尔会需要人工干预
+
+5. **版本管理**
+
+   * 使用 git 管理配置和任务脚本，保证可复现性
+
+---
+
+## 六、进阶参考
+
+* 多智能体协作示例：[Oh My OpenCode Example Tasks](https://github.com/code-yeongyu/oh-my-opencode/tree/main/examples)
+* MCP 高级配置文档：[MCP 配置指南](/zh/docs/mcp)
+* 与 OpenCode 原生 CLI 集成：[CLI 指南](/zh/docs/cli)
+
+---
+
+## 七、总结
+
+Oh My OpenCode 不是简单的“AI 生成器”，它是一个**可编排、多智能体执行平台**。掌握 MCP 配置、智能体角色和任务拆解后，你可以在 OpenCode 生态中完成高度自动化的开发任务。
+
+  </article>
+</div>

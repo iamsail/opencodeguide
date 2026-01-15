@@ -30,6 +30,7 @@
 | `/en/opencode-anthropic-auth` | **Anthropic Authentication** (Key setup, env vars) |
 | `/en/opencode-mcp-playwright` | **Playwright MCP Guide** (Browser automation) |
 | `/en/opencode/errors/claude-credential-only-authorized` | **Error Fix**: "credential is only authorized for use with Claude Code" |
+| `/en/oh-my-opencode-best-practices` | **Oh My OpenCode Quick Start** (Multi-agent guide) |
 
 ## 3. 中文科普/引流文章 (Chinese SEO Articles)
 这些页面主要用于外部引流，通过 `canonical` 将权重集中到官方文档。
@@ -43,6 +44,7 @@
 | `/zh/vs-claude-code` | - | 竞品对比专题 (与 `/en/...` 互链) |
 | `/zh/opencode-claude` | - | **Opencode + Claude 使用指南** |
 | `/zh/opencode-vs-cursor-claude` | - | **OpenCode vs Cursor vs Claude** (暂无 Canonical - Phase 1) |
+| `/zh/oh-my-opencode-best-practices` | `/zh/docs/usage` | Oh My OpenCode 快速上手与最佳实践 |
 
 ## 4. 中文官方文档中心 (Chinese Documentation Center - /zh/docs)
 所有技术细节的唯一事实来源。采用分层路由架构。

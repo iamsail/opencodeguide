@@ -1,0 +1,147 @@
+export const metadata = {
+  title: "Oh My OpenCode Quick Start & Best Practices",
+  description: "Learn how to quickly get started with Oh My OpenCode, configure multi-agent systems, and follow best practices in the OpenCode ecosystem.",
+  alternates: {
+    canonical: "https://opencode.com/docs/usage",
+  },
+  keywords: ["Oh My OpenCode", "OpenCode", "MCP", "multi-agent", "quick start", "best practices"]
+}
+
+<div className="mx-auto max-w-3xl py-10 lg:py-14">
+  <div className="mb-8 border-b border-gray-200 py-6 dark:border-gray-800">
+    <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-2">
+      <time dateTime="2026-01-14">Jan 14, 2026</time>
+      <span>•</span>
+      <span>Tutorial</span>
+    </div>
+    <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl text-gray-900 dark:text-gray-50 mb-4">
+      Oh My OpenCode Quick Start & Best Practices
+    </h1>
+    <p className="text-xl text-gray-600 dark:text-gray-300">
+      Learn how to quickly get started with Oh My OpenCode, configure multi-agent systems, and follow best practices.
+    </p>
+  </div>
+
+  <article className="prose prose-gray max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-bold prose-h2:mt-12 prose-h2:border-b prose-h2:pb-2">
+
+## 1. What is Oh My OpenCode?
+
+Oh My OpenCode is an open-source agent orchestration framework for OpenCode. Its main features include:
+
+- **Multi-Agent Architecture**
+  - **Sisyphus**: the main agent responsible for task planning and execution
+  - **Librarian**: documentation and knowledge retrieval
+  - **Oracle**: reasoning and suggestions
+  - **Explore**: exploratory tasks
+  - Other agents: frontend assistance, documentation, multimodal processing
+
+- **Automated Task Execution**
+  Agents can independently or collaboratively complete complex tasks, reducing manual intervention.
+
+- **LSP & AST Support**
+  Supports Language Server Protocol (LSP) and Abstract Syntax Tree (AST) operations for precise code modifications and refactoring.
+
+---
+
+## 2. Quick Installation
+
+Assuming you already have **OpenCode** installed:
+
+```bash
+# Clone the Oh My OpenCode repository
+git clone https://github.com/code-yeongyu/oh-my-opencode.git
+cd oh-my-opencode
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+> ⚠️ Note: Python >= 3.10 is required. A virtual environment is recommended.
+
+---
+
+## 3. MCP & Agent Configuration
+
+1. **Configure MCP Server**
+
+Edit `config/mcp.yml`:
+
+```yaml
+agents:
+  - name: Sisyphus
+    role: main
+    model: gpt-4
+  - name: librarian
+    role: doc-helper
+    model: gpt-3.5
+```
+
+2. **Set Environment Variables**
+
+```bash
+export OPENAI_API_KEY="YOUR_API_KEY"
+export OH_MY_OPENCODE_MODE="production"
+```
+
+3. **Enable Claude Compatibility** (Optional)
+
+```yaml
+compatibility:
+  claude: true
+```
+
+---
+
+## 4. Running Your First Agent
+
+```bash
+python run_agent.py --agent Sisyphus
+```
+
+* Runs the default example task
+* Use `--task "Generate README"` to run a custom task
+
+> Tip: Use `--debug` to see each step executed by the agent for easier troubleshooting.
+
+---
+
+## 5. Best Practices
+
+1. **Prioritize Task Decomposition**
+
+   * Break down complex tasks before assigning them to Sisyphus or other agents.
+
+2. **Configure Multi-Agent Setup Wisely**
+
+   * Adjust agent number and roles based on task complexity
+   * For small tasks, only Sisyphus and Librarian may suffice
+
+3. **Combine Local & Cloud Models**
+
+   * Local Ollama models for private data
+   * Cloud models for heavy reasoning tasks
+
+4. **Check Logs Regularly**
+
+   * Complex task execution may occasionally need manual intervention
+
+5. **Version Control**
+
+   * Use git to manage configs and scripts to ensure reproducibility
+
+---
+
+## 6. Further References
+
+* Multi-Agent Example Tasks: [Oh My OpenCode Examples](https://github.com/code-yeongyu/oh-my-opencode/tree/main/examples)
+* MCP Advanced Configuration Guide: `/en/mcp`
+* OpenCode CLI Integration: `/en/cli-commands`
+
+---
+
+## 7. Summary
+
+Oh My OpenCode is not just an “AI code generator”; it is a **fully orchestrated multi-agent execution platform**. By mastering MCP configuration, agent roles, and task decomposition, you can automate complex coding workflows within the OpenCode ecosystem.
+
+  </article>
+</div>
