@@ -27,6 +27,10 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
+-   [x] **Language Navigation**: Updated header language switcher to point Chinese users directly to the documentation center ([TASK055]).
+-   [x] **Landing Page Polishing**: Removed unofficial badge from the hero section to simplify the messaging ([TASK054]).
+-   [x] **Layout Architecture**: Restructured project using Route Groups `(docs)` and `(articles)` to assign appropriate layouts (Sidebar vs Centered) to different content types ([TASK053]).
+-   [x] **Navigation Update**: Added global navigation links to Header to support Sidebar-less pages ([TASK053]).
 -   [x] **权限 (Permissions) 文档**: 替换了中文权限控制指南，详细说明了 Allow/Deny/Ask 策略及细粒度规则 ([TASK048])。
 -   [x] **LSP 服务器 (LSP Servers) 文档**: 替换了中文 LSP 集成指南，涵盖内置支持、配置禁用及自定义 LSP ([TASK049])。
 -   [x] **格式化 (Formatters) 文档**: 替换了中文格式化工具配置指南，涵盖内置工具、禁用方法及自定义配置 ([TASK047])。
