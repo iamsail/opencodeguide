@@ -3,6 +3,7 @@
 ## In Progress
 
 ## Completed
+- [TASK056] 更新中文 ACP、技能及自定义工具文档 - 完善 /zh/docs/configure 下的三个核心指南 - Completed on 2026-01-15
 - [TASK055] Update Language Switcher Default Routes - Set Chinese default to /zh/docs - Completed on 2026-01-15
 - [TASK054] Remove Unofficial Badge - Remove "The Unofficial OpenCode Guide" from landing page - Completed on 2026-01-15
 - [TASK053] Restructure Documentation Layouts - Split (docs) and (articles) route groups for distinct layouts - Completed on 2026-01-15

@@ -6,6 +6,9 @@ We have completed the **Memory Bank Core Review**, ensuring that the foundationa
 Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
 
 ## Recent Changes
+-   **中文文档更新 ([TASK056])**: 完成了 ACP 支持、代理技能 (Agent Skills) 和自定义工具 (Custom Tools) 的中文文档更新。
+    -   **构建安全**: 严格移除了元数据和加粗标题中的中文句号，解决了 SWC 编译崩溃风险。
+    -   **SEO**: 为每个页面添加了 metadata 和 canonical 链接。
 -   **Language Switcher Update ([TASK055])**: Updated the language switcher's Chinese option to default to `/zh/docs` instead of `/zh/install`, providing a more comprehensive landing point for Chinese users.
 -   **Landing Page UI Cleanup ([TASK054])**: Removed "The Unofficial OpenCode Guide" badge from the hero section of the home page to clean up the UI as per user request.
 -   **Layout Restructure ([TASK053])**: Implemented Route Groups `(docs)` and `(articles)` to separate technical documentation (with Sidebar) from narrative articles (Full width/Centered).

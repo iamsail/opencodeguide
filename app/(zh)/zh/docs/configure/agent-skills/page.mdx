@@ -1,24 +1,48 @@
-# 技能 (Skills)
+export const metadata = {
+  title: "代理技能 (Agent Skills) | OpenCode 中文文档",
+  description: "通过 SKILL.md 定义并按需加载可复用的智能体指令和行为",
+  alternates: {
+    canonical: "/zh/docs/configure/agent-skills",
+  },
+}
 
-## 这是什么？
-技能 (Skills) 是对 Agent 能力的高级抽象封装。一个 Skill 可能包含了一组相关的工具、特定的 Prompt 策略以及知识库索引。例如 "React 开发技能" 可能包含了组件生成模版、React 官方文档索引以及 JSX 语法检查工具。
+# 代理技能 (Agent Skills)
 
-## 什么时候你会用到它？
-- 当你希望为你的 AI 助手“安装”新的领域知识（如学习一个新的框架）时。
-- 当你需要打包和分享你的 Prompt 工程成果给团队其他人时（通过分享 Skill 包）。
-- 当你希望根据当前任务动态启用或禁用某些能力组时。
+**通过 SKILL.md 定义可复用的行为**
 
-## 核心概念
-- **Skill Package**：可分发的能力包，通常包含配置文件、Prompt 模版和脚本。
-- **Trigger**：触发该技能激活的条件（如检测到 `package.json` 中包含 `react`）。
-- **Documentation Injection**：将技能相关的文档片段动态注入到上下文中。
+代理技能允许 OpenCode 从您的仓库或主目录中发现可复用的指令。技能通过原生的 `skill` 工具按需加载——代理能看到可用技能，并在需要时加载完整内容。
 
-## 基本用法 / 配置说明
-> TODO：后续补充如何导入社区贡献的 Skills
+### 文件放置位置
 
-## 常见误解 / 注意事项
-- Skill 和 Tool 的区别：Tool 是通过代码执行的具体原子操作，Skill 是 Tool + 知识 + 策略的组合。
-- 类似于游戏中的“技能树”，OpenCode 允许你根据项目需求点亮不同的技能点。
+每个技能对应一个文件夹，内部放置一个 `SKILL.md`。OpenCode 搜索路径如下：
 
-## 延伸阅读
-> TODO：后续补充
+* **项目级：** `.opencode/skill/<name>/SKILL.md`
+* **全局级：** `~/.config/opencode/skill/<name>/SKILL.md`
+* **Claude 兼容路径：** `.claude/skills/<name>/SKILL.md`
+
+### 编写 Frontmatter
+
+每个 `SKILL.md` 必须以 YAML frontmatter 开头。必需字段包括：
+
+* `name`: 1–64个字符，小写字母、数字及单连字符。需与目录名一致
+* `description`: 1–1024个字符，描述需足够具体以便代理选择
+
+### 权限与禁用
+
+您可以在 `opencode.json` 中控制代理对技能的访问：
+
+```json
+{
+  "permission": {
+    "skill": {
+      "*": "allow",
+      "internal-*": "deny",
+      "experimental-*": "ask"
+    }
+  }
+}
+```
+
+* `allow`: 立即加载
+* `deny`: 对代理隐藏
+* `ask`: 加载前提示用户
