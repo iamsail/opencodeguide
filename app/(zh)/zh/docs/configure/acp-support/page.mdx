@@ -1,24 +1,71 @@
+export const metadata = {
+  title: "ACP 支持 (ACP Support) | OpenCode 中文文档",
+  description: "在任何兼容 ACP 的编辑器或 IDE 中使用 OpenCode",
+  alternates: {
+    canonical: "/zh/docs/configure/acp-support",
+  },
+}
+
 # ACP 支持 (ACP Support)
 
-## 这是什么？
-ACP (Agentic Coding Protocol) 是 OpenCode 支持的一种增强型协作协议，旨在标准化智能体之间的通信和任务切换流程。它允许不同的 AI 实体共享上下文状态、交接控制权，并以结构化的方式反馈执行结果。
+**在任何兼容 ACP 的编辑器中使用 OpenCode**
 
-## 什么时候你会用到它？
-- 当你正在构建一个由多个专门 Agent 组成的工作流（如：需求分析 -> 编码 -> 测试）时。
-- 当你需要开发插件，希望你的插件能以标准化的方式向 OpenCode 核心汇报进度和请求用户干预时。
-- 当你在研究多智能体协同（Multi-Agent Collaboration）的前沿应用时。
+OpenCode 支持 **代理客户端协议 (Agent Client Protocol, ACP)**，允许您直接在兼容的编辑器和 IDE 中使用它。ACP 是一种开放协议，旨在标准化代码编辑器与 AI 编程代理之间的通信。
 
-## 核心概念
-- **Handoff (交接)**：一个 Agent 将任务上下文无损移交给另一个 Agent 的过程。
-- **Structured Output**：使用 JSON/XML 等机器可读格式而非纯文本进行组件间通信。
-- **State Management**：跨会话的任务状态持久化。
+### 配置方式 (Configure)
 
-## 基本用法 / 配置说明
-> TODO：后续补充如何在插件开发中使用 ACP 协议
+要通过 ACP 使用 OpenCode，请将您的编辑器配置为运行 `opencode acp` 命令。该命令会将 OpenCode 作为 ACP 兼容的子进程启动，通过标准输入输出（stdio）进行 JSON-RPC 通信。
 
-## 常见误解 / 注意事项
-- 这是一个面向高阶开发者和插件作者的功能，普通用户日常使用中几乎无感。
-- 目前该协议仍在快速演进中，API 可能会有变动。
+#### Zed 编辑器示例
 
-## 延伸阅读
-> TODO：后续补充
+在 `~/.config/zed/settings.json` 中添加：
+
+```json
+{
+  "agent_servers": {
+    "OpenCode": {
+      "command": "opencode",
+      "args": ["acp"]
+    }
+  }
+}
+```
+
+#### JetBrains IDE 示例
+
+在 `acp.json` 中添加：
+
+```json
+{
+  "agent_servers": {
+    "OpenCode": {
+      "command": "/绝对路径/bin/opencode",
+      "args": ["acp"]
+    }
+  }
+}
+```
+
+#### Neovim (Avante.nvim) 示例
+
+```lua
+{
+  acp_providers = {
+    ["opencode"] = {
+      command = "opencode",
+      args = { "acp" }
+    }
+  }
+}
+```
+
+### 支持功能
+
+通过 ACP 使用时，OpenCode 的功能与终端中一致，包括：
+
+* 内置工具（文件操作、终端命令等）
+* 自定义工具和斜杠命令
+* OpenCode 配置中的 MCP 服务器
+* 项目特定规则（来自 `AGENTS.md`）
+* 代理和权限系统
+* *注：部分内置斜杠命令如 `/undo` 和 `/redo` 目前暂不支持*
