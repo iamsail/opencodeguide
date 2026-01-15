@@ -3,6 +3,8 @@
 ## In Progress
 
 ## Completed
+- [TASK055] Update Language Switcher Default Routes - Set Chinese default to /zh/docs - Completed on 2026-01-15
+- [TASK054] Remove Unofficial Badge - Remove "The Unofficial OpenCode Guide" from landing page - Completed on 2026-01-15
 - [TASK053] Restructure Documentation Layouts - Split (docs) and (articles) route groups for distinct layouts - Completed on 2026-01-15
 - [TASK052] Update Article Link in Chinese Docs - Updating specific GitHub link in oh-my-opencode article - Completed on 2026-01-15
 - [TASK051] Update Article Links - Updating external links in articles - Completed on 2026-01-15

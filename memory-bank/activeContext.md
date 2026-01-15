@@ -6,6 +6,8 @@ We have completed the **Memory Bank Core Review**, ensuring that the foundationa
 Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
 
 ## Recent Changes
+-   **Language Switcher Update ([TASK055])**: Updated the language switcher's Chinese option to default to `/zh/docs` instead of `/zh/install`, providing a more comprehensive landing point for Chinese users.
+-   **Landing Page UI Cleanup ([TASK054])**: Removed "The Unofficial OpenCode Guide" badge from the hero section of the home page to clean up the UI as per user request.
 -   **Layout Restructure ([TASK053])**: Implemented Route Groups `(docs)` and `(articles)` to separate technical documentation (with Sidebar) from narrative articles (Full width/Centered).
     -   **English**: Moved to `app/(main)/en/(docs)` and `app/(main)/en/(articles)`.
     -   **Chinese**: Moved to `app/(zh)/zh/(docs)` and `app/(zh)/zh/(articles)`.

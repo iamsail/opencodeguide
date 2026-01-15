@@ -27,6 +27,8 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
+-   [x] **Language Navigation**: Updated header language switcher to point Chinese users directly to the documentation center ([TASK055]).
+-   [x] **Landing Page Polishing**: Removed unofficial badge from the hero section to simplify the messaging ([TASK054]).
 -   [x] **Layout Architecture**: Restructured project using Route Groups `(docs)` and `(articles)` to assign appropriate layouts (Sidebar vs Centered) to different content types ([TASK053]).
 -   [x] **Navigation Update**: Added global navigation links to Header to support Sidebar-less pages ([TASK053]).
 -   [x] **权限 (Permissions) 文档**: 替换了中文权限控制指南，详细说明了 Allow/Deny/Ask 策略及细粒度规则 ([TASK048])。
