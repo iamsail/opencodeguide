@@ -6,6 +6,11 @@ We have completed the **Memory Bank Core Review**, ensuring that the foundationa
 Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
 
 ## Recent Changes
+-   **Layout Restructure ([TASK053])**: Implemented Route Groups `(docs)` and `(articles)` to separate technical documentation (with Sidebar) from narrative articles (Full width/Centered).
+    -   **English**: Moved to `app/(main)/en/(docs)` and `app/(main)/en/(articles)`.
+    -   **Chinese**: Moved to `app/(zh)/zh/(docs)` and `app/(zh)/zh/(articles)`.
+    -   **Fix**: Resolved Sidebar incorrectly appearing on "Best Practices" guide.
+    -   **Navigation**: Added top-level "Docs/指南" links to `SiteHeader` to ensure navigability from articles.
 -   **Hydration Error Fix ([TASK050])**: Resolved `In HTML, <p> cannot be a descendant of <p>` error by replacing MDX `p` wrapper with `div`.
     -   **Root Cause**: MDX nesting block elements (custom components or others) inside `p` tags.
     -   **Fix**: Updated `mdx-components.tsx` to render `div` with paragraph styling.

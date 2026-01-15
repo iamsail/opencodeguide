@@ -4,10 +4,14 @@
 The project is built as a **Static Site (SSG)** using **Next.js App Router**.
 
 ### Routing & Internationalization
-We utilize **Route Groups** to handle multi-language root layouts completely separately.
--   `app/(main)/`: Handles Homepage (`/`) and English Content (`/en/...`). Sets `<html lang="en">`.
--   `app/(zh)/`: Handles Chinese Content (`/zh/...`). Sets `<html lang="zh">`.
--   This avoids complex i18n middleware for a static site and allows distinct UI/Fonts per language.
+We utilize **Route Groups** to distinguish contexts.
+-   **Root Layouts**:
+    -   `app/(main)/`: Handles Homepage (`/`) and English Content (`/en/...`). Sets `<html lang="en">`.
+    -   `app/(zh)/`: Handles Chinese Content (`/zh/...`). Sets `<html lang="zh">`.
+-   **Content Layouts (Sub-groups)**:
+    -   `(docs)`: Contains standard technical documentation. Includes **Sidebar** and **On-This-Page**.
+    -   `(articles)`: Contains narrative guides and SEO pages (e.g., Best Practices). **No Sidebar**, centered layout (`max-w-3xl`) for focused reading.
+-   This architecture avoids complex i18n middleware and allows distinct UI paradigms (Docs vs Blog) without changing the URL structure.
 
 ### Documentation Routing Strategy
 We distinguish between "Technical Reference" and "Educational Articles/Blog" to create a high-converting content loop:
@@ -53,12 +57,14 @@ We distinguish between "Technical Reference" and "Educational Articles/Blog" to 
 app/
 ├── (main)/             # English/Root Context
 │   ├── page.tsx        # Landing Page
-│   └── en/             # English MDX Pages
+│   └── en/
+│       ├── (docs)/     # Standard Docs (w/ Sidebar)
+│       └── (articles)/ # Narrative Articles (No Sidebar)
 ├── (zh)/               # Chinese Context
-│   ├── layout.tsx      # ZH Layout (w/ Sidebar + TOC)
-│   └── zh/             # Chinese MDX Pages
-│       ├── docs/       # Technical Reference (Tiered)
-│       └── [article]   # SEO Articles (Flat)
+│   ├── layout.tsx      # ZH Root Layout
+│   └── zh/
+│       ├── (docs)/     # Standard Docs (w/ Sidebar)
+│       └── (articles)/ # Narrative Articles (No Sidebar)
 components/
 ├── docs-sidebar.tsx    # Navigation
 ├── toc.tsx             # Table of Contents
