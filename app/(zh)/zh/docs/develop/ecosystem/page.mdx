@@ -1,24 +1,192 @@
-# 生态系统 (Ecosystem)
+export const metadata = {
+  title: "OpenCode 生态系统 (Ecosystem) | OpenCode 中文文档",
+  description: "探索 OpenCode 社区构建的各类项目和集成，涵盖插件、项目和代理等资源",
+  alternates: {
+    canonical: "/zh/docs/develop/ecosystem",
+  },
+}
 
-## 这是什么？
-OpenCode 生态系统不仅包含官方的核心组件，还包括社区贡献的各类资源。这里汇集了第三方客户端、MCP 服务器实现、Prompt 模版库以及各种语言的适配层。
+# OpenCode 生态系统 (Ecosystem)
 
-## 什么时候你会用到它？
-- 当你在寻找是否有现成的 MCP Server 可以连接到你的 Notion 或 Jira 时。
-- 当你想看看有没有针对 Rust 或 Elixir 语言优化的 System Prompt 配置时。
-- 当你希望能参与到 OpenCode 开源社区的贡献中来时。
+OpenCode 生态系统包含社区基于 OpenCode 构建的各类项目和集成，涵盖插件、项目和代理等。
 
-## 核心概念
-- **Registry**：集中索引社区插件和工具的市场。
-- **Awesome OpenCode**：精选的资源列表。
-- **Community Standards**：保证组件互操作性的规范文档。
+### 插件 (Plugins)
 
-## 基本用法 / 配置说明
-> TODO：后续补充如何浏览和安装社区资源的指南
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">名称</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">opencode-helicone-session</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">自动注入 Helicone 会话标头以进行请求分组</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">opencode-type-inject</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">自动将 TypeScript/Svelte 类型注入文件读取和查找工具</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">opencode-openai-codex-auth</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">使用 ChatGPT Plus/Pro 订阅而非 API 额度</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">opencode-gemini-auth</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">使用现有 Gemini 计划而非 API 计费</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">opencode-antigravity-auth</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">使用 Antigravity 的免费模型而非 API 计费</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">opencode-devcontainers</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">多分支开发容器隔离，支持浅克隆和自动分配端口</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">opencode-google-antigravity-auth</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">Google Antigravity OAuth 插件，支持 Google 搜索和更强大的 API 处理</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">opencode-dynamic-context-pruning</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">通过修剪过时工具输出来优化令牌使用</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">opencode-websearch-cited</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">为支持的提供商添加原生网络搜索功能，采用 Google 接地风格</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">opencode-pty</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">允许 AI 代理在 PTY 中运行后台进程，并向其发送交互式输入</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">opencode-shell-strategy</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">非交互式 shell 命令说明，防止因依赖 TTY 的操作导致挂起</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">opencode-wakatime</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">通过 Wakatime 跟踪 OpenCode 使用情况</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">opencode-md-table-formatter</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">清理 LLM 生成的 Markdown 表格</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">opencode-morph-fast-apply</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">通过 Morph Fast Apply API 和延迟编辑标记实现 10 倍更快的代码编辑</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">oh-my-opencode</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">后台代理、预构建 LSP/AST/MCP 工具、精选代理，兼容 Claude Code</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">opencode-notificator</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">OpenCode 会话的桌面通知和声音警报</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">opencode-notifier</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">针对权限、完成和错误事件的桌面通知和声音警报</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">opencode-zellij-namer</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">基于 OpenCode 上下文的 AI 驱动自动 Zellij 会话命名</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">opencode-skillful</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">允许 OpenCode 代理通过技能发现和注入按需延迟加载提示</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">opencode-supermemory</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">使用 Supermemory 实现跨会话持久内存</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">@plannotator/opencode</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">交互式计划审查，支持视觉注释和私有/离线共享</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">@openspoon/subtask2</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">将 opencode /命令扩展为功能强大的编排系统，支持精细流程控制</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">opencode-scheduler</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">使用 launchd (Mac) 或 systemd (Linux) 通过 cron 语法调度周期性任务</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">micode</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">结构化的头脑风暴 → 计划 → 实现工作流，支持会话连续性</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">octto</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">用于 AI 头脑风暴的交互式浏览器 UI，支持多问题表单</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
-## 常见误解 / 注意事项
-- 社区贡献的资源质量参差不齐，在生产环境使用前请务必进行测试。
-- 注意检查第三方插件的权限请求，避免数据泄露。
+### 项目 (Projects)
 
-## 延伸阅读
-> TODO：后续补充
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">名称</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">kimaki</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">基于 SDK 构建的 Discord 机器人，用于控制 OpenCode 会话</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">opencode.nvim</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">基于 API 构建的 Neovim 插件，支持编辑器感知提示</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">portal</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">基于 Tailscale/VPN 的移动优先 OpenCode Web UI</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">opencode plugin template</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">用于构建 OpenCode 插件的模板</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">ai-sdk-provider-opencode-sdk</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">Vercel AI SDK 提供商，用于通过 @opencode-ai/sdk 使用 OpenCode</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">OpenChamber</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">OpenCode 的 Web/桌面应用和 VS Code 扩展</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">OpenCode-Obsidian</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">在 Obsidian UI 中嵌入 OpenCode 的 Obsidian 插件</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+### 代理 (Agents)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">名称</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">Agentic</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">用于结构化开发的模块化 AI 代理和命令</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">opencode-agents</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">用于增强工作流的配置、提示、代理和插件</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

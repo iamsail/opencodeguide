@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "服务端集成 | OpenCode 文档",
-  description: "OpenCode 服务端与 MCP 客户端集成说明，适用于高级开发与系统嵌入场景",
+  title: "OpenCode Server | OpenCode 中文文档",
+  description: "通过 opencode serve 运行无头 HTTP 服务器，并通过 OpenAPI 端点与之交互",
   alternates: {
     canonical: "/zh/docs/develop/server",
     languages: {
@@ -8,29 +8,802 @@ export const metadata = {
       en: "/en/mcp-client",
     },
   },
-};
+}
 
-# 服务器部署 (Server)
+# OpenCode Server
 
-## 这是什么？
-OpenCode Server 是整个系统的核心大脑，负责与 LLM 通信、管理上下文、执行工具调用以及权限控制。虽然普通用户通常使用内置的本地 Server，但你可以将其独立部署在性能更强的服务器或私有云环境中。
+OpenCode Server 是整个系统的核心大脑，负责与 LLM 通信、管理上下文、执行工具调用以及权限控制。运行 `opencode serve` 命令会启动一个无头 HTTP 服务器，该服务器公开 OpenAPI 端点，OpenCode 客户端可通过该端点与之交互。
 
-## 什么时候你会用到它？
-- 当你希望在公司内部搭建一套共享的 AI 后端，供全员连接使用以节省每个人的本地资源时。
-- 当你需要对 AI 的所有输入输出进行中心化的审计和合规检查时。
-- 当你希望通过统一的网关来管理对 OpenAI/Anthropic 的 API 调用配额时。
+### 使用方法 (Usage)
 
-## 核心概念
-- **Headless Mode**：无 UI 运行模式，仅提供 RPC 接口。
-- **Transport Layer**：客户端与服务端之间的通信协议（通常基于 WebSocket 或 gRPC）。
-- **Authentication**：服务端对连接请求的鉴权机制。
+终端执行命令：
 
-## 基本用法 / 配置说明
-> TODO：后续补充 Docker Compose 部署示例 `docker-compose up -d opencode-server`
+```bash
+opencode serve [--port <数字>] [--hostname <字符串>] [--cors <源>]
+```
 
-## 常见误解 / 注意事项
-- 即使部署了远程 Server，代码文件依然是在开发者的本地机器上被读取的（除非使用了远程开发模式），Server 仅负责逻辑推理。
-- 远程部署时务必启用 HTTPS 和强密码认证，防止未授权访问。
+### 选项 (Options)
 
-## 延伸阅读
-> TODO：后续补充
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">标志</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">默认值</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`--port`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">监听端口</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`4096`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`--hostname`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">监听主机名</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`127.0.0.1`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`--mdns`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">启用 mDNS 发现</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`false`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`--cors`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">允许的额外浏览器源</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`[]`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+`--cors` 可多次传递：
+```bash
+opencode serve --cors http://localhost:5173 --cors https://app.example.com
+```
+
+### 身份验证 (Authentication)
+
+设置 `OPENCODE_SERVER_PASSWORD` 以通过 HTTP 基本身份验证保护服务器。用户名默认为 `opencode`，也可通过 `OPENCODE_SERVER_USERNAME` 覆盖。该设置适用于 `opencode serve` 和 `opencode web`。
+
+```bash
+OPENCODE_SERVER_PASSWORD=你的密码 opencode serve
+```
+
+### 工作原理 (How it works)
+
+运行 `opencode` 时，会启动 TUI（终端用户界面）和服务器，其中 TUI 作为客户端与服务器通信。服务器公开 OpenAPI 3.1 规范端点，该端点也用于生成 SDK。
+
+- 可通过 `opencode serve` 启动独立服务器；若已运行 OpenCode TUI，`opencode serve` 会启动新服务器。
+- 启动 TUI 时，它会随机分配端口和主机名，也可通过 `--hostname` 和 `--port` 标志指定，进而连接到对应的服务器。
+- `/tui` 端点可通过服务器控制 TUI，例如预填充或运行提示，OpenCode IDE 插件即采用此设置。
+
+### 规范 (OpenAPI Specification)
+
+服务器发布的 OpenAPI 3.1 规范可通过以下地址查看：
+
+```
+http://<主机名>:<端口>/doc
+```
+
+例如 `http://localhost:4096/doc`，可利用该规范生成客户端或检查请求和响应类型，也可在 Swagger 探索器中查看。
+
+---
+
+### API 列表 (API Reference)
+
+#### 1. Global (全局)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">路径</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/global/health`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">获取服务器健康状态和版本</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`{ healthy: true, version: string }`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/global/event`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">获取全局事件（SSE 流）</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">事件流</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+#### 2. Project (项目)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">路径</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/project`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">列出所有项目</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`Project[]`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/project/current`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">获取当前项目</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`Project`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+#### 3. Path & VCS (路径与版本控制)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">路径</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/path`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">获取当前路径</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`Path`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/vcs`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">获取当前项目的版本控制系统信息</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`VcsInfo`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+#### 4. Instance (实例管理)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">路径</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/instance/dispose`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">销毁当前实例</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`boolean`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+#### 5. Config (配置)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">路径</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/config`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">获取配置信息</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`Config`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`PATCH`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/config`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">更新配置</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`Config`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/config/providers`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">列出提供商和默认模型</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`{ providers: Provider[], default: { [key: string]: string } }`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+#### 6. Provider (服务商)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">路径</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/provider`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">列出所有提供商</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`{ all: Provider[], default: {...}, connected: string[] }`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/provider/auth`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">获取提供商身份验证方法</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`{ [providerID: string]: ProviderAuthMethod[] }`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/provider/{id}/oauth/authorize`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">通过 OAuth 授权提供商</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`ProviderAuthAuthorization`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/provider/{id}/oauth/callback`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">处理提供商的 OAuth 回调</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`boolean`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+#### 7. Sessions (会话管理)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">路径</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">说明</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">列出所有会话</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `Session[]`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">创建新会话</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">请求体：`{ parentID?, title? }`，返回 `Session`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session/status`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">获取所有会话的状态</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `{ [sessionID: string]: SessionStatus }`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session/:id`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">获取会话详情</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `Session`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`DELETE`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session/:id`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">删除会话及其所有数据</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`PATCH`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session/:id`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">更新会话属性</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">请求体：`{ title? }`，返回 `Session`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session/:id/children`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">获取会话的子会话</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `Session[]`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session/:id/todo`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">获取会话的待办列表</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `Todo[]`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session/:id/init`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">分析应用并创建 `AGENTS.md`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">请求体：`{ messageID, providerID, modelID }`，返回 `boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session/:id/fork`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">在某条消息处复制现有会话</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">请求体：`{ messageID? }`，返回 `Session`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session/:id/abort`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">中止运行中的会话</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session/:id/share`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">共享会话</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `Session`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`DELETE`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session/:id/share`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">取消共享会话</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `Session`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session/:id/diff`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">获取该会话的差异</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">查询参数：`messageID?`，返回 `FileDiff[]`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session/:id/summarize`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">总结会话</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">请求体：`{ providerID, modelID }`，返回 `boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session/:id/revert`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">撤销消息</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">请求体：`{ messageID, partID? }`，返回 `boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session/:id/unrevert`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">恢复所有已撤销消息</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session/:id/permissions/:permissionID`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">响应权限请求</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">请求体：`{ response, remember? }`，返回 `boolean`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+#### 8. Messages (消息管理)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">路径</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">说明</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session/:id/message`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">列出会话中的消息</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">查询参数：`limit?`，返回 `{ info: Message, parts: Part[] }[]`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session/:id/message`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">发送消息并等待响应</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">请求体：`{ messageID?, model?, agent?, noReply?, system?, tools?, parts }`，返回 `{ info: Message, parts: Part[] }`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session/:id/message/:messageID`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">获取消息详情</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `{ info: Message, parts: Part[] }`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session/:id/prompt_async`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">异步发送消息（不等待）</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">请求体与 `/session/:id/message` 相同，返回 `204 No Content`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session/:id/command`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">执行斜杠命令</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">请求体：`{ messageID?, agent?, model?, command, arguments }`，返回 `{ info: Message, parts: Part[] }`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/session/:id/shell`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">运行 shell 命令</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">请求体：`{ agent, model?, command }`，返回 `{ info: Message, parts: Part[] }`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+#### 9. Commands (命令)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">路径</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/command`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">列出所有命令</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`Command[]`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+#### 10. Files (文件操作)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">路径</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/find?pattern=<模式>`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">在文件中搜索文本</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">匹配对象数组，包含 `path`、`lines`、`line_number`、`absolute_offset`、`submatches`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/find/file?query=<查询>`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">按名称查找文件和目录</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`string[]`（路径数组）</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/find/symbol?query=<查询>`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">查找工作区符号</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`Symbol[]`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/file?path=<路径>`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">列出文件和目录</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`FileNode[]`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/file/content?path=<路径>`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">读取文件</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`FileContent`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/file/status`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">获取跟踪文件的状态</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`File[]`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+`/find/file` 查询参数：
+- `query`（必填）：搜索字符串（模糊匹配）
+- `type`（可选）：限制结果为 `file` 或 `directory`
+- `directory`（可选）：覆盖搜索的项目根目录
+- `limit`（可选）：最大结果数（1–200）
+- `dirs`（可选）：遗留标志（`false` 仅返回文件）
+
+#### 11. Tools (工具 - 实验性)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">路径</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/experimental/tool/ids`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">列出所有工具 ID</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`ToolIDs`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/experimental/tool?provider=<提供商>&model=<模型>`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">列出带 JSON 模式的模型工具</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`ToolList`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+#### 12. LSP, Formatters & MCP (语言服务与扩展)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">路径</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/lsp`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">获取 LSP 服务器状态</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`LSPStatus[]`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/formatter`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">获取格式化程序状态</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`FormatterStatus[]`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/mcp`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">获取 MCP 服务器状态</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`{ [name: string]: MCPStatus }`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/mcp`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">动态添加 MCP 服务器</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">请求体：`{ name, config }`，返回 MCP 状态对象</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+#### 13. Agents (智能体)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">路径</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/agent`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">列出所有可用代理</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`Agent[]`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+#### 14. Logging (日志)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">路径</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/log`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">写入日志条目</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">请求体：`{ service, level, message, extra? }`，返回 `boolean`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+#### 15. TUI (界面控制)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">路径</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/tui/append-prompt`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">向提示框追加文本</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/tui/open-help`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">打开帮助对话框</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/tui/open-sessions`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">打开会话选择器</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/tui/open-themes`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">打开主题选择器</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/tui/open-models`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">打开模型选择器</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/tui/submit-prompt`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">提交当前提示</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/tui/clear-prompt`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">清空提示</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/tui/execute-command`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">执行命令</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">请求体：`{ command }`，返回 `boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/tui/show-toast`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">显示提示</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">请求体：`{ title?, message, variant }`，返回 `boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/tui/control/next`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">等待下一个控制请求</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">控制请求对象</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`POST`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/tui/control/response`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">响应控制请求</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">请求体：`{ body }`，返回 `boolean`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+#### 16. Auth (身份验证)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">路径</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`PUT`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/auth/:id`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">设置身份验证凭据</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">请求体必须匹配提供商架构，返回 `boolean`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+#### 17. Events (事件流)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">路径</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/event`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">服务器发送事件流</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">第一个事件为 `server.connected`，之后为总线事件</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+#### 18. Docs (文档)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">路径</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`GET`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`/doc`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">OpenAPI 3.1 规范</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">带 OpenAPI 规范的 HTML 页面</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

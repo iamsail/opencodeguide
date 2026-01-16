@@ -1,8 +1,7 @@
 # Tasks Index
 
-## In Progress
-
 ## Completed
+- [TASK057] 更新中文开发与扩展 (Develop) 文档 - 更新 SDK、Server、Plugins 和 Ecosystem 页面内容 - Completed on 2026-01-15
 - [TASK056] 更新中文 ACP、技能及自定义工具文档 - 完善 /zh/docs/configure 下的三个核心指南 - Completed on 2026-01-15
 - [TASK055] Update Language Switcher Default Routes - Set Chinese default to /zh/docs - Completed on 2026-01-15
 - [TASK054] Remove Unofficial Badge - Remove "The Unofficial OpenCode Guide" from landing page - Completed on 2026-01-15
