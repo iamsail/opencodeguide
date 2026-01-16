@@ -1,29 +1,669 @@
-# SDK 开发指南
+export const metadata = {
+  title: "OpenCode SDK | OpenCode 中文文档",
+  description: "使用 OpenCode SDK 将 AI 能力集成到您的应用程序中，支持类型安全的编程接口",
+  alternates: {
+    canonical: "/zh/docs/develop/sdk",
+  },
+}
 
-## 这是什么？
-OpenCode SDK 提供了一套类型安全的编程接口，允许开发者将 OpenCode 的能力集成到自己的应用程序中。无论你是想开发一个定制化的 IDE 插件，还是构建一个基于 AI 的代码审查流水线，SDK 都是你的首选工具。
+# OpenCode SDK
 
-## 什么时候你会用到它？
-- 当你正在开发一款基于 Electron 的代码编辑器，希望加入类似 Cursor 的 AI 辅助功能时。
-- 当你需要编写一个自动化脚本，批量处理代码库中的重构任务时。
-- 当你希望在自己的 SaaS 产品中嵌入“AI 编程助手”组件时。
+OpenCode JS/TS SDK 提供了类型安全的客户端，用于与服务器交互。可借助它构建集成并以编程方式控制 OpenCode。
 
-## 核心概念
-- **Client/Session**：管理与 OpenCode 核心服务的连接会话。
-- **Streaming API**：支持流式接收 AI 生成的文本，实现打字机效果。
-- **Tool Registration**：通过代码动态注册新的工具及其回调函数。
+### 安装 (Installation)
 
-## 基本用法 / 配置说明
-```typescript
-import { OpenCodeClient } from '@opencode/sdk';
+通过 npm 安装 SDK，终端执行命令：
 
-const client = new OpenCodeClient({ apiKey: '...' });
-// TODO: 后续补充更多示例代码
+```bash
+npm install @opencode-ai/sdk
 ```
 
-## 常见误解 / 注意事项
-- SDK 主要负责与 OpenCode Core 通信，并不包含 UI 组件。如果需要 UI，请参考 UI Kit 文档。
-- 目前 SDK 主要支持 Node.js 和 Python 环境。
+### 创建客户端 (Creating a Client)
 
-## 延伸阅读
-> TODO：后续补充 API 参考文档链接
+1. **常规创建**（同时启动服务器和客户端）：
+
+```javascript
+import { createOpencode } from "@opencode-ai/sdk"
+const { client } = await createOpencode()
+```
+
+2. **配置选项**
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">选项</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">类型</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">默认值</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`hostname`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`string`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">服务器主机名</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`127.0.0.1`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`port`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`number`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">服务器端口</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`4096`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`signal`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`AbortSignal`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">用于取消的中止信号</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`undefined`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`timeout`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`number`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">服务器启动超时时间（毫秒）</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`5000`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`config`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`Config`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">配置对象</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`{}`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+3. **自定义配置示例**：
+
+```javascript
+import { createOpencode } from "@opencode-ai/sdk"
+const opencode = await createOpencode({
+  hostname: "127.0.0.1",
+  port: 4096,
+  config: {
+    model: "anthropic/claude-3-5-sonnet-20241022",
+  },
+})
+console.log(`服务器运行在 ${opencode.server.url}`)
+opencode.server.close()
+```
+
+4. **仅创建客户端**（连接现有服务器）：
+
+```javascript
+import { createOpencodeClient } from "@opencode-ai/sdk"
+const client = createOpencodeClient({
+  baseUrl: "http://localhost:4096",
+})
+```
+
+5. **仅客户端配置选项**
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">选项</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">类型</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">默认值</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`baseUrl`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`string`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">服务器 URL</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`http://localhost:4096`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`fetch`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`function`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">自定义 fetch 实现</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`globalThis.fetch`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`parseAs`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`string`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">响应解析方式</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`auto`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`responseStyle`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`string`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回样式：`data` 或 `fields`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`fields`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`throwOnError`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`boolean`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">抛出错误而非返回错误</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">`false`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+### 类型支持 (Type Support)
+
+SDK 包含所有 API 类型的 TypeScript 定义，可直接导入：
+
+```typescript
+import type { Session, Message, Part } from "@opencode-ai/sdk"
+```
+
+所有类型均基于服务器的 OpenAPI 规范生成，可在类型文件中查看。
+
+### 错误处理 (Error Handling)
+
+可捕获并处理 SDK 抛出的错误：
+
+```javascript
+try {
+  await client.session.get({ path: { id: "invalid-id" } })
+} catch (error) {
+  console.error("获取会话失败：", (error as Error).message)
+}
+```
+
+### API 列表 (API Reference)
+
+#### 1. Global
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`global.health()`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">检查服务器健康状态和版本</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`{ healthy: true, version: string }`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+示例：
+```javascript
+const health = await client.global.health()
+console.log(health.data.version)
+```
+
+#### 2. App
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`app.log()`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">写入日志条目</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`app.agents()`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">列出所有可用代理</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`Agent[]`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+示例：
+```javascript
+// 写入日志条目
+await client.app.log({
+  body: {
+    service: "my-app",
+    level: "info",
+    message: "操作完成",
+  },
+})
+
+// 列出可用代理
+const agents = await client.app.agents()
+```
+
+#### 3. Project
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`project.list()`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">列出所有项目</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`Project[]`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`project.current()`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">获取当前项目</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`Project`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+示例：
+```javascript
+// 列出所有项目
+const projects = await client.project.list()
+
+// 获取当前项目
+const currentProject = await client.project.current()
+```
+
+#### 4. Path
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`path.get()`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">获取当前路径</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`Path`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+示例：
+```javascript
+// 获取当前路径信息
+const pathInfo = await client.path.get()
+```
+
+#### 5. Config
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`config.get()`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">获取配置信息</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`Config`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`config.providers()`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">列出提供商和默认模型</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`{ providers: Provider[], default: { [key: string]: string } }`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+示例：
+```javascript
+const config = await client.config.get()
+const { providers, default: defaults } = await client.config.providers()
+```
+
+#### 6. Sessions (会话管理)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">说明</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`session.list()`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">列出会话</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `Session[]`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`session.get({ path })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">获取会话</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `Session`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`session.children({ path })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">列出子会话</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `Session[]`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`session.create({ body })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">创建会话</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `Session`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`session.delete({ path })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">删除会话</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`session.update({ path, body })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">更新会话属性</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `Session`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`session.init({ path, body })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">分析应用并创建 `AGENTS.md`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`session.abort({ path })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">中止运行中的会话</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`session.share({ path })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">共享会话</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `Session`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`session.unshare({ path })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">取消共享会话</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `Session`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`session.summarize({ path, body })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">总结会话</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`session.messages({ path })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">列出会话中的消息</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `{ info: Message, parts: Part[] }[]`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`session.message({ path })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">获取消息详情</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `{ info: Message, parts: Part[] }`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`session.prompt({ path, body })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">发送提示消息</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`body.noReply: true` 返回 UserMessage（仅上下文）；默认返回带 AI 响应的 `AssistantMessage`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`session.command({ path, body })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">向会话发送命令</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `{ info: AssistantMessage, parts: Part[] }`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`session.shell({ path, body })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">运行 shell 命令</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `AssistantMessage`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`session.revert({ path, body })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">撤销消息</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `Session`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`session.unrevert({ path })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">恢复已撤销消息</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `Session`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`postSessionByIdPermissionsByPermissionId({ path, body })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">响应权限请求</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">返回 `boolean`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+示例：
+```javascript
+// 创建和管理会话
+const session = await client.session.create({
+  body: { title: "我的会话" },
+})
+
+const sessions = await client.session.list()
+
+// 发送提示消息
+const result = await client.session.prompt({
+  path: { id: session.id },
+  body: {
+    model: { providerID: "anthropic", modelID: "claude-3-5-sonnet-20241022" },
+    parts: [{ type: "text", text: "你好！" }],
+  },
+})
+
+// 注入上下文但不触发 AI 响应（对插件有用）
+await client.session.prompt({
+  path: { id: session.id },
+  body: {
+    noReply: true,
+    parts: [{ type: "text", text: "你是一个有帮助的助手。" }],
+  },
+})
+```
+
+#### 7. Files (文件操作)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`find.text({ query })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">在文件中搜索文本</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">匹配对象数组，包含 `path`、`lines`、`line_number`、`absolute_offset`、`submatches`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`find.files({ query })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">按名称查找文件和目录</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`string[]`（路径数组）</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`find.symbols({ query })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">查找工作区符号</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`Symbol[]`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`file.read({ query })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">读取文件</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`{ type: "raw" | "patch", content: string }`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`file.status({ query? })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">获取跟踪文件的状态</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`File[]`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+`find.files` 支持的可选查询字段：
+- `type`：`"file"` 或 `"directory"`
+- `directory`：覆盖搜索的项目根目录
+- `limit`：最大结果数（1–200）
+
+示例：
+```javascript
+// 搜索和读取文件
+const textResults = await client.find.text({
+  query: { pattern: "function.*opencode" },
+})
+
+const files = await client.find.files({
+  query: { query: "*.ts", type: "file" },
+})
+
+const directories = await client.find.files({
+  query: { query: "packages", type: "directory", limit: 20 },
+})
+
+const content = await client.file.read({
+  query: { path: "src/index.ts" },
+})
+```
+
+#### 8. TUI (界面控制)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`tui.appendPrompt({ body })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">向提示框追加文本</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`tui.openHelp()`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">打开帮助对话框</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`tui.openSessions()`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">打开会话选择器</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`tui.openThemes()`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">打开主题选择器</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`tui.openModels()`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">打开模型选择器</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`tui.submitPrompt()`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">提交当前提示</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`tui.clearPrompt()`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">清空提示</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`tui.executeCommand({ body })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">执行命令</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`boolean`</td>
+      </tr>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`tui.showToast({ body })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">显示提示通知</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`boolean`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+示例：
+```javascript
+// 控制 TUI 界面
+await client.tui.appendPrompt({
+  body: { text: "添加到提示框" },
+})
+
+await client.tui.showToast({
+  body: { message: "任务完成", variant: "success" },
+})
+```
+
+#### 9. Auth (身份验证)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`auth.set({ ... })`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">设置身份验证凭据</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">`boolean`</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+示例：
+```javascript
+await client.auth.set({
+  path: { id: "anthropic" },
+  body: { type: "api", key: "你的 API 密钥" },
+})
+```
+
+#### 10. Events (实时事件)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">方法</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th>
+        <th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800">
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold">`event.subscribe()`</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">服务器发送事件流</td>
+        <td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">服务器发送事件流</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+示例：
+```javascript
+// 监听实时事件
+const events = await client.event.subscribe()
+for await (const event of events.stream) {
+  console.log("事件：", event.type, event.properties)
+}
+```
