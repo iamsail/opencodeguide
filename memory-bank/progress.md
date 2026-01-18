@@ -19,6 +19,7 @@
 
 ### Phase 2.5: Documentation & SEO Refinement (Completed)-   [x] **MCP Hub**: Established `/en/mcp` as the authoritative source.
 -   [x] **MCP Authority**: Optimized Sitemap and internal links for `/en/mcp`
+-   [x] **MCP Hub Refinement**: Implemented strict Hub-Spoke content strategy, created `mcp-explained` spoke, and fixed MDX GFM rendering ([TASK025 Refinement]).
 -   [x] Full restructure of Chinese docs into 4 tiers under `/zh/docs`
 -   [x] **SEO Fix**: Established Canonical links to prevent route iç cannibalization.
 -   [x] **SEO Fix**: Established hreflang languages alternates for EN/ZH synchronization.

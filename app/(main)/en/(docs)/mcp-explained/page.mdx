@@ -1,0 +1,83 @@
+export const metadata = {
+  title: "Model Context Protocol Explained (For Developers)",
+  description: "Deep dive into the Model Context Protocol (MCP) specification, JSON-RPC messages, and architecture details.",
+  keywords: [
+    "mcp explanation",
+    "mcp specification",
+    "mcp json-rpc",
+    "mcp protocol details"
+  ],
+  alternates: {
+    canonical: "/en/mcp-explained",
+  },
+};
+
+# Model Context Protocol Explained (For Developers)
+
+> **Note:** This page explains the low-level details of the MCP protocol.  
+> For the practical OpenCode setup guide, servers list, and usage, please visit the authoritative hub:  
+> → **[OpenCode MCP Guide](/en/mcp)**
+
+## What describes MCP technically?
+
+The Model Context Protocol (MCP) is an open standard that enables AI models to interact with external data and tools through a standardized interface. It is built on top of **JSON-RPC 2.0**.
+
+Unlike proprietary plugin systems, MCP decouples the **Client** (the editor/IDE) from the **Server** (the tool provider).
+
+### Core Architecture
+
+The protocol defines three primary primitives:
+
+1.  **Prompts**: Pre-defined templates that servers can expose to clients.
+2.  **Resources**: Data sources that can be read by clients (like files, logs, or database rows).
+3.  **Tools**: Executable functions that can be invoked by the model (like "execute_command" or "query_db").
+
+### Message Flow (JSON-RPC)
+
+Communication happens via standard JSON-RPC messages.
+
+**Request (Client -> Server):**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "read_file",
+    "arguments": {
+      "path": "/home/user/project/README.md"
+    }
+  }
+}
+```
+
+**Response (Server -> Client):**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "# Project Documentation..."
+      }
+    ]
+  }
+}
+```
+
+## Protocol Capability Negotiation
+
+When a client connects to an MCP server, they perform a handshake to negotiate capabilities.
+
+- **Client Capabilities**: Does the client support sampling? Does it support notifications?
+- **Server Capabilities**: Does the server expose resources? Prompts? Tools?
+
+This negotiation ensures backward and forward compatibility as the protocol evolves.
+
+## Why this abstraction matters
+
+For developers building tools, MCP eliminates the need to write specific adapters for every IDE (VS Code, JetBrains, OpenCode). You write one MCP server, and it works with any MCP-compliant client.

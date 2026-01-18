@@ -10,6 +10,12 @@ Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediat
     -   **表格修复**: 针对 MDX 表格渲染异常问题，将所有表格转换为带 Tailwind 样式的 HTML 表格，并支持 `overflow-y-auto` 的响应式容器。
     -   **清理残留**: 删除了 `server` 和 `plugins` 文档底部残留的旧版 TODO 占位内容。
     -   **环境修复**: 解决了端口占用问题，确保 `npm run dev` 正常运行。
+-   **MCP Hub Authority Update ([TASK025 Refinement])**: Defined `/en/mcp` as the single authoritative hub for OpenCode MCP documentation to consolidate SEO signals.
+    -   **Hub Page**: Completely rewrote `/en/mcp` with a 9-section structure targeting key search intents (What, Why, Setup, Servers).
+    -   **Technical Spoke**: Created `/en/mcp-explained` for low-level protocol details and JSON schemas, preventing "technical debt" from weighing down the main landing hub.
+    -   **Internal Linking**: Implemented a strict "Hub-Spoke" linking strategy. All MCP sub-pages (`mcp-configuration`, `mcp-client`, etc.) now feature a standardized header link back to the Hub.
+    -   **MDX Fix**: Resolved rendering issues for tables and code blocks by correctly configuring `remark-gfm` and `rehype-pretty-code` in `next.config.mjs` (fixing previous Turbopack serialization errors).
+    -   **Architecture Diagram**: Replaced potentially buggy Unicode diagrams with robust ASCII art for maximum compatibility.
 -   **中文文档更新 ([TASK056])**: 完成了 ACP 支持、代理技能 (Agent Skills) 和自定义工具 (Custom Tools) 的中文文档更新。
     -   **构建安全**: 严格移除了元数据和加粗标题中的中文句号，解决了 SWC 编译崩溃风险。
     -   **SEO**: 为每个页面添加了 metadata 和 canonical 链接。
