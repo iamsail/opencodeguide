@@ -1,8 +1,14 @@
 # Tasks Index
 
 ## In Progress
+- None.
 
 ## Completed
+- [TASK067] Restructure EN sidebar for Oh My OpenCode - Moving workflow docs to a dedicated section - Completed on 2026-01-19
+- [TASK066] Update Oh My OpenCode Quick Start (EN) - Refine practical engineering-focused guide - Completed on 2026-01-19
+- [TASK065] Update Oh My OpenCode Hub Page Content - Refining SEO and body content - Completed on 2026-01-19
+- [TASK064] Implement Oh My OpenCode Quick Start Page (EN) - Building dedicated quick start guide for multi-agent workflows - Completed on 2026-01-19
+- [TASK063] Add Oh My OpenCode Hub Page (EN) - Building entrance hub page for workflows - Completed on 2026-01-19
 - [TASK062] Add English CLI MCP Documentation Page - Completed on 2026-01-19
 - [TASK061] 更新 1.0 迁移指南 (ZH) - 替换迁移说明并优化 SEO - Completed on 2026-01-19
 - [TASK060] Update CLI Commands Reference - Updated English documentation to authoritative version - Completed on 2026-01-19

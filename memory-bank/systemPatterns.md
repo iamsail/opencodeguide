@@ -19,7 +19,7 @@ We distinguish between "Technical Reference" and "Educational Articles/Blog" to 
 -   **Educational Articles**: Flat structure under `/zh/` (e.g., `/zh/opencode-shi-yong`). These serve as high-intent SEO entry points designed to attract viral traffic and guide them towards the technical documentation.
 -   **Authority Concentration**: 
     -   Supplementary articles use `canonical` tags pointing to their most relevant technical documentation equivalent.
-    -   Hub pages (like `/en/mcp` and `/zh/opencode`) act as authoritative portals, consolidating weight and distributing it to sub-pages.
+    -   Hub pages (like `/en/mcp`, `/en/oh-my-opencode`, and `/zh/opencode`) act as authoritative portals, consolidating weight and distributing it to sub-pages.
 -   **Content Loop Pattern**: 
     -   Entry Point (Article/Search) -> Contextual Hub -> Deep Dive (Technical Docs) -> Practical Application (Use Cases) -> Ecosystem (Reference).
     -   This loop ensures high user retention and strong topical authority for search engines.

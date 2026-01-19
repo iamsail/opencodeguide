@@ -1,15 +1,21 @@
 # Active Context
 
 ## Current Focus
-We have completed the **Memory Bank Core Review**, ensuring that the foundational documents (`projectbrief.md`, `productContext.md`, `systemPatterns.md`, and `techContext.md`) accurately reflect the recent shift to "OpenCode Zen" terminology and the expanded documentation scope.
-
-Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
+Monitoring the impact of the **Oh My OpenCode Sidebar Restructure** ([TASK067]) and ensuring navigation is intuitive for English users.
 
 ## Recent Changes
+- **Oh My OpenCode Sidebar Restructure ([TASK067])**: Moved "Oh My OpenCode" and "Quick Start" from the "Introduction" section to a new dedicated "Oh My OpenCode" section in the English sidebar.
+- **Oh My OpenCode Quick Start (EN) ([TASK066])**: Updating `/en/oh-my-opencode/quick-start` with a refined, 5-step engineering guide.
+- **Oh My OpenCode Hub Refinement ([TASK065])**: Updated `/en/oh-my-opencode` with new body content focusing on workflow orchestration and tool integration.
+    - **Metadata**: Updated title, description, and keywords to target "AI coding workflow" and "opencode workflow".
+    - **Body**: Replaced the previous "definitive guide" focus with a clearer value proposition for workflow-driven builders.
+- **Oh My OpenCode Quick Start Page (EN) ([TASK064])**: Created a dedicated quick start guide for multi-agent workflows at `/en/oh-my-opencode/quick-start`.
+- **Oh My OpenCode Hub (EN) ([TASK063])**: Created a new hub at `/en/oh-my-opencode` targeting multi-agent workflow keywords.
 - **CLI MCP Commands (En) ([TASK062])**: Added a new documentation page at `/en/cli-mcp` focusing on Model Context Protocol (MCP) server management.
     -   **Content**: Real-world commands for adding, authenticating, listing, and debugging MCP servers.
     -   **Navigation**: Registered in the "Getting Started" section of the English sidebar and added to `ROUTE_MAP.md`.
     -   **Search**: Updated the search index to include the new page.
+- **Route Map Cleanup**: Synchronized `ROUTE_MAP.md` with existing files, adding missing English routes (`/en/mcp-explained`, `/en/opencode-mcp-use-cases`) and ensuring Chinese `/zh/docs/mcp` is explicitly listed as a hub.
 - **1.0 迁移指南更新与 Hydration 修复 ([TASK061])**: 替换了 `/zh/docs/migrating-to-1-0` 的占位内容为真实的 1.0 迁移文档。
     -   **架构说明**: 详细介绍了 OpenTUI (Zig + SolidJS) 的底层变更及 1.0 的新特性。
     -   **Hydration 修复**: 针对 MDX 表格引起的 React Hydration 报错，通过塌陷 HTML 表格标签间的空白（Remove whitespace text nodes）彻底解决了服务器与客户端渲染不一致的问题。
