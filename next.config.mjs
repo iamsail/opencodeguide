@@ -1,26 +1,21 @@
 import createMDX from '@next/mdx'
+import rehypePrettyCode from 'rehype-pretty-code'
+import rehypeSlug from 'rehype-slug'
+import rehypeAutolinkHeadings from 'rehype-autolink-headings'
+import remarkGfm from 'remark-gfm'
+import { visit } from 'unist-util-visit'
 
 /** @type {import('rehype-pretty-code').Options} */
 const options = {
   theme: 'github-dark-dimmed',
 }
 
-
-const withMDX = createMDX({
-  options: {
-    remarkPlugins: ['remark-gfm'], // 使用字符串而非对象
-    rehypePlugins: [
-      ['rehype-pretty-code', options]
-    ],
-  },
-})
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
   reactStrictMode: true,
   experimental: {
-    mdxRs: false, // 必须设置为 false，否则 remarkPlugins 不生效
+    mdxRs: true,
   },
   async redirects() {
     return [
@@ -37,5 +32,16 @@ const nextConfig = {
     ]
   },
 }
+
+const withMDX = createMDX({
+  // options: {
+  //   remarkPlugins: [remarkGfm],
+  //   rehypePlugins: [
+  //     rehypeSlug,
+  //     [rehypePrettyCode, options],
+  //     [rehypeAutolinkHeadings, { behavior: 'wrap' }],
+  //   ],
+  // },
+})
 
 export default withMDX(nextConfig)

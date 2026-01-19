@@ -1,6 +1,7 @@
 export const metadata = {
-  title: 'OpenCode CLI Commands Reference',
-  description: 'Complete cheatsheet for OpenCode CLI commands. Learn how to start agents, manage profiles, and configure plugins from the terminal.',
+  title: 'OpenCode CLI Commands — Complete Reference & Advanced Usage',
+  description:
+    'Official OpenCode CLI documentation. Learn how to run agents, manage MCP servers, authenticate providers, start headless servers, and automate workflows using OpenCode.',
   alternates: {
     canonical: '/en/cli-commands',
     languages: {
@@ -11,99 +12,339 @@ export const metadata = {
 
 # OpenCode CLI Commands
 
-This reference covers the essential commands for the `@opencode/cli` tool.
+The **OpenCode CLI** is the primary way to run OpenCode from your terminal.  
+It supports **interactive sessions**, **headless automation**, **server mode**, and **advanced integrations** such as MCP servers and GitHub Actions.
+
+If you are here, you likely want to:
+
+- run OpenCode without a GUI
+- automate tasks or CI workflows
+- connect real tools via MCP
+- understand what OpenCode can *actually* do
+
+This page is the **authoritative CLI reference**.
+
+---
+
+## 🚀 Quick Start
+
+Install the CLI and start an interactive session:
+
+```bash
+npm install -g @opencode/cli
+opencode
+```
+
+By default, this launches the **TUI (Terminal UI)**.
+
+To run a single task and exit:
+
+```bash
+opencode run "Explain how closures work in JavaScript"
+```
+
+---
+
+## ⭐ Most Used Commands
+
+### Interactive Session (TUI)
+
+```bash
+opencode
+```
+
+Start OpenCode in the current project directory.
+
+Continue an existing session:
+
+```bash
+opencode --continue
+```
+
+---
+
+### One-off Task (Fire & Exit)
+
+```bash
+opencode run "Summarize recent git commits"
+```
+
+Save output to a file:
+
+```bash
+opencode run "Generate release notes" > release.md
+```
+
+---
+
+### Start a Headless Server
+
+```bash
+opencode serve
+```
+
+Attach to it from another terminal:
+
+```bash
+opencode run --attach http://localhost:4096 "Explain async/await in JavaScript"
+```
+
+This avoids cold starts and enables automation.
+
+---
+
+## Core Execution Modes
+
+OpenCode supports multiple execution styles depending on your workflow.
+
+### `opencode` (TUI)
+
+* Interactive reasoning
+* Best for exploration and debugging
+* Supports session continuation
+
+---
+
+### `opencode run`
+
+* Non-interactive
+* Ideal for scripts, CI, and automation
+* Supports attaching to a running server
+
+Key flags:
+
+```bash
+--continue, -c
+--session, -s
+--model, -m provider/model
+--file, -f <path>
+--format json
+--attach <server-url>
+```
+
+---
+
+### `opencode serve`
+
+Runs OpenCode as a **headless API server**.
+
+```bash
+opencode serve --port 4096
+```
+
+Security:
+
+```bash
+export OPENCODE_SERVER_PASSWORD=your-password
+```
+
+Uses HTTP basic auth (username: `opencode`).
+
+---
+
+### `opencode web`
+
+Same as `serve`, but launches a Web UI automatically.
+
+```bash
+opencode web
+```
+
+---
+
+### `opencode acp`
+
+Starts an **Agent Client Protocol (ACP)** server using stdin/stdout (ND-JSON).
+
+```bash
+opencode acp
+```
+
+Used for advanced integrations and tooling.
+
+---
+
+## Agent Management
+
+Agents define system prompts, tools, and behavior presets.
+
+```bash
+opencode agent create
+opencode agent list
+```
+
+Use agents to standardize workflows across teams.
+
+---
+
+## Authentication & Providers
+
+Manage credentials for external providers.
+
+```bash
+opencode auth login
+opencode auth list
+opencode auth logout
+```
+
+Credentials are stored locally:
+
+```bash
+~/.local/share/opencode/auth.json
+```
+
+---
+
+## Model Discovery
+
+List available models from configured providers.
+
+```bash
+opencode models
+opencode models anthropic
+```
+
+Advanced options:
+
+```bash
+opencode models --refresh
+opencode models --verbose
+```
+
+---
+
+## MCP (Model Context Protocol)
+
+MCP allows OpenCode to connect to **real tools and data sources**.
+
+### Manage MCP Servers
+
+```bash
+opencode mcp add
+opencode mcp list
+opencode mcp auth
+opencode mcp debug <name>
+opencode mcp logout <name>
+```
+
+MCP enables browser automation, filesystem access, databases, and more.
+
+→ Learn more: [Model Context Protocol (MCP)](/en/mcp)
+
+---
+
+## GitHub Integration
+
+Run OpenCode inside GitHub Actions.
+
+```bash
+opencode github install
+opencode github run
+```
+
+Useful for automated PR reviews, audits, and CI workflows.
+
+---
+
+## Sessions & History
+
+Manage past conversations.
+
+```bash
+opencode session list
+opencode export <session-id>
+opencode import <file-or-url>
+```
+
+Control output format:
+
+```bash
+--format table
+--format json
+```
+
+---
+
+## Usage Statistics
+
+View token usage and cost breakdown.
+
+```bash
+opencode stats
+```
+
+Filter results:
+
+```bash
+opencode stats --days 7
+opencode stats --models 5
+opencode stats --project my-project
+```
+
+---
+
+## Upgrade & Uninstall
+
+Upgrade OpenCode:
+
+```bash
+opencode upgrade
+opencode upgrade v0.1.48
+```
+
+Uninstall safely:
+
+```bash
+opencode uninstall --dry-run
+```
+
+Keep config or data:
+
+```bash
+opencode uninstall --keep-config --keep-data
+```
+
+---
 
 ## Global Flags
 
-*   `--verbose`, `-v`: Enable debug logging.
-*   `--quiet`, `-q`: Suppress non-essential output.
-*   `--json`: Output results as JSON (useful for piping).
-
-## Core Commands
-
-### `opencode start`
-Starts an interactive session with the agent.
-```bash
-# Basic start
-opencode start
-
-# Start with an initial prompt
-opencode start "Refactor the tests in /src"
-```
-
-### `opencode run <task>`
-Runs a "fire-and-forget" task. The agent will exit when the task is complete.
-```bash
-opencode run "Audit my packages for security vulnerabilities"
-```
-
-### `opencode init`
-Initializes a new configuration in the current user home or project directory.
-```bash
-# Initialize in current folder (creates .opencode/ locally)
-opencode init --local
-```
-
-## Configuration Management
-
-### `opencode config`
-View or edit settings.
+Available for all commands:
 
 ```bash
-# List all settings
-opencode config list
-
-# Set a specific value
-opencode config set model.provider ollama
-opencode config set model.name llama3
+--help, -h
+--version, -v
+--log-level DEBUG|INFO|WARN|ERROR
+--print-logs
 ```
 
-## Plugin Management
-
-OpenCode uses a plugin architecture. Manage them via CLI.
-
-```bash
-# List installed plugins
-opencode plugin list
-
-# Install a community plugin
-opencode plugin install @opencode-community/sql-tools
-
-# Update all plugins
-opencode plugin update
-```
-
-## Memory & Context
-
-### `opencode memory`
-Interact with the vector database.
-
-```bash
-# Force index the current directory
-opencode memory index .
-
-# Query memory manually (debugging)
-opencode memory query "auth login flow"
-```
+---
 
 ## Environment Variables
 
-Standard execution flags:
-*   `OPENCODE_API_KEY`: Override key.
-*   `OPENCODE_SANDBOX_DIR`: Restrict file operations to this path.
+### Core
 
-## Examples
-
-**Daily Standup Summary:**
 ```bash
-opencode run "Read git log for last 24h and summarize what we changed in markdown" > standup.md
+OPENCODE_CONFIG
+OPENCODE_CONFIG_DIR
+OPENCODE_SERVER_PASSWORD
+OPENCODE_SERVER_USERNAME
+OPENCODE_DISABLE_AUTOUPDATE
 ```
 
-**Project Bootstrap:**
+### Experimental
+
 ```bash
-opencode run "Scaffold a new Next.js project with Tailwind and create a Makefile"
+OPENCODE_EXPERIMENTAL
+OPENCODE_EXPERIMENTAL_FILEWATCHER
+OPENCODE_EXPERIMENTAL_OUTPUT_TOKEN_MAX
+OPENCODE_EXPERIMENTAL_LSP_TOOL
 ```
 
-## related
-*   [What is OpenCode](/en/what-is-opencode)
-*   [Installation Guide](/en/installation)
+---
+
+## Next Steps
+
+* [What is OpenCode](/en/what-is-opencode)
+* [Installation Guide](/en/installation)
+* [Model Context Protocol (MCP)](/en/mcp)
+* [OpenCode vs Claude Code](/en/opencode-vs-claude-code)

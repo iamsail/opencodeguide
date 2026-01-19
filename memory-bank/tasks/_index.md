@@ -1,6 +1,11 @@
 # Tasks Index
 
+## In Progress
+
 ## Completed
+- [TASK060] Update CLI Commands Reference - Updated English documentation to authoritative version - Completed on 2026-01-19
+- [TASK059] Resolve MDX Evaluation Error in Turbopack - Enabled mdxRs to fix build stability - Completed on 2026-01-19
+- [TASK058] Update English CLI Commands Documentation - Completed on 2026-01-19
 - [TASK057] 更新中文开发与扩展 (Develop) 文档 - 更新 SDK、Server、Plugins 和 Ecosystem 页面内容 - Completed on 2026-01-15
 - [TASK056] 更新中文 ACP、技能及自定义工具文档 - 完善 /zh/docs/configure 下的三个核心指南 - Completed on 2026-01-15
 - [TASK055] Update Language Switcher Default Routes - Set Chinese default to /zh/docs - Completed on 2026-01-15
