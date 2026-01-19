@@ -1,24 +1,59 @@
-# 迁移指南 (Migrating to 1.0)
+export const metadata = {
+  title: '迁移至 1.0 | OpenCode 迁移指南',
+  description:
+    '了解如何从 OpenCode 0.x 迁移到 1.0 版本。包括 TUI 架构重写、破坏性变更、升级命令以及按键绑定调整说明',
+  alternates: {
+    canonical: '/zh/docs/migrating-to-1-0',
+  },
+}
 
-## 这是什么？
-迁移指南专为从 OpenCode 旧版本（0.x 或 Beta 版）升级到 1.0 正式版的用户准备。它详细记录了版本之间的重大变更（Breaking Changes）、配置文件的格式更新以及新老功能的映射关系。
+# 迁移至 1.0 | OpenCode
 
-## 什么时候你会用到它？
-- 当你决定升级到 OpenCode 1.0 版本，且之前的项目中已有旧版配置文件时。
-- 当你发现升级后，某些自定义脚本或快捷键失效时。
-- 当你需要了解 1.0 版本带来了哪些核心架构的改进和新特性时。
+OpenCode 1.0 是对 TUI（终端用户界面）的一次完全重写。我们从基于 `go + bubbletea` 的 TUI（存在性能和功能局限）迁移到了内部开发的框架 **OpenTUI**，该框架采用 `zig + solidjs` 编写。新的 TUI 与旧版的操作逻辑一致，因为它连接的是同一个 OpenCode 服务器。
 
-## 核心概念
-- **破坏性变更 (Breaking Changes)**：导致旧有配置或使用方式无法继续工作的修改，必须手动调整。
-- **配置迁移工具**：可能提供的自动化脚本，用于将旧版配置转换为新版格式。
-- **完全兼容性**：1.0 版本承诺的稳定 API 列表，未来版本将保持向后兼容。
+## 升级 (Upgrading)
 
-## 基本用法 / 配置说明
-> TODO：后续补充具体用法示例
+如果您当前使用的是旧版本，系统不应自动升级到 1.0。不过，某些较旧版本的 OpenCode 始终会抓取最新版本。
 
-## 常见误解 / 注意事项
-- 升级前务必备份现有的配置文件 (`config.json` 或 `.opencode` 目录)。
-- 部分旧版插件可能不兼容 1.0 架构，需要等待插件作者更新。
+若要**手动升级**，请运行以下命令：
 
-## 延伸阅读
-> TODO：后续补充
+```bash
+opencode upgrade 1.0.0
+```
+
+若要**降级回 0.x 版本**，请运行：
+
+```bash
+opencode upgrade 0.15.31
+```
+
+## 交互变更 (UX changes)
+
+* **会话历史更紧凑**：仅显示编辑（edit）和 Bash 工具的完整细节。
+* **新增命令栏**：几乎所有操作都通过命令栏进行。在任何上下文中按下 `Ctrl + P` 即可调出，查看所有可用操作。
+* **新增会话侧边栏**：提供有用信息，可以切换开启或关闭。
+* **功能移除**：我们移除了一些不确定是否有人在使用的功能。如果发现某些重要功能缺失，请提交 Issue，我们会尽快将其加回。
+
+## 破坏性变更 (Breaking changes)
+
+### 按键绑定重命名 (Keybinds renamed)
+
+为了确保在不同环境下渲染的一致性，以下是 1.0 版本中重命名的按键绑定对照表：
+
+<div className="my-6 w-full overflow-y-auto font-mono text-sm"><table className="w-full border-collapse border border-gray-200 dark:border-gray-800"><thead><tr className="bg-gray-100 dark:bg-gray-900"><th className="border border-gray-200 dark:border-gray-800 px-4 py-2 text-left">旧绑定名</th><th className="border border-gray-200 dark:border-gray-800 px-4 py-2 text-left">新绑定名</th></tr></thead><tbody><tr><td className="border border-gray-200 dark:border-gray-800 px-4 py-2"><code>messages_revert</code></td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2"><code>messages_undo</code></td></tr><tr className="bg-gray-50 dark:bg-gray-800/50"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2"><code>switch_agent</code></td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2"><code>agent_cycle</code></td></tr><tr><td className="border border-gray-200 dark:border-gray-800 px-4 py-2"><code>switch_agent_reverse</code></td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2"><code>agent_cycle_reverse</code></td></tr><tr className="bg-gray-50 dark:bg-gray-800/50"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2"><code>switch_mode</code></td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2"><code>agent_cycle</code></td></tr><tr><td className="border border-gray-200 dark:border-gray-800 px-4 py-2"><code>switch_mode_reverse</code></td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2"><code>agent_cycle_reverse</code></td></tr></tbody></table></div>
+
+### 按键绑定移除 (Keybinds removed)
+
+以下按键绑定已被移除，其功能已被合并或被新的命令栏操作取代：
+
+* `messages_layout_toggle`
+* `messages_next`
+* `messages_previous`
+* `file_diff_toggle`
+* `file_search`
+* `file_close`
+* `file_list`
+* `app_help`
+* `project_init`
+* `tool_details`
+* `thinking_blocks`
