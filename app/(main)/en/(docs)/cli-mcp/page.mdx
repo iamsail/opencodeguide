@@ -1,0 +1,141 @@
+export const metadata = {
+  title: 'OpenCode CLI MCP Commands — Setup, Manage & Use MCP Servers',
+  description: 'Complete guide to OpenCode CLI MCP commands. Learn how to add, authenticate, list, debug, and use Model Context Protocol (MCP) servers with OpenCode.',
+  alternates: {
+    canonical: '/en/cli-mcp',
+    languages: {
+      'zh-CN': '/zh/docs/cli',
+    },
+  },
+}
+
+# OpenCode CLI MCP Commands
+
+This page focuses on **Model Context Protocol (MCP) server management** using the OpenCode CLI.  
+
+If you’re looking to **add servers, authenticate, debug connections, or list available MCP servers**, this guide is for you.
+
+---
+
+## 🚀 Quick Start (MCP)
+
+```bash
+# Add a new MCP server (local or remote)
+opencode mcp add
+
+# Authenticate the server
+opencode mcp auth [name]
+
+# List all configured servers
+opencode mcp list
+
+# Test connection
+opencode mcp debug [name]
+```
+
+---
+
+## ⭐ Most Used MCP Commands
+
+### Add a Server
+
+```bash
+opencode mcp add
+```
+
+* Follow the interactive prompt to configure a local or remote MCP server.
+
+---
+
+### List MCP Servers
+
+```bash
+opencode mcp list
+opencode mcp ls
+```
+
+* Shows server names, type, and connection status.
+
+---
+
+### Authenticate MCP Server
+
+```bash
+opencode mcp auth my-server
+opencode mcp auth list
+opencode mcp auth ls
+```
+
+* `auth` ensures OpenCode can securely access your MCP server.
+
+---
+
+### Logout from MCP Server
+
+```bash
+opencode mcp logout my-server
+```
+
+---
+
+### Debug MCP Server
+
+```bash
+opencode mcp debug my-server
+```
+
+* Checks connectivity and server health.
+
+---
+
+## 📋 Examples
+
+### Connect a Local MCP Server
+
+```bash
+opencode mcp add
+# Enter name: local-filesystem
+# Server type: Filesystem MCP
+# Path: /path/to/data
+opencode mcp auth local-filesystem
+opencode mcp list
+```
+
+### Connect a Remote MCP Server
+
+```bash
+opencode mcp add
+# Enter name: github-server
+# Server type: GitHub MCP
+# URL: https://my-mcp-server.example.com
+opencode mcp auth github-server
+opencode mcp debug github-server
+```
+
+### Use MCP in a Task
+
+```bash
+opencode run --attach http://localhost:4096 "Summarize last 5 GitHub issues"
+```
+
+* `--attach` connects to an existing MCP server for live context.
+
+---
+
+## 🔧 Common Use Cases
+
+* **Browser Automation:** via Playwright MCP
+* **File Access:** via Filesystem MCP
+* **Repository Data:** via GitHub MCP
+* **Database Queries:** via PostgreSQL MCP (read-only)
+
+> For detailed MCP protocol internals and JSON-RPC spec, see the [OpenCode MCP Explained](/en/mcp).
+
+---
+
+## Related Documentation
+
+* [CLI Commands Hub](/en/cli-commands) — Back to full CLI reference
+* [OpenCode MCP Explained](/en/mcp) — Deep technical reference
+* [Playwright MCP Setup](/en/opencode-mcp-playwright)
+* [MCP Configuration Guide](/en/mcp-configuration)

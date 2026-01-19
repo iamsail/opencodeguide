@@ -36,6 +36,10 @@ export const docsConfigEn: DocsConfig = [
         title: "CLI Commands",
         href: "/en/cli-commands",
       },
+      {
+        title: "CLI MCP Commands",
+        href: "/en/cli-mcp",
+      },
     ],
   },
   {
