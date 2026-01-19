@@ -14,6 +14,7 @@
 | `/en/what-is-opencode` | `/zh/docs/intro` | Introduction |
 | `/en/installation` | `/zh/docs/intro` | Installation Guide |
 | `/en/cli-commands` | `/zh/docs/cli` | CLI Commands Reference |
+| `/en/cli-mcp` | `/zh/docs/cli` | CLI MCP Commands |
 | `/en/opencode-vs-claude-code` | `/zh/vs-claude-code` | Comparisons |
 | `/en/opencode-with-ollama` | `/zh/docs/providers` | Local Models (Ollama) |
 | `/en/mcp` | `/zh/docs/mcp` | **MCP Hub (Central Guide)** |
