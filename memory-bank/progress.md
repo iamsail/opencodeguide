@@ -19,7 +19,6 @@
 
 ### Phase 2.5: Documentation & SEO Refinement (Completed)-   [x] **MCP Hub**: Established `/en/mcp` as the authoritative source.
 -   [x] **MCP Authority**: Optimized Sitemap and internal links for `/en/mcp`
--   [x] **MCP Hub Refinement**: Implemented strict Hub-Spoke content strategy, created `mcp-explained` spoke, and fixed MDX GFM rendering ([TASK025 Refinement]).
 -   [x] Full restructure of Chinese docs into 4 tiers under `/zh/docs`
 -   [x] **SEO Fix**: Established Canonical links to prevent route iç cannibalization.
 -   [x] **SEO Fix**: Established hreflang languages alternates for EN/ZH synchronization.
@@ -28,7 +27,9 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
--   [x] **中文开发与扩展文档更新**: 完成了 SDK、Server、Plugins 和 Ecosystem 的中文文档更新 ([TASK057])。
+- [x] **Authoritative CLI Reference**: Replaced the English CLI page with a comprehensive authoritative reference covering advanced modes, agent management, and MCP integration ([TASK060]).
+- [x] **English CLI Update**: Updated `/en/cli-commands` with a copy-paste friendly reference and standardized metadata ([TASK058]).
+- [x] **中文开发与扩展文档更新**: 完成了 SDK、Server、Plugins 和 Ecosystem 的中文文档更新 ([TASK057])。
 -   [x] **中文配置文档更新**: 完成了 ACP 支持、代理技能 (Agent Skills) 和自定义工具 (Custom Tools) 的中文指南更新 ([TASK056])。
 -   [x] **Language Navigation**: Updated header language switcher to point Chinese users directly to the documentation center ([TASK055]).
 -   [x] **Landing Page Polishing**: Removed unofficial badge from the hero section to simplify the messaging ([TASK054]).
