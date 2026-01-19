@@ -12,9 +12,13 @@
 | 路由 (Route) | 对应中文对等页 (ZH Equivalent) | 功能说明 (Description) |
 | :--- | :--- | :--- |
 | `/en/what-is-opencode` | `/zh/docs/intro` | Introduction |
+| `/en/oh-my-opencode` | `/zh/docs/usage` | **Oh My OpenCode Hub (Agent workflows)** |
+| `/en/oh-my-opencode/quick-start` | `/zh/docs/usage` | Oh My OpenCode Quick Start |
 | `/en/installation` | `/zh/docs/intro` | Installation Guide |
 | `/en/cli-commands` | `/zh/docs/cli` | CLI Commands Reference |
 | `/en/cli-mcp` | `/zh/docs/cli` | CLI MCP Commands |
+| `/en/mcp-explained` | `/zh/docs/mcp` | MCP Technical Deep Dive |
+| `/en/opencode-mcp-use-cases` | `/zh/docs/usage` | MCP Use Cases |
 | `/en/opencode-vs-claude-code` | `/zh/vs-claude-code` | Comparisons |
 | `/en/opencode-with-ollama` | `/zh/docs/providers` | Local Models (Ollama) |
 | `/en/mcp` | `/zh/docs/mcp` | **MCP Hub (Central Guide)** |
@@ -70,6 +74,7 @@
 | `/zh/docs/cli` | 命令行工具 (CLI) 指南 |
 | `/zh/docs/ide` | VS Code / Neovim 编辑器集成 |
 | `/zh/docs/zen` | OpenCode Zen 精选模型列表 |
+| `/zh/docs/mcp` | MCP 协议总览 (Hub) |
 | `/zh/docs/share` | 会话分享功能 |
 | `/zh/docs/github` | GitHub 集成 |
 | `/zh/docs/gitlab` | GitLab 集成 |

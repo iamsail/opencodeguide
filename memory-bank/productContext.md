@@ -15,5 +15,6 @@ OpenCode is a powerful tool but lacks approachable, scenario-based documentation
 
 ## Content Strategy
 *   **Not Translation**: Chinese content is localized, not just translated (e.g., mentioning domestic mirrors).
+*   **Hub Strategy**: Use authoritative hubs (e.g., `/en/oh-my-opencode`, `/en/mcp`) to capture high-level intents and distribute authority to deep-dive technical pages.
 *   **Feature-Level Comparison**: Compare OpenCode vs Claude Code objectively (Privacy, Cost, Offline).
 *   **Actionable**: Every guide ends with valid CLI commands or config snippets.

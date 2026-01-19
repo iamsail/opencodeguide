@@ -27,6 +27,11 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
+- [x] **EN Sidebar Restructure**: Moved Oh My OpenCode content to a dedicated section for better hierarchy ([TASK067]).
+- [x] **Oh My OpenCode Hub Refinement**: Updated the hub with SEO-optimized metadata and unified workflow-focused body content ([TASK065]).
+- [x] **Oh My OpenCode Quick Start (EN)**: Refined practical engineering-focused guide ([TASK066]).
+- [x] **Oh My OpenCode Quick Start (EN)**: Created a dedicated quick start guide for multi-agent workflows ([TASK064]).
+- [x] **Oh My OpenCode Hub (EN)**: Created a new entrance hub for multi-agent workflows ([TASK063]).
 - [x] **1.0 迁移指南更新**: 替换了中文 1.0 迁移指南，包含 OpenTUI 介绍及 Hydration 报错修复 ([TASK061])。
 - [x] **Authoritative CLI Reference**: Replaced the English CLI page with a comprehensive authoritative reference covering advanced modes, agent management, and MCP integration ([TASK060]).
 - [x] **English CLI Update**: Updated `/en/cli-commands` with a copy-paste friendly reference and standardized metadata ([TASK058]).
@@ -66,6 +71,7 @@
 -   [ ] Implement "Edit this page" links.
 
 ## 最新进展 (2026-01-19)
+- **新增内容 (En)**: 完成 `/en/oh-my-opencode` 社区工作流枢纽页面，针对 "Oh My OpenCode" 及 "OpenCode Workflows" 进行 SEO 优化 ([TASK063])。
 - **新增内容 (En)**: 完成 `/en/cli-mcp` (CLI MCP Commands) 页面实现，内容基于真实 CLI 命令 ([TASK062])。
 - **SEO 优化 (ZH)**: 完成 `/zh/docs/migrating-to-1-0` 页面更新 ([TASK061])。
 - **文档维护**: 更新 English 侧边栏及路由映射表，生成最新搜索索引。

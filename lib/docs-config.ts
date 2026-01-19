@@ -26,6 +26,19 @@ export const docsConfigEn: DocsConfig = [
     ],
   },
   {
+    title: "Oh My OpenCode",
+    items: [
+      {
+        title: "Overview",
+        href: "/en/oh-my-opencode",
+      },
+      {
+        title: "Quick Start",
+        href: "/en/oh-my-opencode/quick-start",
+      },
+    ],
+  },
+  {
     title: "Getting Started",
     items: [
       {
