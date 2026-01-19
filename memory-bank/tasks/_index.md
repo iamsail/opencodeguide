@@ -1,8 +1,7 @@
 # Tasks Index
 
-## In Progress
-
 ## Completed
+- [TASK061] 更新 1.0 迁移指南 (ZH) - 替换迁移说明并优化 SEO - Completed on 2026-01-19
 - [TASK060] Update CLI Commands Reference - Updated English documentation to authoritative version - Completed on 2026-01-19
 - [TASK059] Resolve MDX Evaluation Error in Turbopack - Enabled mdxRs to fix build stability - Completed on 2026-01-19
 - [TASK058] Update English CLI Commands Documentation - Completed on 2026-01-19
