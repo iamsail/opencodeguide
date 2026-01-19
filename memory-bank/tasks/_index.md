@@ -3,6 +3,7 @@
 ## In Progress
 
 ## Completed
+- [TASK063] Add Oh My OpenCode Hub Page (EN) - Building entrance hub page for workflows - Completed on 2026-01-19
 - [TASK062] Add English CLI MCP Documentation Page - Completed on 2026-01-19
 - [TASK061] 更新 1.0 迁移指南 (ZH) - 替换迁移说明并优化 SEO - Completed on 2026-01-19
 - [TASK060] Update CLI Commands Reference - Updated English documentation to authoritative version - Completed on 2026-01-19

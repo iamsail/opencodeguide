@@ -12,6 +12,7 @@
 | 路由 (Route) | 对应中文对等页 (ZH Equivalent) | 功能说明 (Description) |
 | :--- | :--- | :--- |
 | `/en/what-is-opencode` | `/zh/docs/intro` | Introduction |
+| `/en/oh-my-opencode` | `/zh/docs/usage` | **Oh My OpenCode Hub (Agent workflows)** |
 | `/en/installation` | `/zh/docs/intro` | Installation Guide |
 | `/en/cli-commands` | `/zh/docs/cli` | CLI Commands Reference |
 | `/en/cli-mcp` | `/zh/docs/cli` | CLI MCP Commands |

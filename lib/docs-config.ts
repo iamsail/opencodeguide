@@ -16,6 +16,10 @@ export const docsConfigEn: DocsConfig = [
         href: "/en/what-is-opencode",
       },
       {
+        title: "Oh My OpenCode",
+        href: "/en/oh-my-opencode",
+      },
+      {
         title: "MCP Guide",
         href: "/en/mcp",
       },

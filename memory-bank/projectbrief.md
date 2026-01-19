@@ -1,6 +1,6 @@
 # Project Brief: OpenCode Guide
 
-OpenCode Guide is an independent, community-driven documentation website for "OpenCode"—an offline-first, plugin-driven AI coding agent framework—and "OpenCode Zen", its companion model gateway service.
+OpenCode Guide is an independent, community-driven documentation website for "OpenCode"—an offline-first, plugin-driven AI coding agent framework—"OpenCode Zen", its companion model gateway service, and "Oh My OpenCode", the community-contributed workflow hub.
 
 The project acts as the unofficial manual, comparing OpenCode against proprietary alternatives like Claude Code, and providing deep-dive guides for setup, local model integration (Ollama), editor workflows (Neovim), and high-performance model access via Zen.
 
