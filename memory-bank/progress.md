@@ -65,6 +65,11 @@
 -   [ ] Add visual screenshots to documentation.
 -   [ ] Implement "Edit this page" links.
 
+## 最新进展 (2026-01-19)
+- **新增内容 (En)**: 完成 `/en/cli-mcp` (CLI MCP Commands) 页面实现，内容基于真实 CLI 命令 ([TASK062])。
+- **SEO 优化 (ZH)**: 完成 `/zh/docs/migrating-to-1-0` 页面更新 ([TASK061])。
+- **文档维护**: 更新 English 侧边栏及路由映射表，生成最新搜索索引。
+
 ## Known Issues
 -   Screenshots are still text-based placeholders.
 -   Chinese documentation depth still needs to be expanded for Providers/Configuration sections.
