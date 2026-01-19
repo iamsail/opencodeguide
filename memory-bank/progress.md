@@ -27,6 +27,7 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
+- [x] **1.0 迁移指南更新**: 替换了中文 1.0 迁移指南，包含 OpenTUI 介绍及 Hydration 报错修复 ([TASK061])。
 - [x] **Authoritative CLI Reference**: Replaced the English CLI page with a comprehensive authoritative reference covering advanced modes, agent management, and MCP integration ([TASK060]).
 - [x] **English CLI Update**: Updated `/en/cli-commands` with a copy-paste friendly reference and standardized metadata ([TASK058]).
 - [x] **中文开发与扩展文档更新**: 完成了 SDK、Server、Plugins 和 Ecosystem 的中文文档更新 ([TASK057])。
