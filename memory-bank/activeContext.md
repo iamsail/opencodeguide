@@ -1,10 +1,16 @@
 # Active Context
 
 ## Current Focus
-Developing the **Oh My OpenCode Hub Page (EN)** ([TASK063]) to capture developer intent for multi-agent workflows and provide an entrance hub for ecosystem tools.
+Monitoring the impact of the **Oh My OpenCode Sidebar Restructure** ([TASK067]) and ensuring navigation is intuitive for English users.
 
 ## Recent Changes
-- **Oh My OpenCode Hub (EN) ([TASK063])**: Creating a new hub at `/en/oh-my-opencode` targeting multi-agent workflow keywords.
+- **Oh My OpenCode Sidebar Restructure ([TASK067])**: Moved "Oh My OpenCode" and "Quick Start" from the "Introduction" section to a new dedicated "Oh My OpenCode" section in the English sidebar.
+- **Oh My OpenCode Quick Start (EN) ([TASK066])**: Updating `/en/oh-my-opencode/quick-start` with a refined, 5-step engineering guide.
+- **Oh My OpenCode Hub Refinement ([TASK065])**: Updated `/en/oh-my-opencode` with new body content focusing on workflow orchestration and tool integration.
+    - **Metadata**: Updated title, description, and keywords to target "AI coding workflow" and "opencode workflow".
+    - **Body**: Replaced the previous "definitive guide" focus with a clearer value proposition for workflow-driven builders.
+- **Oh My OpenCode Quick Start Page (EN) ([TASK064])**: Created a dedicated quick start guide for multi-agent workflows at `/en/oh-my-opencode/quick-start`.
+- **Oh My OpenCode Hub (EN) ([TASK063])**: Created a new hub at `/en/oh-my-opencode` targeting multi-agent workflow keywords.
 - **CLI MCP Commands (En) ([TASK062])**: Added a new documentation page at `/en/cli-mcp` focusing on Model Context Protocol (MCP) server management.
     -   **Content**: Real-world commands for adding, authenticating, listing, and debugging MCP servers.
     -   **Navigation**: Registered in the "Getting Started" section of the English sidebar and added to `ROUTE_MAP.md`.

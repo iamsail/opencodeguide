@@ -13,6 +13,7 @@
 | :--- | :--- | :--- |
 | `/en/what-is-opencode` | `/zh/docs/intro` | Introduction |
 | `/en/oh-my-opencode` | `/zh/docs/usage` | **Oh My OpenCode Hub (Agent workflows)** |
+| `/en/oh-my-opencode/quick-start` | `/zh/docs/usage` | Oh My OpenCode Quick Start |
 | `/en/installation` | `/zh/docs/intro` | Installation Guide |
 | `/en/cli-commands` | `/zh/docs/cli` | CLI Commands Reference |
 | `/en/cli-mcp` | `/zh/docs/cli` | CLI MCP Commands |
