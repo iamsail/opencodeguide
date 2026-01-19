@@ -83,6 +83,22 @@ export const docsConfigEn: DocsConfig = [
   },
 ]
 
+export const docsConfigKo: DocsConfig = [
+  {
+    title: "소개",
+    items: [
+      {
+        title: "OpenCode란 무엇인가?",
+        href: "/ko/opencode",
+      },
+      {
+        title: "영문 가이드",
+        href: "/en/what-is-opencode",
+      },
+    ],
+  },
+]
+
 export const docsConfigZh: DocsConfig = [
   {
     title: "Intro (入门)",

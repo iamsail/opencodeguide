@@ -1,5 +1,5 @@
 interface SiteFooterProps {
-  lang?: "en" | "zh";
+  lang?: "en" | "zh" | "ko";
 }
 
 export function SiteFooter({ lang = "en" }: SiteFooterProps) {
@@ -10,6 +10,10 @@ export function SiteFooter({ lang = "en" }: SiteFooterProps) {
           {lang === "en" ? (
             <p className="max-w-md">
               <strong>OpenCode Guide</strong> is an independent, community-driven resource and is not affiliated with or endorsed by the official OpenCode project.
+            </p>
+          ) : lang === "ko" ? (
+            <p className="max-w-md">
+              <strong>OpenCode 가이드</strong>는 독립적인 커뮤니티 리소스이며 OpenCode 공식 프로젝트와 관련이 없으며 권장되지 않습니다.
             </p>
           ) : (
             <p className="max-w-md">

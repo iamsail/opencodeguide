@@ -73,12 +73,42 @@ When you ask OpenCode to "Check the latest PR", it doesn't hallucinate. It asks 
 
 These are the most popular MCP integrations ready to use with OpenCode.
 
-| MCP Server | What It Does | Typical Use Case | Guide |
-| :--- | :--- | :--- | :--- |
-| **Playwright MCP** | Browser automation | Run E2E tests, take screenshots, scrape web data | [**View Guide**](/en/opencode-mcp-playwright) |
-| **Filesystem MCP** | Safe file access | Read/write files outside the workspace securely | [**View Config**](/en/mcp-configuration) |
-| **GitHub MCP** | Repo management | Search issues, read PRs, manage comments | *Coming Soon* |
-| **PostgreSQL MCP** | Database access | Query read-only replicas for context | *Coming Soon* |
+<table className="w-full text-left border-collapse my-6">
+  <thead>
+    <tr className="border-b dark:border-gray-800">
+      <th className="py-2 pr-4 font-bold">MCP Server</th>
+      <th className="py-2 px-4 font-bold">What It Does</th>
+      <th className="py-2 px-4 font-bold">Typical Use Case</th>
+      <th className="py-2 pl-4 font-bold">Guide</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr className="border-b dark:border-gray-800">
+      <td className="py-2 pr-4 font-medium italic">Playwright MCP</td>
+      <td className="py-2 px-4 text-sm">Browser automation</td>
+      <td className="py-2 px-4 text-sm">Run E2E tests, take screenshots, scrape web data</td>
+      <td className="py-2 pl-4 text-sm underline"><a href="/en/opencode-mcp-playwright">View Guide</a></td>
+    </tr>
+    <tr className="border-b dark:border-gray-800">
+      <td className="py-2 pr-4 font-medium italic">Filesystem MCP</td>
+      <td className="py-2 px-4 text-sm">Safe file access</td>
+      <td className="py-2 px-4 text-sm">Read/write files outside the workspace securely</td>
+      <td className="py-2 pl-4 text-sm underline"><a href="/en/mcp-configuration">View Config</a></td>
+    </tr>
+    <tr className="border-b dark:border-gray-800">
+      <td className="py-2 pr-4 font-medium italic">GitHub MCP</td>
+      <td className="py-2 px-4 text-sm">Repo management</td>
+      <td className="py-2 px-4 text-sm">Search issues, read PRs, manage comments</td>
+      <td className="py-2 pl-4 text-sm text-gray-400">Coming Soon</td>
+    </tr>
+    <tr className="border-b dark:border-gray-800">
+      <td className="py-2 pr-4 font-medium italic">PostgreSQL MCP</td>
+      <td className="py-2 px-4 text-sm">Database access</td>
+      <td className="py-2 px-4 text-sm">Query read-only replicas for context</td>
+      <td className="py-2 pl-4 text-sm text-gray-400">Coming Soon</td>
+    </tr>
+  </tbody>
+</table>
 
 ---
 
@@ -147,12 +177,42 @@ Using **Postgres MCP**, OpenCode checks your query columns against the live data
 
 ## MCP vs Other Integrations
 
-| Feature | MCP | Custom Scripts | VS Code Extensions |
-| :--- | :--- | :--- | :--- |
-| **Integration** | Standard Protocol | Manual / Hacky | Editor-specific API |
-| **Context** | Structured & Two-way | Text Output Only | Limited |
-| **Portability** | High (Universal) | Low | None |
-| **AI Access** | Native | Hard to parse | Varies |
+<table className="w-full text-left border-collapse my-6">
+  <thead>
+    <tr className="border-b dark:border-gray-800">
+      <th className="py-2 pr-4 font-bold">Feature</th>
+      <th className="py-2 px-4 font-bold">MCP</th>
+      <th className="py-2 px-4 font-bold">Custom Scripts</th>
+      <th className="py-2 pl-4 font-bold">VS Code Extensions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr className="border-b dark:border-gray-800">
+      <td className="py-2 pr-4 font-medium italic">Integration</td>
+      <td className="py-2 px-4 text-sm">Standard Protocol</td>
+      <td className="py-2 px-4 text-sm">Manual / Hacky</td>
+      <td className="py-2 pl-4 text-sm">Editor-specific API</td>
+    </tr>
+    <tr className="border-b dark:border-gray-800">
+      <td className="py-2 pr-4 font-medium italic">Context</td>
+      <td className="py-2 px-4 text-sm">Structured & Two-way</td>
+      <td className="py-2 px-4 text-sm">Text Output Only</td>
+      <td className="py-2 pl-4 text-sm">Limited</td>
+    </tr>
+    <tr className="border-b dark:border-gray-800">
+      <td className="py-2 pr-4 font-medium italic">Portability</td>
+      <td className="py-2 px-4 text-sm font-bold">High (Universal)</td>
+      <td className="py-2 px-4 text-sm">Low</td>
+      <td className="py-2 pl-4 text-sm">None</td>
+    </tr>
+    <tr className="border-b dark:border-gray-800">
+      <td className="py-2 pr-4 font-medium italic">AI Access</td>
+      <td className="py-2 px-4 text-sm">Native</td>
+      <td className="py-2 px-4 text-sm">Hard to parse</td>
+      <td className="py-2 pl-4 text-sm">Varies</td>
+    </tr>
+  </tbody>
+</table>
 
 ---
 
