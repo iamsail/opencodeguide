@@ -27,6 +27,9 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
+- [x] **Korean Entry Page**: Implemented super lightweight landing page at `/ko/opencode` for Korean SEO ([TASK074]).
+- [x] **UI Support**: Extended Site Header, Footer, and Language Switcher to support the Korean locale ([TASK074]).
+- [x] **Table Rendering Fix**: Corrected MDX table rendering across multiple pages (`/en/mcp`, `/en/opencode-vs-claude-code`, `/zh/docs/zen`, `/zh/docs/configure/formatters`) using HTML-based tables to resolve mdxRs compatibility issues.
 - [x] **EN Sidebar Restructure**: Moved Oh My OpenCode content to a dedicated section for better hierarchy ([TASK067]).
 - [x] **Oh My OpenCode Hub Refinement**: Updated the hub with SEO-optimized metadata and unified workflow-focused body content ([TASK065]).
 - [x] **Oh My OpenCode Quick Start (EN)**: Refined practical engineering-focused guide ([TASK066]).
@@ -71,10 +74,9 @@
 -   [ ] Implement "Edit this page" links.
 
 ## 最新进展 (2026-01-19)
+- **多语言扩展**: 完成了韩国市场专用的超轻量落地页 `/ko/opencode`，并适配了 UI 的韩文界面 ([TASK074])。
+- **MDX 修复**: 解决了由于 `mdxRs` 编译器限制导致的 Markdown 表格渲染异常，通过 HTML 兼容方案修复了中英文核心页面的表格样式。
 - **新增内容 (En)**: 完成 `/en/oh-my-opencode` 社区工作流枢纽页面，针对 "Oh My OpenCode" 及 "OpenCode Workflows" 进行 SEO 优化 ([TASK063])。
-- **新增内容 (En)**: 完成 `/en/cli-mcp` (CLI MCP Commands) 页面实现，内容基于真实 CLI 命令 ([TASK062])。
-- **SEO 优化 (ZH)**: 完成 `/zh/docs/migrating-to-1-0` 页面更新 ([TASK061])。
-- **文档维护**: 更新 English 侧边栏及路由映射表，生成最新搜索索引。
 
 ## Known Issues
 -   Screenshots are still text-based placeholders.

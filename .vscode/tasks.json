@@ -53,6 +53,15 @@
 			"problemMatcher": [
 				"$nextjs"
 			]
+		},
+		{
+			"label": "Start Dev Server",
+			"type": "shell",
+			"command": "npm run dev",
+			"isBackground": true,
+			"problemMatcher": [
+				"$tsc"
+			]
 		}
 	]
 }
