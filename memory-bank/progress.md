@@ -27,6 +27,10 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
+- [x] **EN Sidebar Restructure**: Moved Oh My OpenCode content to a dedicated section for better hierarchy ([TASK067]).
+- [x] **Oh My OpenCode Hub Refinement**: Updated the hub with SEO-optimized metadata and unified workflow-focused body content ([TASK065]).
+- [x] **Oh My OpenCode Quick Start (EN)**: Refined practical engineering-focused guide ([TASK066]).
+- [x] **Oh My OpenCode Quick Start (EN)**: Created a dedicated quick start guide for multi-agent workflows ([TASK064]).
 - [x] **Oh My OpenCode Hub (EN)**: Created a new entrance hub for multi-agent workflows ([TASK063]).
 - [x] **1.0 迁移指南更新**: 替换了中文 1.0 迁移指南，包含 OpenTUI 介绍及 Hydration 报错修复 ([TASK061])。
 - [x] **Authoritative CLI Reference**: Replaced the English CLI page with a comprehensive authoritative reference covering advanced modes, agent management, and MCP integration ([TASK060]).

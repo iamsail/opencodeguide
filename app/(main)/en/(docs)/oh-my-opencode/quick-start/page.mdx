@@ -1,0 +1,169 @@
+export const metadata = {
+  title: "Oh My OpenCode Quick Start: Run Your First Workflow in 5 Minutes",
+  description: "Get started with Oh My OpenCode in under 5 minutes. Install, create your first workflow, and run an AI-powered coding task locally.",
+  keywords: [
+    "opencode quick start",
+    "oh my opencode tutorial",
+    "ai coding workflow",
+    "opencode workflow example"
+  ],
+  alternates: {
+    canonical: '/en/oh-my-opencode/quick-start',
+    languages: {
+      'zh-CN': '/zh/docs/usage',
+    },
+  },
+}
+
+# Oh My OpenCode Quick Start
+
+This guide helps you **run your first Oh My OpenCode workflow in under 5 minutes**.
+
+By the end, you will have:
+- OpenCode installed locally
+- A simple workflow defined
+- An AI-powered task running in your editor
+
+No prior OpenCode experience required.
+
+---
+
+## Prerequisites
+
+Make sure you have the following:
+
+- **Node.js 18+**
+- **VS Code or Cursor**
+- A terminal with npm available
+
+---
+
+## Step 1: Install OpenCode
+
+Install OpenCode globally:
+
+```bash
+npm install -g opencode-ai
+```
+
+Verify the installation:
+
+```bash
+opencode --version
+```
+
+If you see a version number, you’re ready to go.
+
+---
+
+## Step 2: Create a New Project
+
+Create and enter a new directory:
+
+```bash
+mkdir my-opencode-project
+cd my-opencode-project
+```
+
+Initialize OpenCode:
+
+```bash
+opencode init
+```
+
+This creates the basic project structure for workflows.
+
+---
+
+## Step 3: Create Your First Workflow
+
+Inside the project, create a workflow file:
+
+```bash
+mkdir workflows
+touch workflows/hello-world.yml
+```
+
+Add the following content:
+
+```yaml
+name: hello-world
+description: A minimal OpenCode workflow
+
+steps:
+  - agent: reasoning
+    prompt: |
+      Explain what Oh My OpenCode does in one short paragraph.
+```
+
+This workflow defines:
+
+* A single agent
+* One prompt
+* A deterministic execution order
+
+---
+
+## Step 4: Run the Workflow
+
+Execute the workflow:
+
+```bash
+opencode run hello-world
+```
+
+Within seconds, OpenCode will:
+
+1. Load the workflow
+2. Run the agent
+3. Output the result in your terminal
+
+You’ve just executed your first OpenCode workflow 🎉
+
+---
+
+## Step 5: Understand What Just Happened
+
+You didn’t just run a prompt.
+
+You:
+
+* Defined a **reusable workflow**
+* Assigned responsibility to an **agent**
+* Executed AI reasoning as part of a system
+
+This is the core difference between OpenCode and chat-based AI tools.
+
+---
+
+## Common Next Steps
+
+Now that OpenCode is running, you can:
+
+* Add more steps to a workflow
+* Chain multiple agents together
+* Integrate tools like file access or browsers
+* Use MCP-based tools (e.g. Playwright)
+
+---
+
+## Learn More
+
+Continue exploring OpenCode:
+
+* **[Oh My OpenCode Hub](/en/oh-my-opencode)**
+  High-level concepts, features, and comparisons
+
+* **Workflows (Deep Dive)**
+  Learn how to design scalable workflows
+
+* **MCP & Tool Integration**
+  Connect AI reasoning with real actions
+
+---
+
+## You’re Ready to Build
+
+OpenCode is designed to grow with you.
+
+Start simple, keep workflows small, and evolve them as your projects become more complex.
