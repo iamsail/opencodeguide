@@ -1,11 +1,10 @@
 # Active Context
 
 ## Current Focus
-We have completed the **Memory Bank Core Review**, ensuring that the foundational documents (`projectbrief.md`, `productContext.md`, `systemPatterns.md`, and `techContext.md`) accurately reflect the recent shift to "OpenCode Zen" terminology and the expanded documentation scope.
-
-Our focus remains on **Phase 3: Content Enrichment & Engagement**, with immediate priorities on visual assets and community-driven features.
+Developing the **Oh My OpenCode Hub Page (EN)** ([TASK063]) to capture developer intent for multi-agent workflows and provide an entrance hub for ecosystem tools.
 
 ## Recent Changes
+- **Oh My OpenCode Hub (EN) ([TASK063])**: Creating a new hub at `/en/oh-my-opencode` targeting multi-agent workflow keywords.
 - **CLI MCP Commands (En) ([TASK062])**: Added a new documentation page at `/en/cli-mcp` focusing on Model Context Protocol (MCP) server management.
     -   **Content**: Real-world commands for adding, authenticating, listing, and debugging MCP servers.
     -   **Navigation**: Registered in the "Getting Started" section of the English sidebar and added to `ROUTE_MAP.md`.
