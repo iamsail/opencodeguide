@@ -4,7 +4,7 @@ import { Search } from '@/components/search';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 interface SiteHeaderProps {
-  lang?: "en" | "zh";
+  lang?: "en" | "zh" | "ko";
 }
 
 export function SiteHeader({ lang = "en" }: SiteHeaderProps) {
@@ -27,6 +27,12 @@ export function SiteHeader({ lang = "en" }: SiteHeaderProps) {
                    文档中心
                  </Link>
                </>
+            ) : lang === "ko" ? (
+                <>
+                  <Link href="/ko/opencode" className="transition-colors hover:text-gray-800/80 text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
+                    가이드
+                  </Link>
+                </>
             ) : (
                 <>
                   <Link href="/en/what-is-opencode" className="transition-colors hover:text-gray-800/80 text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">

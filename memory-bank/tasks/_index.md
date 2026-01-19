@@ -4,6 +4,7 @@
 - None.
 
 ## Completed
+- [TASK074] Implement Korean Landing Page - Creating super lightweight Korean entry page for SEO - Completed on 2026-01-19
 - [TASK067] Restructure EN sidebar for Oh My OpenCode - Moving workflow docs to a dedicated section - Completed on 2026-01-19
 - [TASK066] Update Oh My OpenCode Quick Start (EN) - Refine practical engineering-focused guide - Completed on 2026-01-19
 - [TASK065] Update Oh My OpenCode Hub Page Content - Refining SEO and body content - Completed on 2026-01-19
