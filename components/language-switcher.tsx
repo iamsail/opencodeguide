@@ -11,9 +11,12 @@ export function LanguageSwitcher() {
   const [isOpen, setIsOpen] = React.useState(false)
   const dropdownRef = React.useRef<HTMLDivElement>(null)
 
-  // Default to English unless path starts with /zh
+  // Default to English unless path starts with /zh or /ko
   const isZh = pathname?.startsWith("/zh")
-  const currentLabel = isZh ? "中文" : "English"
+  const isKo = pathname?.startsWith("/ko")
+  let currentLabel = "English"
+  if (isZh) currentLabel = "中文"
+  if (isKo) currentLabel = "한국어"
 
   // Close on click outside
   React.useEffect(() => {
@@ -60,6 +63,16 @@ export function LanguageSwitcher() {
             onClick={() => setIsOpen(false)}
           >
             中文
+          </Link>
+          <Link
+            href="/ko/opencode"
+            className={cn(
+              "flex w-full items-center rounded-sm px-2 py-1.5 text-sm transition-colors hover:bg-gray-100",
+              isKo && "bg-gray-50 font-medium text-gray-900"
+            )}
+            onClick={() => setIsOpen(false)}
+          >
+            한국어
           </Link>
         </div>
       )}

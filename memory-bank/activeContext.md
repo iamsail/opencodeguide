@@ -1,9 +1,16 @@
 # Active Context
 
 ## Current Focus
-Monitoring the impact of the **Oh My OpenCode Sidebar Restructure** ([TASK067]) and ensuring navigation is intuitive for English users.
+Validating the **Korean Landing Page** ([TASK074]) and monitoring the impact of the **Table Rendering Fixes** on documentation consistency.
 
 ## Recent Changes
+- **Korean Landing Page & Localization ([TASK074])**: Implemented a super lightweight entry page at `/ko/opencode` to capture Korean search traffic.
+    - **Architecture**: Created `(ko)` route group with dedicated layouts and prose styling.
+    - **UI**: Added "한국어" to `LanguageSwitcher` and localized `SiteHeader` and `SiteFooter` for the `ko` locale.
+    - **SEO**: Configured independent Korean metadata (title/description) and canonical links.
+- **Table Rendering Repairs**: Fixed broken Markdown tables across several core pages caused by `mdxRs` compiler limitations.
+    - **Strategy**: Replaced native GFM tables with styled HTML `<table>` elements to ensure stable rendering in both light and dark modes.
+    - **Affected Pages**: `/en/mcp`, `/en/opencode-vs-claude-code`, `/zh/docs/zen`, and `/zh/docs/configure/formatters`.
 - **Oh My OpenCode Sidebar Restructure ([TASK067])**: Moved "Oh My OpenCode" and "Quick Start" from the "Introduction" section to a new dedicated "Oh My OpenCode" section in the English sidebar.
 - **Oh My OpenCode Quick Start (EN) ([TASK066])**: Updating `/en/oh-my-opencode/quick-start` with a refined, 5-step engineering guide.
 - **Oh My OpenCode Hub Refinement ([TASK065])**: Updated `/en/oh-my-opencode` with new body content focusing on workflow orchestration and tool integration.
