@@ -27,6 +27,7 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
+- [x] **ManyOffer Integration**: Added contextual link at `/zh/opencode` to support user career growth ([TASK075]).
 - [x] **Korean Entry Page**: Implemented super lightweight landing page at `/ko/opencode` for Korean SEO ([TASK074]).
 - [x] **UI Support**: Extended Site Header, Footer, and Language Switcher to support the Korean locale ([TASK074]).
 - [x] **Table Rendering Fix**: Corrected MDX table rendering across multiple pages (`/en/mcp`, `/en/opencode-vs-claude-code`, `/zh/docs/zen`, `/zh/docs/configure/formatters`) using HTML-based tables to resolve mdxRs compatibility issues.
