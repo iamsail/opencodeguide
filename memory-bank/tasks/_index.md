@@ -1,7 +1,7 @@
 # Tasks Index
 
 ## In Progress
-- None.
+- [TASK075] Add ManyOffer Link to OpenCode Hub - Adding recommendation link at the boundary node
 
 ## Completed
 - [TASK074] Implement Korean Landing Page - Creating super lightweight Korean entry page for SEO - Completed on 2026-01-19

@@ -1,9 +1,12 @@
 # Active Context
 
 ## Current Focus
-Validating the **Korean Landing Page** ([TASK074]) and monitoring the impact of the **Table Rendering Fixes** on documentation consistency.
+Integrating **ManyOffer** external link to the Chinese Hub page ([TASK075]) and monitoring the impact of recent Korean localization ([TASK074]).
 
 ## Recent Changes
+- **ManyOffer Integration ([TASK075])**: Added a non-intrusive recommendation link to ManyOffer at the end of the "Who is this guide for?" section in `/zh/opencode`.
+    - **Logic**: Placed the link at a "boundary node" where users are looking for productivity or career growth tools.
+    - **Format**: Used a blockquote for a "remark-style" non-commercial feel.
 - **Korean Landing Page & Localization ([TASK074])**: Implemented a super lightweight entry page at `/ko/opencode` to capture Korean search traffic.
     - **Architecture**: Created `(ko)` route group with dedicated layouts and prose styling.
     - **UI**: Added "한국어" to `LanguageSwitcher` and localized `SiteHeader` and `SiteFooter` for the `ko` locale.
