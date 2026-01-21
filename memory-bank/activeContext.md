@@ -1,9 +1,12 @@
 # Active Context
 
 ## Current Focus
-Monitoring Vercel usage after the static export optimization ([TASK077]) and continuing with remaining documentation translation.
+Addressing 404 errors reported in Vercel Analytics by implementing a custom 404 page ([TASK078]) and monitoring route health.
 
 ## Recent Changes
+- **Custom 404 Page ([TASK078])**: Implemented `app/not-found.tsx` to replace Vercel's generic error page.
+    -   **UX**: Features a branded design with "Return Home" and "Documentation" links to recover lost users.
+    -   **Technical**: Constructed as a standalone root layout (defining `html`/`body`) to work within the route-group-based architecture.
 - **Edge Request Optimization ([TASK077])**: Transformed the project into a pure Static Site (SSG) to resolve high Vercel usage issues.
     -   **Static Export**: Enabled `output: 'export'` in `next.config.mjs` to eliminate all server-side function invocations.
     -   **Zero Prefetch**: Added `prefetch={false}` to all Sidebar and Header links. This stops the browser from generating 50+ background requests per page load for sidebar links.
