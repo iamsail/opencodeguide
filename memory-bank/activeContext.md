@@ -1,9 +1,14 @@
 # Active Context
 
 ## Current Focus
-Integrating **ManyOffer** external link to the Chinese Hub page ([TASK075]) and monitoring the impact of recent Korean localization ([TASK074]).
+Completing compliance requirements by adding standard legal pages and finalizing the "compliance pages" task ([TASK076]).
 
 ## Recent Changes
+- **Compliance Pages ([TASK076])**: Added "Privacy Policy", "About Us", and "Contact Us" pages to meet standard web compliance requirements.
+    - **Privacy Policy**: Created `/privacy` with standard terms regarding analytics and data collection.
+    - **About Us**: Created `/about` clarifying the "Unofficial Community Driven" nature of the project.
+    - **Contact Us**: Created `/contact` with updated email (`hackerai465@gmail.com`) and simplified UI.
+    - **Footer Update**: Updated `SiteFooter` to link to these pages with localization support for English, Chinese, and Korean.
 - **ManyOffer Integration ([TASK075])**: Added a non-intrusive recommendation link to ManyOffer at the end of the "Who is this guide for?" section in `/zh/opencode`.
     - **Logic**: Placed the link at a "boundary node" where users are looking for productivity or career growth tools.
     - **Format**: Used a blockquote for a "remark-style" non-commercial feel.

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 interface SiteFooterProps {
   lang?: "en" | "zh" | "ko";
 }
@@ -21,8 +23,32 @@ export function SiteFooter({ lang = "en" }: SiteFooterProps) {
             </p>
           )}
         </div>
-        <div className="text-sm text-gray-400">
-          &copy; {new Date().getFullYear()} OpenCode Guide
+        
+        <div className="flex flex-col items-center md:items-end gap-2">
+          <nav className="flex gap-4 text-sm text-gray-600 dark:text-gray-400">
+            {lang === "en" ? (
+              <>
+                <Link href="/privacy" className="hover:underline">Privacy Policy</Link>
+                <Link href="/about" className="hover:underline">About Us</Link>
+                <Link href="/contact" className="hover:underline">Contact</Link>
+              </>
+            ) : lang === "ko" ? (
+              <>
+                <Link href="/privacy" className="hover:underline">개인정보처리방침</Link>
+                <Link href="/about" className="hover:underline">소개</Link>
+                <Link href="/contact" className="hover:underline">문의하기</Link>
+              </>
+            ) : (
+              <>
+                <Link href="/privacy" className="hover:underline">隐私政策</Link>
+                <Link href="/about" className="hover:underline">关于我们</Link>
+                <Link href="/contact" className="hover:underline">联系我们</Link>
+              </>
+            )}
+          </nav>
+          <div className="text-sm text-gray-400">
+            &copy; {new Date().getFullYear()} OpenCode Guide
+          </div>
         </div>
       </div>
     </footer>
