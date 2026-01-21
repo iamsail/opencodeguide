@@ -1,0 +1,195 @@
+export const metadata = {
+  title: 'How to Update OpenCode',
+  description: 'Official guide: Learn OpenCode\'s automatic update mechanism, manual update commands, and configuration options to manage versions safely.',
+  alternates: {
+    canonical: '/en/how-to-update-opencode',
+  },
+}
+
+# How to Update OpenCode
+
+Keeping OpenCode up to date ensures access to the latest features, fixes known issues, and maintains system security. This guide covers automatic updates, manual update commands, and configuration options.
+
+---
+
+## Automatic Updates (Default Behavior)
+
+By default, OpenCode automatically checks for and downloads new versions at startup:
+
+- **Background Check**: Connects to the update server automatically at startup  
+- **Automatic Download**: Downloads new versions if available  
+- **Next Startup Activation**: Updates are applied on the next launch  
+
+> Note: Most users do not need to manually update. OpenCode will stay up to date automatically.
+
+### When to Review This Section
+
+- You want to manually update to a specific version  
+- You want to disable or adjust automatic updates  
+- Automatic updates fail due to network or other issues  
+
+---
+
+## Manual Updates (Optional)
+
+### Update to the Latest Version
+
+```bash
+opencode upgrade
+```
+
+Example output:
+
+```
+┌  Upgrade
+│
+●  Using method: curl
+●  From 1.1.5 → 1.1.6
+◇  Upgrading...
+│
+└  Upgrade complete
+```
+
+### Update to a Specific Version
+
+```bash
+opencode upgrade 1.1.5
+# or with v prefix
+opencode upgrade v1.1.5
+```
+
+### Update Using a Specific Installation Method
+
+```bash
+opencode upgrade --method npm
+```
+
+Supported methods: `curl`, `npm`, `pnpm`, `bun`, `brew`
+
+---
+
+## Configuring Automatic Updates (Optional)
+
+Automatic updates are controlled via the `autoupdate` field in the configuration file.
+
+### Edit Configuration File
+
+* macOS / Linux
+
+```bash
+vim ~/.config/opencode/opencode.json
+# or
+code ~/.config/opencode/opencode.json
+```
+
+* Windows
+
+```powershell
+notepad $env:USERPROFILE\.config\opencode\opencode.json
+```
+
+### Example Configuration
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "autoupdate": false
+}
+```
+
+### Possible Values
+
+<table className="w-full text-left border-collapse my-6"><thead><tr className="border-b dark:border-gray-800"><th className="py-2 pr-4 text-sm font-semibold">Value</th><th className="py-2 pl-4 text-sm font-semibold">Description</th></tr></thead><tbody><tr className="border-b dark:border-gray-800"><td className="py-2 pr-4 text-sm"><code>true</code></td><td className="py-2 pl-4 text-sm">Automatically download updates (default)</td></tr><tr className="border-b dark:border-gray-800"><td className="py-2 pr-4 text-sm"><code>false</code></td><td className="py-2 pl-4 text-sm">Do not check for updates</td></tr><tr><td className="py-2 pr-4 text-sm"><code>"notify"</code></td><td className="py-2 pl-4 text-sm">Notify when a new version is available but do not download automatically</td></tr></tbody></table>
+
+### Environment Variable Option
+
+```bash
+export OPENCODE_DISABLE_AUTOUPDATE=true
+```
+
+---
+
+## Frequently Asked Questions
+
+### 1. Network Timeout or Download Failure
+
+**Error Example**:
+
+```
+Error: connect ETIMEDOUT
+```
+
+**Cause**: Network unreachable or GitHub connection timed out
+
+**Solution**:
+
+* Check network connectivity
+* Use a proxy (see [Network Configuration](/en/docs/network))
+* Temporarily disable automatic updates and manually update when network is stable
+
+---
+
+### 2. Downgrading to an Older Version
+
+**Scenario**: A new version contains a bug and you need to revert
+
+```bash
+opencode upgrade 1.1.5
+```
+
+> Updating and downgrading use the same command; just specify the target version.
+
+---
+
+### 3. GitHub API Rate Limit Exceeded
+
+**Error Example**:
+
+```
+error: rate limit exceeded
+```
+
+**Cause**: Unauthenticated GitHub API requests are limited to 60 per hour; authenticated requests are 5000 per hour.
+
+**Solutions**:
+
+1. Wait about 1 hour and retry
+2. Specify a version number manually to bypass API calls
+3. Use npm to install:
+
+```bash
+npm install -g opencode-ai@latest
+```
+
+**Tips to Avoid Issues**:
+
+* Prefer the default automatic update mechanism
+* Avoid frequent repeated `opencode upgrade` commands in a short time
+
+---
+
+## Updating Specific Components (Optional)
+
+For MCP, TUI, or provider plugins, you can update individually:
+
+```bash
+opencode mcp update
+opencode tui update
+opencode providers update
+```
+
+---
+
+## Best Practices
+
+* Backup configuration files before updating
+* Review release notes for new features
+* Avoid updating during critical workflows
+
+---
+
+## References
+
+* [OpenCode CLI Guide](/en/cli-commands)
+* [Oh My OpenCode Best Practices](/en/oh-my-opencode-best-practices)
+* [Troubleshooting Guide](/en/opencode-claude)

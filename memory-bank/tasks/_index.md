@@ -1,9 +1,7 @@
 # Tasks Index
 
-## In Progress
-- None.
-
 ## Completed
+- [TASK079] Create English Update Guide and Fix Rendering - Official guide and global MDX rendering/hydration fixes - Completed on 2026-01-21
 - [TASK078] Implement Custom 404 Page - Created branded 404 page with navigation recovery options - Completed on 2026-01-21
 - [TASK077] Reduce Edge and Function Usage - Switched to Static Export and disabled Link prefetching - Completed on 2026-01-21
 - [TASK076] Add Compliance Pages (Privacy, About, Contact) - Creating standard legal/info pages - Completed on 2026-01-21

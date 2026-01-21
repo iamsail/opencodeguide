@@ -1,10 +1,16 @@
 # Active Context
 
 ## Current Focus
-Addressing 404 errors reported in Vercel Analytics by implementing a custom 404 page ([TASK078]) and monitoring route health.
+Maintaining documentation quality and stability following the implementation of the English Update Guide and MDX rendering fixes ([TASK079]).
 
 ## Recent Changes
-- **Custom 404 Page ([TASK078])**: Implemented `app/not-found.tsx` to replace Vercel's generic error page.
+- **"How to Update" Guide & Rendering Fixes ([TASK079])**:
+    -   **English Guide**: Created at `/en/how-to-update-opencode` with official documentation styling.
+    -   **Metadata Fix**: Converted legacy YAML frontmatter to `export const metadata` across 7+ files to stop raw text leakage.
+    -   **Code Block UI**: Fixed CSS and MDX component conflicts that caused inline code styles to leak into block code backgrounds.
+    -   **Hydration Error Fix**: Resolved "whitespace text nodes" error by collapsing HTML table tags in multiple files.
+    -   **Dev Server Stability**: Enabled `mdxRs` in Turbopack and moved `not-found.tsx` to the `(main)` group to satisfy root layout requirements.
+- **Custom 404 Page ([TASK078])**: Implemented `app/(main)/not-found.tsx` to replace Vercel's generic error page.
     -   **UX**: Features a branded design with "Return Home" and "Documentation" links to recover lost users.
     -   **Technical**: Constructed as a standalone root layout (defining `html`/`body`) to work within the route-group-based architecture.
 - **Edge Request Optimization ([TASK077])**: Transformed the project into a pure Static Site (SSG) to resolve high Vercel usage issues.
