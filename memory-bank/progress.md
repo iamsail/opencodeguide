@@ -27,6 +27,8 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
+- [x] **Update Guide**: Created authoritative English update guide at `/en/how-to-update-opencode` ([TASK079]).
+- [x] **Rendering Stability**: Fixed MDX metadata leakage, code block styling, and table hydration errors across the project ([TASK079]).
 - [x] **404 Recovery**: Implemented branded custom 404 page with documentation shortcuts ([TASK078]).
 - [x] **Compliance Pages**: Added `/privacy`, `/about`, and `/contact` pages with footer integration and localization support ([TASK076]).
 - [x] **Performance Optimization**: Converted project to strict Static Export mode and disabled Link prefetching to drastically reduce Vercel Edge Requests ([TASK077]).
@@ -73,11 +75,13 @@
 -   [x] **MCP Servers Documentation**: Replaced placeholder with detailed Chinese manual ([TASK029]).
 -   [x] **Introduction Update**: Simplified and overhauled the Chinese introduction guide with full tiered links ([TASK032]).
 -   [x] **Fully translate the core documentation pages**: (Intro, CLI, IDE, Zen, Network, Enterprise, Rules, Tools, Troubleshooting, Models, TUI, MCP are done).
--   [ ] Translate remaining documentation pages (Providers, etc.).
+-   [x] Translate remaining documentation pages (Providers, etc.).
+-   [x] **Update Guide (EN)**: Created a standard official-style documentation article at `/en/how-to-update-opencode` ([TASK079]).
 -   [ ] Add visual screenshots to documentation.
 -   [ ] Implement "Edit this page" links.
 
 ## 最新进展 (2026-01-21)
+- **内容更新 (New Content)**: 增加了英文版更新指南 `/en/how-to-update-opencode`。
 - **成本优化 (Cost Optimization)**: 完成了架构级的静态化改造 ([TASK077])。
     -   **Zero Compute**: 启用 `output: 'export'`，彻底移除服务端运行时，将 Function Invocations 降为 0。
     -   **请求降噪**: 禁用了 Sidebar 和 Header 的 Link 预加载 (`prefetch={false}`)，解决了单个页面加载触发数十个 Edge Requests 的问题。
