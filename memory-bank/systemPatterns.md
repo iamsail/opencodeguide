@@ -1,7 +1,19 @@
 # System Patterns
 
 ## Architecture
-The project is built as a **Static Site (SSG)** using **Next.js App Router**.
+The project is built as a **Pure Static Site (Exported)** using **Next.js App Router**.
+
+### Deployment & Performance
+-   **Static Export**: configured with `output: 'export'` in `next.config.mjs`. This generates a purely static HTML/CSS/JS payload at build time.
+    -   **Rationale**: To eliminate Serverless Function execution costs and minimizes Edge Requests.
+    -   **No Runtime**: There is NO Node.js or Edge Runtime on the server. `runtime`, `middleware.ts`, `headers()`, and `cookies()` usage are strictly forbidden in production paths.
+-   **Caching Strategy**: Controlled via `vercel.json`.
+    -   **HTML**: `public, max-age=3600, must-revalidate` (1 hour)
+    -   **Assets**: `public, max-age=31536000, immutable` (1 year)
+    -   **Images**: `images.unoptimized = true` to avoid Image Optimization costs.
+-   **Link Prefetching**: Disabled globally for navigation lists.
+    -   **Constraint**: All Sidebar and Header links MUST have `prefetch={false}`.
+    -   **Reason**: With deep sidebars, default prefetching triggers 50+ unnecessary requests per page view.
 
 ### Routing & Internationalization
 We utilize **Route Groups** to distinguish contexts.
