@@ -4,6 +4,7 @@
 - None.
 
 ## Completed
+- [TASK076] Add Compliance Pages (Privacy, About, Contact) - Creating standard legal/info pages - Completed on 2026-01-21
 - [TASK075] Add ManyOffer Link to OpenCode Hub - Added contextual link for career growth - Completed on 2026-01-20
 - [TASK074] Implement Korean Landing Page - Creating super lightweight Korean entry page for SEO - Completed on 2026-01-19
 - [TASK067] Restructure EN sidebar for Oh My OpenCode - Moving workflow docs to a dedicated section - Completed on 2026-01-19

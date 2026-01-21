@@ -27,6 +27,7 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
+- [x] **Compliance Pages**: Added `/privacy`, `/about`, and `/contact` pages with footer integration and localization support ([TASK076]).
 - [x] **ManyOffer Integration**: Added contextual link at `/zh/opencode` to support user career growth ([TASK075]).
 - [x] **Korean Entry Page**: Implemented super lightweight landing page at `/ko/opencode` for Korean SEO ([TASK074]).
 - [x] **UI Support**: Extended Site Header, Footer, and Language Switcher to support the Korean locale ([TASK074]).
