@@ -2,6 +2,8 @@ import { MetadataRoute } from 'next'
 import { promises as fs } from 'fs'
 import path from 'path'
 
+export const dynamic = 'force-static'
+
 async function getPageFiles(dir: string): Promise<string[]> {
   const entries = await fs.readdir(dir, { withFileTypes: true })
   let files: string[] = []
