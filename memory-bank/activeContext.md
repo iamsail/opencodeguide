@@ -1,9 +1,14 @@
 # Active Context
 
 ## Current Focus
-Completing compliance requirements by adding standard legal pages and finalizing the "compliance pages" task ([TASK076]).
+Monitoring Vercel usage after the static export optimization ([TASK077]) and continuing with remaining documentation translation.
 
 ## Recent Changes
+- **Edge Request Optimization ([TASK077])**: Transformed the project into a pure Static Site (SSG) to resolve high Vercel usage issues.
+    -   **Static Export**: Enabled `output: 'export'` in `next.config.mjs` to eliminate all server-side function invocations.
+    -   **Zero Prefetch**: Added `prefetch={false}` to all Sidebar and Header links. This stops the browser from generating 50+ background requests per page load for sidebar links.
+    -   **Cache Strategy**: Implemented `vercel.json` with strict aggressive caching (1 year for immutable assets, 1 hour for HTML).
+    -   **Image Optimization**: Disabled Next.js Image Optimization to save costs (`unoptimized: true`).
 - **Compliance Pages ([TASK076])**: Added "Privacy Policy", "About Us", and "Contact Us" pages to meet standard web compliance requirements.
     - **Privacy Policy**: Created `/privacy` with standard terms regarding analytics and data collection.
     - **About Us**: Created `/about` clarifying the "Unofficial Community Driven" nature of the project.

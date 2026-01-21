@@ -25,6 +25,7 @@ export function DocsSidebar({ config }: DocsSidebarProps) {
                 <Link
                   key={item.href}
                   href={item.disabled ? '#' : item.href}
+                  prefetch={false}
                   className={cn(
                     "group flex w-full items-center rounded-md border border-transparent px-2 py-1.5 hover:underline",
                     item.disabled && "cursor-not-allowed opacity-60",
@@ -82,6 +83,7 @@ export function DocsMobileNav({ config }: DocsMobileNavProps) {
                   <li key={item.href}>
                     <Link
                       href={item.href}
+                      prefetch={false}
                       className={cn(
                         "block rounded-md px-3 py-2 text-sm transition-colors",
                          pathname === item.href

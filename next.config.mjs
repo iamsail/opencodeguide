@@ -12,24 +12,14 @@ const options = {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'export',
+  images: {
+    unoptimized: true,
+  },
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
   reactStrictMode: true,
   experimental: {
     mdxRs: true,
-  },
-  async redirects() {
-    return [
-      {
-        source: '/zh/opencode-install',
-        destination: '/zh/install',
-        permanent: true,
-      },
-      {
-        source: '/en/mcp-explained',
-        destination: '/en/mcp',
-        permanent: true,
-      },
-    ]
   },
 }
 
