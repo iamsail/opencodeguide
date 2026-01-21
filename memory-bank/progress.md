@@ -27,6 +27,8 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
+- [x] **Compliance Pages**: Added `/privacy`, `/about`, and `/contact` pages with footer integration and localization support ([TASK076]).
+- [x] **Performance Optimization**: Converted project to strict Static Export mode and disabled Link prefetching to drastically reduce Vercel Edge Requests ([TASK077]).
 - [x] **ManyOffer Integration**: Added contextual link at `/zh/opencode` to support user career growth ([TASK075]).
 - [x] **Korean Entry Page**: Implemented super lightweight landing page at `/ko/opencode` for Korean SEO ([TASK074]).
 - [x] **UI Support**: Extended Site Header, Footer, and Language Switcher to support the Korean locale ([TASK074]).
@@ -73,6 +75,13 @@
 -   [ ] Translate remaining documentation pages (Providers, etc.).
 -   [ ] Add visual screenshots to documentation.
 -   [ ] Implement "Edit this page" links.
+
+## 最新进展 (2026-01-21)
+- **成本优化 (Cost Optimization)**: 完成了架构级的静态化改造 ([TASK077])。
+    -   **Zero Compute**: 启用 `output: 'export'`，彻底移除服务端运行时，将 Function Invocations 降为 0。
+    -   **请求降噪**: 禁用了 Sidebar 和 Header 的 Link 预加载 (`prefetch={false}`)，解决了单个页面加载触发数十个 Edge Requests 的问题。
+    -   **缓存策略**: 引入 `vercel.json` 配置，对构建产物实施 1 年缓存，对 HTML 实施 1 小时缓存。
+- **合规性 (Compliance)**: 完成了隐私政策、关于我们等法律页面的上线 ([TASK076])。
 
 ## 最新进展 (2026-01-19)
 - **多语言扩展**: 完成了韩国市场专用的超轻量落地页 `/ko/opencode`，并适配了 UI 的韩文界面 ([TASK074])。

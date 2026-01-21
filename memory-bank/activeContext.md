@@ -1,9 +1,19 @@
 # Active Context
 
 ## Current Focus
-Integrating **ManyOffer** external link to the Chinese Hub page ([TASK075]) and monitoring the impact of recent Korean localization ([TASK074]).
+Monitoring Vercel usage after the static export optimization ([TASK077]) and continuing with remaining documentation translation.
 
 ## Recent Changes
+- **Edge Request Optimization ([TASK077])**: Transformed the project into a pure Static Site (SSG) to resolve high Vercel usage issues.
+    -   **Static Export**: Enabled `output: 'export'` in `next.config.mjs` to eliminate all server-side function invocations.
+    -   **Zero Prefetch**: Added `prefetch={false}` to all Sidebar and Header links. This stops the browser from generating 50+ background requests per page load for sidebar links.
+    -   **Cache Strategy**: Implemented `vercel.json` with strict aggressive caching (1 year for immutable assets, 1 hour for HTML).
+    -   **Image Optimization**: Disabled Next.js Image Optimization to save costs (`unoptimized: true`).
+- **Compliance Pages ([TASK076])**: Added "Privacy Policy", "About Us", and "Contact Us" pages to meet standard web compliance requirements.
+    - **Privacy Policy**: Created `/privacy` with standard terms regarding analytics and data collection.
+    - **About Us**: Created `/about` clarifying the "Unofficial Community Driven" nature of the project.
+    - **Contact Us**: Created `/contact` with updated email (`hackerai465@gmail.com`) and simplified UI.
+    - **Footer Update**: Updated `SiteFooter` to link to these pages with localization support for English, Chinese, and Korean.
 - **ManyOffer Integration ([TASK075])**: Added a non-intrusive recommendation link to ManyOffer at the end of the "Who is this guide for?" section in `/zh/opencode`.
     - **Logic**: Placed the link at a "boundary node" where users are looking for productivity or career growth tools.
     - **Format**: Used a blockquote for a "remark-style" non-commercial feel.
