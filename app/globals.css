@@ -44,6 +44,10 @@
 
   /* Inline code should still look like inline code if it's not a block */
   :not(pre) > code {
-     @apply rounded bg-gray-100 px-1 py-0.5 text-sm dark:bg-gray-800;
+     @apply relative rounded bg-gray-100 px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-100;
+  }
+
+  pre > code {
+    @apply bg-transparent p-0 text-gray-100;
   }
 }
