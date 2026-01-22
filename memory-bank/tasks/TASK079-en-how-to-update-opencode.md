@@ -21,12 +21,20 @@ Create a "standard official documentation style" English version of the "How to 
 - [x] Convert 7+ files to metadata exports
 - [x] Fix code block styling
 - [x] Restore dev server stability
+- [x] Move to `(docs)` group for sidebar/TOC support
+- [x] Add "Update Guide" to `docs-config.ts` sidebar menu
 
 ## Progress Log
-### 2024-03-20
+### 2026-01-21
 - Initialized task.
 - Created MDX content.
 - Fixed frontmatter leak across 7 files.
 - Fixed code block background issue.
 - Fixed `not-found.tsx` layout warning.
 - Project started successfully with `GET 200`.
+
+### 2026-01-22
+- Identified missing sidebar/TOC on the update guide page.
+- Moved page from `(articles)` to `(docs)` route group to inherit full documentation layout.
+- Added "Update Guide" to `lib/docs-config.ts` for English sidebar.
+- Verified final rendering and links.
