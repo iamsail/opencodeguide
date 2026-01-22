@@ -27,6 +27,7 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
+- [x] **Chinese Update Guide**: Implemented the standard official documentation version of the update guide in Chinese with bidirectional SEO links ([TASK080]).
 - [x] **Update Guide**: Created authoritative English update guide at `/en/how-to-update-opencode` ([TASK079]).
 - [x] **Rendering Stability**: Fixed MDX metadata leakage, code block styling, and table hydration errors across the project ([TASK079]).
 - [x] **404 Recovery**: Implemented branded custom 404 page with documentation shortcuts ([TASK078]).

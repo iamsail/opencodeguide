@@ -51,6 +51,7 @@
 | `/zh/opencode-claude` | - | **Opencode + Claude 使用指南** |
 | `/zh/opencode-vs-cursor-claude` | - | **OpenCode vs Cursor vs Claude** (暂无 Canonical - Phase 1) |
 | `/zh/oh-my-opencode-best-practices` | `/zh/docs/usage` | Oh My OpenCode 快速上手与最佳实践 |
+| `/zh/how-to-update-opencode` | - | **官方更新指南** (与 `/en/...` 互链) |
 
 ## 4. 中文官方文档中心 (Chinese Documentation Center - /zh/docs)
 所有技术细节的唯一事实来源。采用分层路由架构。

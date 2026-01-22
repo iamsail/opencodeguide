@@ -1,13 +1,16 @@
 # Active Context
 
 ## Current Focus
-Maintaining documentation quality and stability following the implementation of the English Update Guide and MDX rendering fixes ([TASK079]).
+Implementing the Chinese version of the "How to Update OpenCode" guide and establishing bidirectional SEO links with the English version ([TASK080]).
 
 ## Recent Changes
-- **"How to Update" Guide & Rendering Fixes ([TASK079])**:
-    -   **English Guide**: Created at `/en/how-to-update-opencode` with official documentation styling.
-    -   **Layout Update**: Moved page to `(docs)` route group to enable standard sidebar navigation and Table of Contents (TOC).
-    -   **Sidebar Integration**: Added "Update Guide" to the English sidebar configuration in `lib/docs-config.ts`.
+- **How to Update Guide ([TASK080], [TASK079])**:
+    -   **Multi-language Support**: Created official English and Chinese guides for OpenCode updates.
+    -   **Layout**: Moved both guides to the `(articles)` route group to provide a clean, centered layout without the documentation sidebar or TOC.
+    -   **Bidirectional SEO**: Established `hreflang` links between `/en/how-to-update-opencode` and `/zh/how-to-update-opencode`.
+    -   **Content Refinement**: Removed GitHub Issues links as the repository is private.
+    -   **Navigation**: Opted out of sidebar integration to maintain a lean documentation tree.
+- **Rendering & Stability Fixes ([TASK079])**:
     -   **Metadata Fix**: Converted legacy YAML frontmatter to `export const metadata` across 7+ files to stop raw text leakage.
     -   **Code Block UI**: Fixed CSS and MDX component conflicts that caused inline code styles to leak into block code backgrounds.
     -   **Hydration Error Fix**: Resolved "whitespace text nodes" error by collapsing HTML table tags in multiple files.
