@@ -1,6 +1,9 @@
 # Tasks Index
 
+## In Progress
+
 ## Completed
+- [TASK080] Implement Chinese Update Guide - Created /zh/how-to-update-opencode with sidebar/TOC and bidirectional SEO links - Completed on 2026-01-22
 - [TASK079] Create English Update Guide and Fix Rendering - Official guide and global MDX rendering/hydration fixes - Completed on 2026-01-21
 - [TASK078] Implement Custom 404 Page - Created branded 404 page with navigation recovery options - Completed on 2026-01-21
 - [TASK077] Reduce Edge and Function Usage - Switched to Static Export and disabled Link prefetching - Completed on 2026-01-21

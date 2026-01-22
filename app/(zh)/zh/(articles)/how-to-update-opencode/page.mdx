@@ -1,0 +1,117 @@
+export const metadata = {
+  title: '如何更新 OpenCode',
+  description: '官方指南：了解 OpenCode 的自动更新机制、手动更新命令以及版本控制选项。',
+  alternates: {
+    canonical: '/zh/how-to-update-opencode',
+    languages: {
+      'en-US': '/en/how-to-update-opencode',
+    },
+  },
+}
+
+# 如何更新 OpenCode
+
+保持 OpenCode 的更新可确保您获得最新的功能、修复已知问题并维持系统安全性。本指南介绍了自动更新、手动更新命令和配置选项。
+
+---
+
+## 自动更新 (默认行为)
+
+默认情况下，OpenCode 在启动时会自动检查并下载新版本：
+
+- **后台检查**：启动时自动连接更新服务器
+- **自动下载**：如果有新版本，系统会自动下载
+- **下次启动生效**：下载完成后，更新将在下次启动时应用
+
+> 注意：大多数用户不需要手动更新。OpenCode 会自动保持最新状态。
+
+### 何时需要查看此章节
+
+- 您想手动更新到特定版本
+- 您想禁用或调整自动更新
+- 自动更新因网络或其他问题失败
+
+---
+
+## 手动更新 (可选)
+
+### 更新到最新版本
+
+```bash
+opencode upgrade
+```
+
+示例输出：
+
+```
+┌  Upgrade
+│
+●  Using method: curl
+●  From 1.1.5 → 1.1.6
+◇  Upgrading...
+│
+└  Upgrade complete
+```
+
+---
+
+## 自动更新配置
+
+您可以通过配置文件修改自动更新的行为。
+
+### 禁止自动更新
+
+打开您的配置文件 (通常位于 `~/.opencode/config.json`)：
+
+```json
+{
+  "autoUpdate": false
+}
+```
+
+### 指定更新频道
+
+如果您想使用 Beta 版本或 Stable 版本，可以配置：
+
+```json
+{
+  "updateChannel": "stable" // 或者 "beta"
+}
+```
+
+---
+
+## 常见问题排查
+
+### 1. 更新失败 (网络问题)
+
+如果自动更新或 `opencode upgrade` 失败，通常是由于网络连接问题。
+
+- **检查代理**：确保您的网络环境可以访问 GitHub 或 OpenCode 更新服务器
+- **配置代理**：在配置文件中设置代理：
+
+```json
+{
+  "proxy": "http://127.0.0.1:7890"
+}
+```
+
+### 2. 权限问题
+
+在某些 Linux 或 macOS 环境下，您可能需要使用 `sudo`：
+
+```bash
+sudo opencode upgrade
+```
+
+### 3. 如何查看当前版本
+
+```bash
+opencode --version
+```
+
+---
+
+## 总结
+
+OpenCode 旨在实现无缝更新。只需通过 `opencode upgrade` 即可完成手动同步。
