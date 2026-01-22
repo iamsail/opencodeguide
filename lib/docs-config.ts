@@ -53,10 +53,6 @@ export const docsConfigEn: DocsConfig = [
         title: "CLI MCP Commands",
         href: "/en/cli-mcp",
       },
-      {
-        title: "Update Guide",
-        href: "/en/how-to-update-opencode",
-      },
     ],
   },
   {
