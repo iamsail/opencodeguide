@@ -6,6 +6,8 @@ Maintaining documentation quality and stability following the implementation of 
 ## Recent Changes
 - **"How to Update" Guide & Rendering Fixes ([TASK079])**:
     -   **English Guide**: Created at `/en/how-to-update-opencode` with official documentation styling.
+    -   **Layout Update**: Moved page to `(docs)` route group to enable standard sidebar navigation and Table of Contents (TOC).
+    -   **Sidebar Integration**: Added "Update Guide" to the English sidebar configuration in `lib/docs-config.ts`.
     -   **Metadata Fix**: Converted legacy YAML frontmatter to `export const metadata` across 7+ files to stop raw text leakage.
     -   **Code Block UI**: Fixed CSS and MDX component conflicts that caused inline code styles to leak into block code backgrounds.
     -   **Hydration Error Fix**: Resolved "whitespace text nodes" error by collapsing HTML table tags in multiple files.
