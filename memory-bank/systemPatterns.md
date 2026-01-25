@@ -25,6 +25,16 @@ We utilize **Route Groups** to distinguish contexts.
     -   `(articles)`: Contains narrative guides and SEO pages (e.g., Best Practices). **No Sidebar**, centered layout (`max-w-3xl`) for focused reading.
 -   This architecture avoids complex i18n middleware and allows distinct UI paradigms (Docs vs Blog) without changing the URL structure.
 
+### Navigation & Sidebar Strategy
+-   **Configuration Driven**: Sidebars are defined in `lib/docs-config.ts` as static arrays (`DocsConfig`).
+-   **Context Separation**:
+    -   **English**: Single unified sidebar (`docsConfigEn`).
+    -   **Chinese**: Split configuration to serve different reading modes:
+        -   `docsConfigZh`: For technical documentation under `/zh/docs/*`.
+        -   `guideConfigZh`: For high-level narrative guides under `/zh/*` (articles).
+    -   **Korean**: Single unified sidebar (`docsConfigKo`).
+-   **Component Reusability**: All layouts (`docs/layout.tsx`, `articles/layout.tsx`) consume the same `DocsSidebar` component, injecting the appropriate config array based on the route context.
+
 ### Documentation Routing Strategy
 We distinguish between "Technical Reference" and "Educational Articles/Blog" to create a high-converting content loop:
 -   **Technical Reference**: Tiered hierarchy under `/zh/docs/` (e.g., `/zh/docs/configure/tools`). This is the "Single Source of Truth" for technical precision and community contribution.
