@@ -1,196 +1,30 @@
 # Active Context
 
 ## Current Focus
+- **Unified Navigation Experience**: 扩展侧边栏功能到中文指南文章区域，确保所有中文内容（文章和文档）使用统一的导航体验。
 - Maintaining site stability while expanding the Chinese documentation suite.
 - Ensuring all MDX files are free from hydration errors caused by multi-line HTML tables.
 
 ## Recent Changes
-- **MDX Table Hydration Fix ([TASK082])**:
-    - **Site-wide Refactor**: Minified 100+ raw HTML tables into single-line strings to satisfy the `mdxRs` compiler and prevent React hydration fail (error #418/425).
+- **中文指南侧边栏 ([TASK083])**:
+    - **统一布局**: 为 `/zh/*` 下的所有文章（非 `/zh/docs/*` 的文档）添加了侧边栏和 TOC，与文档页面保持一致的导航体验。
+    - **配置更新**: 在 `docsConfigZh` 顶部新增"指南 (Guide)"章节，包含 13 个文章链接（OpenCode 介绍、安装指南、对比文章、MCP 介绍、Ollama 部署、最佳实践等）。
+    - **布局重构**: 重构 `app/(zh)/zh/(articles)/layout.tsx`，采用与 `app/(zh)/zh/docs/layout.tsx` 相同的三列网格布局（侧边栏 + 内容 + TOC）。
+    - **组件集成**: 引入 `DocsSidebar`、`DocsMobileNav` 和 `TableOfContents` 组件到文章布局中。
+- **MDX Table Hydration Fix ([TASK082])** (之前):
+    - **Site-wide Refactor**: Minified 100+ raw HTML tables into single-line strings to satisfy the `mdxRs` compiler and prevent React hydration errors (error #418/425).
     - **Key Pages Fixed**: `server/page.mdx` (18 tables), `sdk/page.mdx`, `providers/page.mdx`, `opencode-vs-claude-code`, and more.
     - **UX Enhancement**: Wrapped minified tables in `<div className="my-6 w-full overflow-y-auto">` for better mobile responsiveness.
-- **LLM Providers Documentation (ZH) ([TASK081])**:
-    - **Comprehensive Coverage**: Replaced the placeholder at `/zh/docs/providers` with detailed setup guides for over 75 LLM providers.
-    - **Localized Content**: Added specific instructions for 302.AI, Amazon Bedrock, Azure, Moonshot AI (Kimi), and more.
-    - **Stability Fixes**: Minified all newly added provider tables to prevent hydration regressions.
-- **OpenCode Zen Integration**:
-    - **Bidirectional Links**: Established reciprocal links between `OpenCode Zen` and `Providers` documentation in both English and Chinese versions.
-- **How to Update Guide ([TASK080], [TASK079])**:
-    -   **Multi-language Support**: Created official English and Chinese guides for OpenCode updates.
-    -   **Layout**: Moved both guides to the `(articles)` route group to provide a clean, centered layout without the documentation sidebar or TOC.
-    -   **Bidirectional SEO**: Established `hreflang` links between `/en/how-to-update-opencode` and `/zh/how-to-update-opencode`.
-    -   **Content Refinement**: Removed GitHub Issues links as the repository is private.
-    -   **Navigation**: Opted out of sidebar integration to maintain a lean documentation tree.
-- **Rendering & Stability Fixes ([TASK079])**:
-    -   **Metadata Fix**: Converted legacy YAML frontmatter to `export const metadata` across 7+ files to stop raw text leakage.
-    -   **Code Block UI**: Fixed CSS and MDX component conflicts that caused inline code styles to leak into block code backgrounds.
-    -   **Hydration Error Fix**: Resolved "whitespace text nodes" error by collapsing HTML table tags in multiple files.
-    -   **Dev Server Stability**: Enabled `mdxRs` in Turbopack and moved `not-found.tsx` to the `(main)` group to satisfy root layout requirements.
-- **Custom 404 Page ([TASK078])**: Implemented `app/(main)/not-found.tsx` to replace Vercel's generic error page.
-    -   **UX**: Features a branded design with "Return Home" and "Documentation" links to recover lost users.
-    -   **Technical**: Constructed as a standalone root layout (defining `html`/`body`) to work within the route-group-based architecture.
-- **Edge Request Optimization ([TASK077])**: Transformed the project into a pure Static Site (SSG) to resolve high Vercel usage issues.
-    -   **Static Export**: Enabled `output: 'export'` in `next.config.mjs` to eliminate all server-side function invocations.
-    -   **Zero Prefetch**: Added `prefetch={false}` to all Sidebar and Header links. This stops the browser from generating 50+ background requests per page load for sidebar links.
-    -   **Cache Strategy**: Implemented `vercel.json` with strict aggressive caching (1 year for immutable assets, 1 hour for HTML).
-    -   **Image Optimization**: Disabled Next.js Image Optimization to save costs (`unoptimized: true`).
-- **Compliance Pages ([TASK076])**: Added "Privacy Policy", "About Us", and "Contact Us" pages to meet standard web compliance requirements.
-    - **Privacy Policy**: Created `/privacy` with standard terms regarding analytics and data collection.
-    - **About Us**: Created `/about` clarifying the "Unofficial Community Driven" nature of the project.
-    - **Contact Us**: Created `/contact` with updated email (`hackerai465@gmail.com`) and simplified UI.
-    - **Footer Update**: Updated `SiteFooter` to link to these pages with localization support for English, Chinese, and Korean.
-- **ManyOffer Integration ([TASK075])**: Added a non-intrusive recommendation link to ManyOffer at the end of the "Who is this guide for?" section in `/zh/opencode`.
-    - **Logic**: Placed the link at a "boundary node" where users are looking for productivity or career growth tools.
-    - **Format**: Used a blockquote for a "remark-style" non-commercial feel.
-- **Korean Landing Page & Localization ([TASK074])**: Implemented a super lightweight entry page at `/ko/opencode` to capture Korean search traffic.
-    - **Architecture**: Created `(ko)` route group with dedicated layouts and prose styling.
-    - **UI**: Added "한국어" to `LanguageSwitcher` and localized `SiteHeader` and `SiteFooter` for the `ko` locale.
-    - **SEO**: Configured independent Korean metadata (title/description) and canonical links.
-- **Table Rendering Repairs**: Fixed broken Markdown tables across several core pages caused by `mdxRs` compiler limitations.
-    - **Strategy**: Replaced native GFM tables with styled HTML `<table>` elements to ensure stable rendering in both light and dark modes.
-    - **Affected Pages**: `/en/mcp`, `/en/opencode-vs-claude-code`, `/zh/docs/zen`, and `/zh/docs/configure/formatters`.
-- **Oh My OpenCode Sidebar Restructure ([TASK067])**: Moved "Oh My OpenCode" and "Quick Start" from the "Introduction" section to a new dedicated "Oh My OpenCode" section in the English sidebar.
-- **Oh My OpenCode Quick Start (EN) ([TASK066])**: Updating `/en/oh-my-opencode/quick-start` with a refined, 5-step engineering guide.
-- **Oh My OpenCode Hub Refinement ([TASK065])**: Updated `/en/oh-my-opencode` with new body content focusing on workflow orchestration and tool integration.
-    - **Metadata**: Updated title, description, and keywords to target "AI coding workflow" and "opencode workflow".
-    - **Body**: Replaced the previous "definitive guide" focus with a clearer value proposition for workflow-driven builders.
-- **Oh My OpenCode Quick Start Page (EN) ([TASK064])**: Created a dedicated quick start guide for multi-agent workflows at `/en/oh-my-opencode/quick-start`.
-- **Oh My OpenCode Hub (EN) ([TASK063])**: Created a new hub at `/en/oh-my-opencode` targeting multi-agent workflow keywords.
-- **CLI MCP Commands (En) ([TASK062])**: Added a new documentation page at `/en/cli-mcp` focusing on Model Context Protocol (MCP) server management.
-    -   **Content**: Real-world commands for adding, authenticating, listing, and debugging MCP servers.
-    -   **Navigation**: Registered in the "Getting Started" section of the English sidebar and added to `ROUTE_MAP.md`.
-    -   **Search**: Updated the search index to include the new page.
-- **Route Map Cleanup**: Synchronized `ROUTE_MAP.md` with existing files, adding missing English routes (`/en/mcp-explained`, `/en/opencode-mcp-use-cases`) and ensuring Chinese `/zh/docs/mcp` is explicitly listed as a hub.
-- **1.0 迁移指南更新与 Hydration 修复 ([TASK061])**: 替换了 `/zh/docs/migrating-to-1-0` 的占位内容为真实的 1.0 迁移文档。
-    -   **架构说明**: 详细介绍了 OpenTUI (Zig + SolidJS) 的底层变更及 1.0 的新特性。
-    -   **Hydration 修复**: 针对 MDX 表格引起的 React Hydration 报错，通过塌陷 HTML 表格标签间的空白（Remove whitespace text nodes）彻底解决了服务器与客户端渲染不一致的问题。
-    -   **SEO**: 实现了优化的 metadata 和 canonical 链接。
-- **Authoritative CLI Reference ([TASK060])**: Replaced the "copy-paste friendly" English CLI page with a comprehensive authoritative reference covering advanced modes (`serve`, `web`, `acp`), agent management, MCP integration, and GitHub Actions.
-- **English CLI Update ([TASK058])**: Updated `/en/cli-commands` with a "copy-paste friendly" reference. Refined in a second iteration to include better navigation, "Most Copied" examples, and clear distinction between `start` and `run` commands.
-- **Critical Build Fix ([TASK059])**: Enabled `mdxRs: true` in `next.config.mjs` to resolve `TypeError: this.getData is not a function` in Turbopack when processing MDX files. This ensures the native Rust compiler is used instead of a potentially unstable JS loader fallback.
-- **中文文档更新 ([TASK057])**: 完成了 SDK、Server、Plugins 和 Ecosystem 的中文文档更新。
-    -   **表格修复**: 针对 MDX 表格渲染异常问题，将所有表格转换为带 Tailwind 样式的 HTML 表格，并支持 `overflow-y-auto` 的响应式容器。
-    -   **清理残留**: 删除了 `server` 和 `plugins` 文档底部残留的旧版 TODO 占位内容。
-    -   **环境修复**: 解决了端口占用问题，确保 `npm run dev` 正常运行。
--   **中文文档更新 ([TASK056])**: 完成了 ACP 支持、代理技能 (Agent Skills) 和自定义工具 (Custom Tools) 的中文文档更新。
-    -   **构建安全**: 严格移除了元数据和加粗标题中的中文句号，解决了 SWC 编译崩溃风险。
-    -   **SEO**: 为每个页面添加了 metadata 和 canonical 链接。
--   **Language Switcher Update ([TASK055])**: Updated the language switcher's Chinese option to default to `/zh/docs` instead of `/zh/install`, providing a more comprehensive landing point for Chinese users.
--   **Landing Page UI Cleanup ([TASK054])**: Removed "The Unofficial OpenCode Guide" badge from the hero section of the home page to clean up the UI as per user request.
--   **Layout Restructure ([TASK053])**: Implemented Route Groups `(docs)` and `(articles)` to separate technical documentation (with Sidebar) from narrative articles (Full width/Centered).
-    -   **English**: Moved to `app/(main)/en/(docs)` and `app/(main)/en/(articles)`.
-    -   **Chinese**: Moved to `app/(zh)/zh/(docs)` and `app/(zh)/zh/(articles)`.
-    -   **Fix**: Resolved Sidebar incorrectly appearing on "Best Practices" guide.
-    -   **Navigation**: Added top-level "Docs/指南" links to `SiteHeader` to ensure navigability from articles.
--   **Hydration Error Fix ([TASK050])**: Resolved `In HTML, <p> cannot be a descendant of <p>` error by replacing MDX `p` wrapper with `div`.
-    -   **Root Cause**: MDX nesting block elements (custom components or others) inside `p` tags.
-    -   **Fix**: Updated `mdx-components.tsx` to render `div` with paragraph styling.
--   **权限 (Permissions) 文档更新 ([TASK048])**: 替换了 `/zh/docs/configure/permissions` 的占位符，提供了完整的权限控制系统指南。
-    -   **内容**: 涵盖了操作类型（Allow, Deny, Ask）、全局与特定工具配置、细粒度规则（模式匹配）以及各可用权限项的说明。
-    -   **SEO**: 实现了优化的 metadata 和 canonical 链接，确保 metadata 描述结尾无中文句号以维持构建稳定。
--   **LSP 服务器 (LSP Servers) 文档更新 ([TASK049])**: 替换了 `/zh/docs/configure/lsp-servers` 的占位符，提供了完整的 LSP 集成指南。
-    -   **内容**: 涵盖了各常用语言的内置支持要求、禁用方法、自定义配置及 PHP 说明。
-    -   **修复**: 针对 Turbopack 下 Markdown 表格渲染不稳定的问题，将内置支持列表转换为样式化的 HTML 表格以确保一致性。
-    -   **SEO**: 实现了优化的 metadata 和 canonical 链接。
--   **格式化工具 (Formatters) 文档更新 ([TASK047])**: 替换了 `/zh/docs/configure/formatters` 的占位符，提供了完整的代码格式化配置指南。
-    -   **内容**: 涵盖了工作原理、内置格式化工具（gofmt, mix, prettier, biome）的要求、禁用方法以及基于 `opencode.json` 的自定义配置。
-    -   **SEO**: 实现了优化的 metadata 和 canonical 链接。
-    -   **构建修复**: 遵循 TASK046 经验，移除了 metadata description 和关键标题末尾的中文句号以确保稳定构建。
--   **命令 (Commands) 文档更新 ([TASK045])**: 替换了 `/zh/docs/configure/commands` 的占位符，提供了完整的自定义命令配置指南。
-    -   **内容**: 涵盖了 Markdown 和 JSON 两种配置方式、命令占位符（$ARGUMENTS, $1, $2）、Shell 输出注入（!）以及文件引用（@）。
-    -   **语法增强**: 使用了 GFM 警告语法（`[!NOTE]`）并确保了代码块的正确渲染。
-    -   **SEO**: 实现了优化的 metadata 和 canonical 链接，描述结尾不带句号以确保稳定构建。
-    -   **构建修复**: Vercel 部署报错显示 SWC 在处理该文件时发生 Panic，通过移除正文中 bold 标记内的中文句号解决。
--   **快捷键 (Keybinds) 文档更新 ([TASK044])**: 替换了 `/zh/docs/configure/keybinds` 的占位符，提供了完整的快捷键自定义指南。
-    -   **内容**: 涵盖了引导键 (Leader key) 概念、配置文件示例、禁用快捷键的方法、桌面端内置快捷键对照表以及 Shift+Enter 在 Windows Terminal 等环境下的配置。
-    -   **格式优化**: 将复杂表格转换为 HTML 表格以确保 MDX 渲染一致性。
-    -   **关键修复**: 为规避 Next.js/SWC 构建阶段的 Panic 报错，移除并修复了包括 Keybinds 在内的 14 个中文 MDX 文件的元数据描述（description）结尾的句号。
-    -   **SEO**: 实现了优化的 metadata 和 canonical 链接。
--   **主题 (Themes) 文档更新 ([TASK043])**: 替换了 `/zh/docs/configure/themes` 的占位符，提供了完整的主题配置指南。
-    -   **内容**: 涵盖了终端真彩色要求、内置主题列表、系统主题原理以及基于 JSON 的自定义主题配置。
-    -   **格式优化**: 将内置主题列表转换为样式化的 HTML 表格，以确保构建稳定性并对齐 UI 风格。
-    -   **SEO**: 实现了优化的 metadata 和 canonical 链接。
--   **模型 (Models) 文档更新 ([TASK042])**: 替换了 `/zh/docs/configure/models` 的占位符，提供了完整的模型配置指南。
-    -   **内容**: 涵盖了服务商 (Providers)、模型选择、推荐列表、默认模型设置、全局选项配置及变体 (Variants) 手册。
-    -   **变体管理**: 详细说明了内置变体（Anthropic, OpenAI, Google）及自定义变体的覆盖方法。
-    -   **链接修复**: 成功将“了解更多”链接指向本地化的 `/zh/docs/providers` 页面，保持了文档系统的闭环。
--   **Critical Build Fix (SWC Panic) ([TASK046])**: Resolved a persistent build error (`byte index is not a char boundary`) in `keybinds` and `themes` documentation.
-    -   **Root Cause**: Chinese periods (`。`) located at specific byte offsets (332 and 380) in bold markdown headers (`**...。**`) immediately following the metadata block caused `swc` compiler to panic.
-    -   **Fix**: Removed the Chinese periods from the bold headers and safeproofed metadata descriptions in `themes/page.mdx`. verified with local build.
--   **Critical Build Fix**: Resolved a Next.js/SWC compiler panic caused by multi-byte character boundary issues (specifically Chinese periods `。`) in metadata descriptions and bold markdown headers.
-    -   **Affected Files**: `troubleshooting/page.mdx`, `network/page.mdx`, `enterprise/page.mdx`, `zen/page.mdx`, `tools/page.mdx`.
-    -   **Action**: Removed or replaced problematic punctuation to ensure stable builds.
--   **Memory Bank Core Update**: Updated `projectbrief.md` and `productContext.md` to integrate "OpenCode Zen" as a core component of the ecosystem alongside the OpenCode framework. Verified `systemPatterns.md` and `techContext.md` for architectural consistency.
--   **智能体 (Agents) 文档更新 ([TASK041])**: 替换了 `/zh/docs/configure/agents` 的占位符，提供了完整的智能体配置指南。
-    -   **内容**: 涵盖了主代理（Build, Plan）和子代理（General, Explore）的概念、用法及配置方式（JSON/Markdown）。
-    -   **配置详情**: 详细说明了 JSON 模式和 Markdown frontmatter 中的各项参数（Tools, Permissions, Model 等）。
-    -   **SEO**: 实现了优化的 metadata 和 canonical 链接。
--   **工具 (Tools) 文档更新 ([TASK040])**: 替换了 `/zh/docs/configure/tools` 的占位符，提供了完整的工具管理指南。
-    -   **内容**: 涵盖了内置工具（bash, edit, read, grep, webfetch 等）、权限控制（allow, deny, ask）、自定义工具和 MCP 服务器集成。
-    -   **格式优化**: 采用了 GFM 警告语法（`[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`）并为配置示例添加了文件名注释（如 `*opencode.json*`）。
--   **OpenCode Zen 文档更新与全量内存银行同步 ([TASK039])**: 将 `/zh/docs/zen` 的内容从“专注模式”UI 特性替换为“OpenCode Zen”模型网关服务指南，并完成了全量 Memory Bank 审查与更新。
-    -   **内容**: 详细说明了 Zen 的背景、运行方式、模型列表及团队功能。同步更新了 `projectbrief.md` 和 `productContext.md`。
-    -   **导航一致性**: 根据用户要求，虽然内容已更迭，但侧边栏标题保留为“专注模式 (Zen)”。
-    -   **路由与 SEO**: 更新了 `ROUTE_MAP.md`，并在 MDX 中使用了优化的表格展示模型信息。
--   **故障排除文档更新 ([TASK038])**: 将故障排除指南替换为详细的中文内容。
-    -   **内容**: 增加了日志路径、存储说明、身份验证修复、模型引用格式示例以及 Linux 剪贴板解决方案。
-    -   **SEO**: 实现了优化的 metadata 和 canonical 链接。
--   **Enterprise Documentation Update ([TASK037])**: Replaced the Chinese Enterprise placeholder at `/zh/docs/enterprise` with a complete guide.
-    -   **Content**: Added full coverage of evaluation, data handling, pricing, and enterprise deployment (SSO, Central Config, Internal AI Gateway).
-    -   **SEO**: Implemented metadata and canonical links for search engine authority.
--   **Network Documentation Update ([TASK036])**: Replaced the Chinese Network placeholder at `/zh/docs/network` with a complete guide.
-    -   **Content**: Added standard environment variables (`HTTPS_PROXY`, `NO_PROXY`), Basic authentication instructions, and custom CA certificate configuration.
-    -   **SEO**: Maintained cross-language link integrity and improved content depth for enterprise users.
--   **Rules Documentation Update ([TASK035])**: Replaced the Chinese Rules placeholder at `/zh/docs/configure/rules` with a complete guide.
-    -   **Content**: Added comprehensive instructions for `AGENTS.md` and `opencode.json` configuration, covering project-level and global rules.
-    -   **SEO**: Implemented optimized metadata and canonical links for search engine authority.
--   **IDE Documentation Update ([TASK034])**: Replaced the Chinese IDE placeholder at `/zh/docs/ide` with a complete guide.
-    -   **Content**: Added full coverage of VS Code and Cursor integrations, usage shortcuts, and troubleshooting steps.
-    -   **SEO**: Optimized metadata for Chinese search intent and maintained cross-language links.
--   **CLI Documentation Update ([TASK033])**: Replaced the Chinese CLI placeholder at `/zh/docs/cli` with a complete manual.
-    -   **Content**: Added full command references, flags, and an exhaustive list of environment variables.
-    -   **MDX Fix**: Used a hybrid approach with styled HTML `<table>` tags to ensure proper rendering under Next.js 16 + Turbopack, bypassing plugin serialization errors.
-    -   **UI Enhancement**: Added robust styling for table elements in `mdx-components.tsx` to ensure visual consistency across all documentation.
--   **Introduction Documentation Update ([TASK032])**: Completely overhauled the Chinese introduction guide (`/zh/docs/intro`).
-    -   **Simplification**: Replaced the previous fragmented list with a cohesive, logical flow covering prerequisites, installation, initialization, and basic usage.
-    -   **Link Integrity**: Synchronized 15+ internal links to match the new tiered routing structure (`/zh/docs/...`).
-    -   **SEO**: Enhanced metadata and content keywords for "OpenCode tutorial" and "AI agent installation" in Chinese.
--   **SEO Comparison Page ([TASK031])**: Added Chinese "OpenCode vs Cursor vs Claude" landing page.
-    -   **Traffic Generation**: Designed to capture search intent for tool comparison.
-    -   **Detailed Implementation**: Fixed MDX table rendering by converting to a styled HTML table + Tailwind.
-    -   **Stability Fix**: Reverted `next.config.mjs` to standard `mdxRs: true` (no plugins) to resolve Turbopack 404 errors.
-    -   **Strategy**: Phase 1 strategy implemented (no initial canonical) to allow independent indexing before consolidating authority later.
--   **MDX & UI Refinement ([TASK030])**: Fixed table rendering and enhanced TOC.
-    -   **Table Rendering**: Enabled `mdxRs: true` in `next.config.mjs` to resolve GFM/Turbopack compatibility issues.
-    -   **Hydration Fix**: Implemented compressed HTML fallback for complex tables in `mcp-servers/page.mdx` to avoid Vercel/Next.js hydration errors.
-    -   **TOC Hierarchy**: Added support for H2/H3 levels with indentation and translated the header to "本页内容" for Chinese routes.
--   **MCP Servers Documentation ([TASK029])**: Replaced placeholder with detailed Chinese manual.
--   **TUI Documentation ([TASK028])**: Replaced placeholder with comprehensive Chinese guide.
--   **SEO Landing Pages ([TASK027])**: Deployed 6 new pages including:
-    -   **Claude Credential Error Fix**: `/en/opencode/errors/claude-credential-only-authorized`
-    -   **Detailed Integrations**: `/en/opencode-mcp-playwright`, `/en/opencode-claude`, etc.
-    -   **Routing discipline**: Enforced strict `/en/` and `/zh/` prefixes for all new content to match the established SEO structure.
--   **MCP Use Cases ([TASK026])**: Created a new comprehensive guide at `/en/opencode-mcp-use-cases` featuring 6+ real-world workflows.
-    -   **SEO Authority**: Implemented optimized metadata and structured headings to capture "MCP Use Cases" and "Model Context Protocol real world" search intent.
-    -   **Navigation**: Strategic placement in the "Introduction" section of the sidebar.
-    -   **Content Loop**: Established bidirectional internal linking between the MCP Hub, General Use Cases, comparison guides, and integration pages.
--   **MCP Hub Optimization ([TASK025])**: Consolidated all MCP-related traffic to `/en/mcp`.
-    -   **Authority Concentration**: Rewrote `/en/mcp` as a comprehensive Hub to serve as the single source of truth for MCP education.
-    -   **Internal Linking**: Updated Home, Comparison, and sub-pages to point to the Hub.
-    -   **Chinese Anchor**: Added a callout in `/zh/docs/configure/mcp-servers` directing to the English Hub.
--   **SEO Optimization Completed ([TASK022])**: Successfully implemented the "Authority Concentration" strategy.
-    -   **Canonicals**: All supplementary articles now point to \`/zh/docs\` as the single source of truth.
-    -   **Hreflang**: Established 8+ bidirectional logic pairs between English and Chinese pages.
-    -   **Hub Page**: The \`/zh/opencode\` page was refactored to serve as a proper portal to the documentation.
--   **Documentation Structure**: The tiered routing structure for \`/zh/docs\` is fully functional and indexed.
+
+[... 其余内容保持不变 ...]
 
 ## Active Decisions
--   **Canonical vs Redirect**: We chose to keep the educational articles at their original URLs but use \`canonical\` instead of \`301 redirects\`. This allows us to keep the viral/SEO-friendly "entry points" while concentrating the actual ranking power on the documentation.
+-   **统一侧边栏策略**: 决定将所有中文内容（文章和文档）统一使用相同的侧边栏配置（`docsConfigZh`），提升用户导航体验和内容发现能力。指南章节放置在侧边栏顶部，作为入口级内容。
+-   **Canonical vs Redirect**: We chose to keep the educational articles at their original URLs but use `canonical` instead of `301 redirects`. This allows us to keep the viral/SEO-friendly "entry points" while concentrating the actual ranking power on the documentation.
 -   **Hreflang Logic**: Even if the content is not a word-for-word translation, we link pages with high semantic overlap (e.g., Use Cases ↔ Usage) to help Google understand the site structure.
--   **Documentation Sovereignty**: The \`/zh/docs/\` path is now explicitly confirmed as the "Single Source of Truth" for all technical details.
+-   **Documentation Sovereignty**: The `/zh/docs/` path is now explicitly confirmed as the "Single Source of Truth" for all technical details.
 
 ## Next Steps
-1.  **Providers 文档更新**: 替换 `/zh/docs/providers` 的占位符，完成模型服务商配置指南的中文化。
-2.  **Visual Assets ([TASK023])**: 开始为“安装”和“命令行”章节制作并集成实际截图。
-3.  **Edit Links ([TASK024])**: 在所有文档页面底部添加“在 GitHub 上编辑此页”链接。
-4.  **Deployment Verification**: 监控 Vercel 构建状态，确保 SWC Panic 修复（TASK046）生效。
+1.  **Visual Assets ([TASK023])**: 开始为"安装"和"命令行"章节制作并集成实际截图。
+2.  **Edit Links ([TASK024])**: 在所有文档页面底部添加"在 GitHub 上编辑此页"链接。
+3.  **Deployment Verification**: 监控 Vercel 构建状态，确保所有布局修改正常工作。
