@@ -27,7 +27,9 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (Completed)
-- [x] **Site-wide Hydration Fix**: Resolved React hydration errors (#418/425) by minifying all raw HTML tables site-wide, specifically in `server/page.mdx` and `providers/page.mdx` ([TASK082]).
+- [x] **Chinese Guide Sidebar Split**: Separated `lib/docs-config.ts` into guide and docs configurations, enabling distinct navigation experiences for guides and technical docs ([TASK084]).
+- [x] **Chinese Guide Sidebar**: Added sidebar navigation to all Chinese guide articles for unified UX ([TASK083]).
+- [x] **Site-wide Table Fix**: Resolved all `mdxRs` "Paragraph" and Hydration errors by minifying and styling all HTML tables project-wide ([TASK082]).
 - [x] **LLM Providers (ZH)**: Overhauled the providers guide with comprehensive documentation for 75+ platforms and minified tables for stability ([TASK081]).
 - [x] **Chinese Update Guide**: Implemented the standard official documentation version of the update guide in Chinese with bidirectional SEO links ([TASK080]).
 - [x] **Update Guide**: Created authoritative English update guide at `/en/how-to-update-opencode` ([TASK079]).
@@ -82,6 +84,13 @@
 -   [x] **Update Guide (EN)**: Created a standard official-style documentation article at `/en/how-to-update-opencode` ([TASK079]).
 -   [ ] Add visual screenshots to documentation.
 -   [ ] Implement "Edit this page" links.
+
+
+## 最新进展 (2026-01-25)
+- **中文指南侧边栏 (Chinese Guide Sidebar)**: 完成了中文指南文章区域的侧边栏集成 ([TASK083])。
+    - **统一体验**: 所有 `/zh/*` 下的文章现在都使用与 `/zh/docs/*` 相同的侧边栏和 TOC 布局。
+    - **导航增强**: 在侧边栏顶部新增"指南 (Guide)"章节，包含 13 个核心文章链接，方便用户浏览所有中文内容。
+    - **布局一致性**: 重构了文章布局，采用三列网格（侧边栏 + 内容 + TOC），提升了导航体验。
 
 ## 最新进展 (2026-01-21)
 - **内容更新 (New Content)**: 增加了英文版更新指南 `/en/how-to-update-opencode`。

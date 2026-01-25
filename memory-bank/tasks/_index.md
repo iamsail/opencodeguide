@@ -1,9 +1,9 @@
 # Tasks Index
 
-## In Progress
-
 ## Completed
-- [TASK082] Site-wide MDX Table Hydration Fix - Resolved React hydration errors by minifying raw HTML tables site-wide - Completed on 2026-05-24
+- [TASK084] Separate Guide and Docs Sidebar for Chinese - Split navigation config for better UX - Completed on 2026-01-25
+- [TASK083] Add Sidebar to Chinese Guide Articles - Unified navigation for all Chinese content with sidebar and TOC - Completed on 2026-01-25
+- [TASK082] Site-wide MDX Table Hydration Fix - Resolved React hydration errors by minifying raw HTML tables site-wide - Completed on 2026-01-22
 - [TASK081] Update Chinese LLM Providers Documentation - Replacing /zh/docs/providers with comprehensive localized content - Completed on 2026-01-22
 - [TASK080] Implement Chinese Update Guide - Created /zh/how-to-update-opencode with sidebar/TOC and bidirectional SEO links - Completed on 2026-01-22
 - [TASK079] Create English Update Guide and Fix Rendering - Official guide and global MDX rendering/hydration fixes - Completed on 2026-01-21
