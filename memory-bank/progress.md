@@ -27,7 +27,7 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (Completed)
-- [x] **Site-wide Hydration Fix**: Resolved React hydration errors (#418/425) by minifying all raw HTML tables site-wide, specifically in `server/page.mdx` and `providers/page.mdx` ([TASK082]).
+- [x] **Site-wide Table Fix**: Resolved all `mdxRs` "Paragraph" and Hydration errors by minifying and styling all HTML tables project-wide ([TASK082]).
 - [x] **LLM Providers (ZH)**: Overhauled the providers guide with comprehensive documentation for 75+ platforms and minified tables for stability ([TASK081]).
 - [x] **Chinese Update Guide**: Implemented the standard official documentation version of the update guide in Chinese with bidirectional SEO links ([TASK080]).
 - [x] **Update Guide**: Created authoritative English update guide at `/en/how-to-update-opencode` ([TASK079]).

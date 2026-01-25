@@ -1,22 +1,21 @@
 # TASK082 - Site-wide MDX Table Hydration Fix
 
 **Status:** Completed
-**Added:** 2025-05-24
-**Updated:** 2025-05-24
+**Added:** 2026-01-22
+**Updated:** 2026-01-22
 
 ## Original Request
-Fix hydration errors (React error #418/425) caused by multi-line HTML tables in MDX files when using `mdxRs`.
+Fix hydration errors (React error #418/425) and mdxRs build errors ("Expected a closing tag... before the end of Paragraph") caused by multi-line HTML tables in MDX files.
 
 ## Thought Process
-The `mdxRs` compiler in Next.js preserves newlines and indentation inside raw HTML tags like `<table>`, `<thead>`, `<tbody>`, etc. React expects these to be clean elements without unexpected text (newline) nodes, leading to "Hydration failed" errors. The fix involves minifying these HTML blocks into single-line strings and wrapping them in an overflow `div` for better mobile UX.
+The `mdxRs` compiler in Next.js preserves newlines and indentation inside raw HTML tags like `<table>`, `<thead>`, `<tbody>`, etc. It often incorrectly interprets these newlines as Markdown paragraph breaks, leading to illegal JSX nesting (e.g., `<table><p>...`). The fix involves minifying these HTML blocks into single-line strings and wrapping them in an overflow `div` with specific Tailwind classes for styling and mobile responsiveness.
 
 ## Implementation Plan
-- [x] Audit all MDX files for raw `<table>` tags.
-- [x] Minify all multi-line tables in `app/(zh)/zh/docs/develop/server/page.mdx` (18 API sections).
-- [x] Update `app/(zh)/zh/docs/providers/page.mdx` with new content and minified tables.
-- [x] Fix `app/(main)/en/(articles)/how-to-update-opencode/page.mdx`.
-- [x] Fix `app/(main)/en/(articles)/opencode-vs-claude-code/page.mdx`.
-- [x] Verify site-wide consistency with grep.
+- [x] Audit all MDX files for unminified raw `<table>` tags using grep.
+- [x] Minify tables in core English/SEO articles (`install`, `opencode-vs-cursor-claude`, `how-to-update`).
+- [x] Minify tables in high-density Chinese docs (`mcp-servers`, `formatters`, `lsp-servers`, `ecosystem`, `cli`).
+- [x] Apply standard Tailwind styling (`w-full border-collapse`) to ensure visual consistency.
+- [x] Update `systemPatterns.md` to formalize the "Table Pattern".
 
 ## Progress Tracking
 
@@ -25,14 +24,15 @@ The `mdxRs` compiler in Next.js preserves newlines and indentation inside raw HT
 ### Subtasks
 | ID | Description | Status | Updated | Notes |
 |----|-------------|--------|---------|-------|
-| 1.1 | Audit workspace for HTML tables | Complete | 2025-05-24 | Identified multiple files with multi-line tables. |
-| 1.2 | Refactor Server API docs | Complete | 2025-05-24 | Minified 18 major tables. |
-| 1.3 | Update Providers content | Complete | 2025-05-24 | Updated content and minified Helicone/Vercel tables. |
-| 1.4 | Fix English articles | Complete | 2025-05-24 | Fixed comparison and update guides. |
+| 1.1 | Audit workspace for HTML tables | Complete | 2026-01-22 | Identified multiple survivors in `configure/` and `zh/docs/`. |
+| 1.2 | Refactor core SEO and guide pages | Complete | 2026-01-22 | Fixed `install`, `comparisons`, and `update-guides`. |
+| 1.3 | Comprehensive Chinese docs cleanup | Complete | 2026-01-22 | Fixed `mcp-servers`, `formatters`, `lsp-servers`, `ecosystem`, `cli`. |
+| 1.4 | Update System Patterns | Complete | 2026-01-22 | Documented the mandatory Minified Table pattern. |
 
 ## Progress Log
-### 2025-05-24
-- Successfully minified all tables in `server/page.mdx`.
-- Completed content update for `providers/page.mdx`.
-- Verified English articles and applied fixes to `opencode-vs-claude-code` and `how-to-update-opencode`.
-- Confirmed most other docs were already minified.
+### 2026-01-22
+- Discovered that `mdxRs` sensitivity to whitespace causes build failures in addition to hydration mismatches.
+- Minified tables site-wide in batch.
+- Specifically cleaned up `app/(zh)/zh/docs/configure/mcp-servers/page.mdx`, `app/(zh)/zh/docs/configure/formatters/page.mdx`, `app/(zh)/zh/docs/configure/lsp-servers/page.mdx`, `app/(zh)/zh/docs/develop/ecosystem/page.mdx`, and `app/(zh)/zh/docs/cli/page.mdx`.
+- Confirmed zero remaining multiline tables in docs via `grep -r "^<table" app/`.
+- Pushed all changes to `dev` branch.
