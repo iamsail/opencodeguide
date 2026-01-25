@@ -83,6 +83,13 @@
 -   [ ] Add visual screenshots to documentation.
 -   [ ] Implement "Edit this page" links.
 
+
+## 最新进展 (2026-01-25)
+- **中文指南侧边栏 (Chinese Guide Sidebar)**: 完成了中文指南文章区域的侧边栏集成 ([TASK083])。
+    - **统一体验**: 所有 `/zh/*` 下的文章现在都使用与 `/zh/docs/*` 相同的侧边栏和 TOC 布局。
+    - **导航增强**: 在侧边栏顶部新增"指南 (Guide)"章节，包含 13 个核心文章链接，方便用户浏览所有中文内容。
+    - **布局一致性**: 重构了文章布局，采用三列网格（侧边栏 + 内容 + TOC），提升了导航体验。
+
 ## 最新进展 (2026-01-21)
 - **内容更新 (New Content)**: 增加了英文版更新指南 `/en/how-to-update-opencode`。
 - **成本优化 (Cost Optimization)**: 完成了架构级的静态化改造 ([TASK077])。
