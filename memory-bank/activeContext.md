@@ -6,6 +6,10 @@
 - Ensuring all MDX files are free from hydration errors caused by multi-line HTML tables.
 
 ## Recent Changes
+- **Guide/Docs Sidebar Split ([TASK084])**:
+    - **Separation of Concerns**: Split `lib/docs-config.ts` into `guideConfigZh` (for articles) and `docsConfigZh` (for technical docs).
+    - **UX Improvement**: Chinese "Guide" pages (`/zh/opencode`, etc.) now display a relevant list of guide articles instead of the technical documentation tree.
+    - **Layout Update**: Updated `app/(zh)/zh/(articles)/layout.tsx` to use the dedicated `guideConfigZh`.
 - **中文指南侧边栏 ([TASK083])**:
     - **统一布局**: 为 `/zh/*` 下的所有文章（非 `/zh/docs/*` 的文档）添加了侧边栏和 TOC，与文档页面保持一致的导航体验。
     - **配置更新**: 在 `docsConfigZh` 顶部新增"指南 (Guide)"章节，包含 13 个文章链接（OpenCode 介绍、安装指南、对比文章、MCP 介绍、Ollama 部署、最佳实践等）。

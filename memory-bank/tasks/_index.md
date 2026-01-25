@@ -1,8 +1,7 @@
 # Tasks Index
 
-## In Progress
-
 ## Completed
+- [TASK084] Separate Guide and Docs Sidebar for Chinese - Split navigation config for better UX - Completed on 2026-01-25
 - [TASK083] Add Sidebar to Chinese Guide Articles - Unified navigation for all Chinese content with sidebar and TOC - Completed on 2026-01-25
 - [TASK082] Site-wide MDX Table Hydration Fix - Resolved React hydration errors by minifying raw HTML tables site-wide - Completed on 2026-01-22
 - [TASK081] Update Chinese LLM Providers Documentation - Replacing /zh/docs/providers with comprehensive localized content - Completed on 2026-01-22

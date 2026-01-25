@@ -99,7 +99,7 @@ export const docsConfigKo: DocsConfig = [
   },
 ]
 
-export const docsConfigZh: DocsConfig = [
+export const guideConfigZh: DocsConfig = [
   {
     title: "指南 (Guide)",
     items: [
@@ -118,6 +118,9 @@ export const docsConfigZh: DocsConfig = [
       { title: "最佳实践", href: "/zh/oh-my-opencode-best-practices" },
     ],
   },
+]
+
+export const docsConfigZh: DocsConfig = [
   {
     title: "Intro (入门)",
     items: [
