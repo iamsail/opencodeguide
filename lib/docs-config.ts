@@ -101,6 +101,24 @@ export const docsConfigKo: DocsConfig = [
 
 export const docsConfigZh: DocsConfig = [
   {
+    title: "指南 (Guide)",
+    items: [
+      { title: "OpenCode 介绍", href: "/zh/opencode" },
+      { title: "什么是 OpenCode", href: "/zh/what-is-opencode" },
+      { title: "OpenCode 是什么", href: "/zh/opencode-shi-shen-me" },
+      { title: "安装指南", href: "/zh/install" },
+      { title: "更新指南", href: "/zh/how-to-update-opencode" },
+      { title: "基础使用", href: "/zh/opencode-shi-yong" },
+      { title: "中文支持", href: "/zh/opencode-zhong-wen" },
+      { title: "Claude 集成", href: "/zh/opencode-claude" },
+      { title: "对比 Cursor & Claude", href: "/zh/opencode-vs-cursor-claude" },
+      { title: "对比 Claude Code", href: "/zh/vs-claude-code" },
+      { title: "什么是 MCP", href: "/zh/what-is-mcp" },
+      { title: "Ollama 本地部署", href: "/zh/ollama-local-deploy" },
+      { title: "最佳实践", href: "/zh/oh-my-opencode-best-practices" },
+    ],
+  },
+  {
     title: "Intro (入门)",
     items: [
       { title: "介绍 (Intro)", href: "/zh/docs/intro" },
