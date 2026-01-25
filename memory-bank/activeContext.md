@@ -6,9 +6,9 @@
 
 ## Recent Changes
 - **MDX Table Hydration Fix ([TASK082])**:
-    - **Site-wide Refactor**: Minified 100+ raw HTML tables into single-line strings to satisfy the `mdxRs` compiler and prevent React hydration fail (error #418/425).
-    - **Key Pages Fixed**: `server/page.mdx` (18 tables), `sdk/page.mdx`, `providers/page.mdx`, `opencode-vs-claude-code`, and more.
-    - **UX Enhancement**: Wrapped minified tables in `<div className="my-6 w-full overflow-y-auto">` for better mobile responsiveness.
+    - **Site-wide Refactor**: Minified all raw HTML tables site-wide to satisfy the `mdxRs` compiler and prevent "Paragraph" build errors and React hydration fails.
+    - **Key Pages Fixed**: `mcp-servers`, `formatters`, `lsp-servers`, `ecosystem`, `cli`, `install`, `server`, `providers`, and all comparison articles.
+    - **Standardization**: Applied a unified pattern: `<div className="my-6 w-full overflow-y-auto"><table className="w-full border-collapse">...</table></div>` minified to a single line.
 - **LLM Providers Documentation (ZH) ([TASK081])**:
     - **Comprehensive Coverage**: Replaced the placeholder at `/zh/docs/providers` with detailed setup guides for over 75 LLM providers.
     - **Localized Content**: Added specific instructions for 302.AI, Amazon Bedrock, Azure, Moonshot AI (Kimi), and more.
