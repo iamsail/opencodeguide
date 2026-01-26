@@ -1,48 +1,197 @@
 export const metadata = {
-  title: "代理技能 (Agent Skills) | OpenCode 中文文档",
+  title: "智能体技能 (Agent Skills) | OpenCode 中文文档",
   description: "通过 SKILL.md 定义并按需加载可复用的智能体指令和行为",
   alternates: {
     canonical: "/zh/docs/configure/agent-skills",
   },
 }
 
-# 代理技能 (Agent Skills)
+# 智能体技能 (Agent Skills)
 
-**通过 SKILL.md 定义可复用的行为**
+通过 `SKILL.md` 定义可复用的行为。
 
-代理技能允许 OpenCode 从您的仓库或主目录中发现可复用的指令。技能通过原生的 `skill` 工具按需加载——代理能看到可用技能，并在需要时加载完整内容。
+智能体技能（Agent skills）允许 OpenCode 从您的代码仓库或主目录中发现可复用的指令。技能通过原生的技能工具按需加载——智能体可以看到可用的技能，并在需要时加载完整内容。
 
-### 文件放置位置
+## 放置文件
 
-每个技能对应一个文件夹，内部放置一个 `SKILL.md`。OpenCode 搜索路径如下：
+为每个技能名称创建一个文件夹，并在其中放入 `SKILL.md`。OpenCode 会在以下位置搜索：
 
-* **项目级：** `.opencode/skill/<name>/SKILL.md`
-* **全局级：** `~/.config/opencode/skill/<name>/SKILL.md`
-* **Claude 兼容路径：** `.claude/skills/<name>/SKILL.md`
+* **项目配置：** `.opencode/skills/<name>/SKILL.md`
+* **全局配置：** `~/.config/opencode/skills/<name>/SKILL.md`
+* **项目 Claude 兼容路径：** `.claude/skills/<name>/SKILL.md`
+* **全局 Claude 兼容路径：** `~/.claude/skills/<name>/SKILL.md`
 
-### 编写 Frontmatter
+## 理解发现机制
 
-每个 `SKILL.md` 必须以 YAML frontmatter 开头。必需字段包括：
+对于项目本地路径，OpenCode 会从当前工作目录向上查找，直到到达 git 工作树。它会加载沿途在 `.opencode/` 中找到的任何匹配的 `skills/*/SKILL.md` 以及任何匹配的 `.claude/skills/*/SKILL.md`。
 
-* `name`: 1–64个字符，小写字母、数字及单连字符。需与目录名一致
-* `description`: 1–1024个字符，描述需足够具体以便代理选择
+全局定义也会从 `~/.config/opencode/skills/*/SKILL.md` 和 `~/.claude/skills/*/SKILL.md` 中加载。
 
-### 权限与禁用
+## 编写 Frontmatter
 
-您可以在 `opencode.json` 中控制代理对技能的访问：
+每个 `SKILL.md` 必须以 YAML frontmatter 开头。仅识别以下字段：
+
+* `name`（必填）
+* `description`（必填）
+* `license`（可选）
+* `compatibility`（可选）
+* `metadata`（可选，字符串到字符串的映射）
+
+未知的 frontmatter 字段将被忽略。
+
+## 验证名称
+
+名称必须：
+
+* 长度为 1–64 个字符。
+* 由小写字母数字组成，并使用单个连字符（-）作为分隔符。
+* 不以 `-` 开头或结尾。
+* 不包含连续的 `--`。
+* 与包含 `SKILL.md` 的目录名称匹配。
+
+等效正则表达式：`^[a-z0-9]+(-[a-z0-9]+)*$`
+
+## 遵循长度规则
+
+描述（description）必须为 1-1024 个字符。请保持描述足够具体，以便智能体能正确选择。
+
+## 使用示例
+
+创建一个 `.opencode/skills/git-release/SKILL.md`，内容如下：
+
+```yaml
+---
+name: git-release
+description: 创建一致的发布版本和变更日志
+license: MIT
+compatibility: opencode
+metadata:
+  audience: maintainers
+  workflow: github
+---
+
+## 我能做什么
+- 从合并的 PR 中起草发布说明
+- 建议版本升级
+- 提供可复制粘贴的 `gh release create` 命令
+
+## 何时使用我
+在准备标记发布（tagged release）时使用此技能。
+如果目标版本方案不清晰，请提出澄清问题。
+
+```
+
+## 识别工具描述
+
+OpenCode 会在技能工具描述中列出可用的技能。每个条目包含技能名称和描述：
+
+```xml
+<available_skills>
+  <skill>
+    <name>git-release</name>
+    <description>创建一致的发布版本和变更日志</description>
+  </skill>
+</available_skills>
+
+```
+
+智能体通过调用工具来加载技能：
+`skill({ name: "git-release" })`
+
+## 配置权限
+
+在 `opencode.json` 中使用基于模式（pattern）的权限来控制智能体可以访问哪些技能：
 
 ```json
 {
   "permission": {
     "skill": {
       "*": "allow",
+      "pr-review": "allow",
       "internal-*": "deny",
       "experimental-*": "ask"
     }
   }
 }
+
 ```
 
-* `allow`: 立即加载
-* `deny`: 对代理隐藏
-* `ask`: 加载前提示用户
+| 权限行为 | 描述 |
+| --- | --- |
+| **allow** | 技能立即加载 |
+| **deny** | 技能对智能体隐藏，访问被拒绝 |
+| **ask** | 加载前提示用户批准 |
+
+模式支持通配符：`internal-*` 匹配 `internal-docs`、`internal-tools` 等。
+
+## 为每个智能体进行覆盖
+
+可以为特定的智能体赋予与全局默认值不同的权限。
+
+**对于自定义智能体（在智能体 frontmatter 中）：**
+
+```yaml
+---
+permission:
+  skill:
+    "documents-*": "allow"
+---
+
+```
+
+**对于内置智能体（在 `opencode.json` 中）：**
+
+```json
+{
+  "agent": {
+    "plan": {
+      "permission": {
+        "skill": {
+          "internal-*": "allow"
+        }
+      }
+    }
+  }
+}
+
+```
+
+## 禁用技能工具
+
+对于不应使用技能的智能体，可以完全禁用该工具：
+
+**对于自定义智能体：**
+
+```yaml
+---
+tools:
+  skill: false
+---
+
+```
+
+**对于内置智能体：**
+
+```json
+{
+  "agent": {
+    "plan": {
+      "tools": {
+        "skill": false
+      }
+    }
+  }
+}
+
+```
+
+禁用后，`<available_skills>` 部分将被完全忽略。
+
+## 加载故障排除
+
+如果技能没有显示：
+
+1. 验证 `SKILL.md` 是否全部大写。
+2. 检查 frontmatter 是否包含 `name` 和 `description`。
+3. 确保技能名称在所有位置都是唯一的。
+4. 检查权限——权限为 `deny` 的技能对智能体是隐藏的。
