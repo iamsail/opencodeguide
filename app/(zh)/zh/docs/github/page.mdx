@@ -1,24 +1,41 @@
-# GitHub 集成
+export const metadata = {
+  title: "GitHub 集成 (GitHub)",
+  description: "了解如何将 OpenCode 集成到 GitHub 的 Issue 和 Pull Request (PR) 工作流中。",
+};
 
-## 这是什么？
-GitHub 集成功能让 OpenCode 能够直接与你的 GitHub 仓库交互。它可以读取 Issue、Review Pull Request (PR)，甚至直接创建新的 PR 来提交代码更改，实现从需求分析到代码提交的闭环。
+# GitHub 集成 (GitHub)
 
-## 什么时候你会用到它？
-- 当你被分配了一个 GitHub Issue，希望 AI 自动阅读 Issue 描述并开始编写修复代码时。
-- 当你需要对同事提交的 PR 进行初步的代码审查，检查潜在 Bug 或风格问题时。
-- 当你完成本地开发后，希望通过 AI 自动生成清晰的 Commit Message 和 PR 描述时。
+OpenCode 可以集成到 GitHub 的 Issue 和 Pull Request (PR) 工作流中，通过 GitHub Actions 运行任务。
 
-## 核心概念
-- **GitHub Token**：连接 GitHub API 所需的认证凭证。
-- **Context Awareness**：AI 能够理解 GitHub Issue 中的讨论历史和 PR 中的文件变更。
-- **Action Execution**：支持执行 `git push`, `gh pr create` 等操作（需安装 GitHub CLI）。
+### 核心功能
 
-## 基本用法 / 配置说明
-> TODO：后续补充具体用法示例
+* **分类 Issue**：让 OpenCode 分析并解释 Issue 内容。
+* **修复与实现**：直接要求 OpenCode 修复 Bug 或实现功能，它会自动创建分支并提交 PR。
+* **安全运行**：在您自己的 GitHub Actions Runner 中运行，确保安全。
 
-## 常见误解 / 注意事项
-- 赋予 OpenCode GitHub 权限时请遵循“最小权限原则”，仅授予必要的仓库访问权。
-- AI 的 Code Review 意见仅供参考，不能完全替代人工审查。
+### 快速安装
 
-## 延伸阅读
-> TODO：后续补充
+在 GitHub 仓库根目录下运行：
+
+```bash
+opencode github install
+```
+
+### 手动设置
+
+1. **安装应用**：访问 `github.com/apps/opencode-agent` 并安装到目标仓库。
+2. **添加工作流**：在 `.github/workflows/opencode.yml` 中配置 Action。
+3. **配置密钥**：在仓库设置中添加 `ANTHROPIC_API_KEY` 等必要的 API 密钥。
+
+### 支持的事件
+
+* **issue_comment**：在 Issue 或 PR 中提及 `/opencode` 或 `/oc` 触发。
+* **pull_request_review_comment**：在 PR 代码行评论中提及 `/oc` 进行针对性修改。
+* **schedule**：按计划（如 Cron）运行自动化任务（如扫描代码中的 TODO）。
+* **workflow_dispatch**：在 GitHub UI 中手动触发。
+
+### 使用示例
+
+* **解释 Issue**：在评论区输入 `/opencode explain this issue`。
+* **修复 Bug**：在评论区输入 `/opencode fix this`。
+* **精准修改**：在代码行评论区输入 `/oc add error handling here`，它会自动获取文件路径、行号和上下文。
