@@ -6,6 +6,10 @@
 - Ensuring all MDX files are free from hydration errors caused by multi-line HTML tables.
 
 ## Recent Changes
+- **智能体技能文档更新 ([TASK086])**:
+    - **内容替换**: 使用官方翻译更新了 `/zh/docs/configure/agent-skills`，将“代理技能”统一替换为“智能体技能”。
+    - **SEO 优化**: 更新了 `metadata`，提供了更准确的简体中文标题和描述。
+    - **导航一致性**: 在 `lib/docs-config.ts` 中将侧边栏项名称更新为“智能体技能 (Skills)”。
 - **中文集成文档更新 ([TASK085])**:
     - **内容替换**: 使用官方文档翻译替换了 `/zh/docs/share`、`/zh/docs/github` 和 `/zh/docs/gitlab` 的内容。
     - **SEO 优化**: 为三个新页面添加了 `metadata` 导出，提供了更准确的标题和描述。
