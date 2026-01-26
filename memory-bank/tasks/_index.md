@@ -3,6 +3,7 @@
 ## In Progress
 
 ## Completed
+- [TASK086] Update Chinese Agent Skills Documentation - Replacing "代理技能" with "智能体技能" and updating content - Completed on 2026-01-26
 - [TASK085] Update Chinese Integrations Documentation (Share, GitHub, GitLab) - Updated localized content with SEO metadata - Completed on 2026-01-26
 - [TASK084] Separate Guide and Docs Sidebar for Chinese - Split navigation config for better UX - Completed on 2026-01-25
 - [TASK083] Add Sidebar to Chinese Guide Articles - Unified navigation for all Chinese content with sidebar and TOC - Completed on 2026-01-25
