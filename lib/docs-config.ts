@@ -161,7 +161,7 @@ export const docsConfigZh: DocsConfig = [
       { title: "LSP 服务器", href: "/zh/docs/configure/lsp-servers" },
       { title: "MCP 服务器", href: "/zh/docs/configure/mcp-servers" },
       { title: "ACP 支持", href: "/zh/docs/configure/acp-support" },
-      { title: "技能 (Skills)", href: "/zh/docs/configure/agent-skills" },
+      { title: "智能体技能 (Skills)", href: "/zh/docs/configure/agent-skills" },
       { title: "自定义工具", href: "/zh/docs/configure/custom-tools" },
     ],
   },
