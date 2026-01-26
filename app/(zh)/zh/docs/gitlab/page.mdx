@@ -1,24 +1,37 @@
-# GitLab 集成
+export const metadata = {
+  title: "GitLab 集成 (GitLab)",
+  description: "了解如何将 OpenCode 通过 GitLab CI/CD 流水线或 GitLab Duo 集成到 GitLab 的工作流中。",
+};
 
-## 这是什么？
-GitLab 集成功能为使用 GitLab 自托管或云服务的团队提供了类似 GitHub 的智能工作流支持。它允许 OpenCode 读取 GitLab Issues、Merge Requests (MR)，并协助进行代码合并前的检查和修改。
+# GitLab 集成 (GitLab)
 
-## 什么时候你会用到它？
-- 当你所在的企业使用私有化部署的 GitLab，需要 AI 辅助处理内部开发任务时。
-- 当你需要 AI 分析 GitLab CI/CD 流水线的失败日志，并提出修复建议时。
-- 当你希望自动化创建 Merge Request 并分配给指定的审核人时。
+OpenCode 通过 GitLab CI/CD 流水线或 GitLab Duo 集成到 GitLab 的工作流中。
 
-## 核心概念
-- **GitLab Instance URL**：支持配置自托管 GitLab 实例的地址（不仅仅是 gitlab.com）。
-- **Personal Access Token**：用于认证 GitLab API 的密钥。
-- **CI/CD Integration**：能够理解 `.gitlab-ci.yml` 配置并尝试修复构建错误。
+### 集成方式
 
-## 基本用法 / 配置说明
-> TODO：后续补充具体用法示例
+#### A. GitLab CI (组件方式)
 
-## 常见误解 / 注意事项
-- 针对自托管 GitLab，需要确保 OpenCode 当前运行的网络环境能够访问该实例 IP。
-- 同样需要注意 API Token 的权限范围和有效期管理。
+使用社区创建的 CI/CD 组件（如 `nagyv/gitlab-opencode`）。
 
-## 延伸阅读
-> TODO：后续补充
+* **特点**：支持按作业配置、设置简单、行为灵活。
+* **配置示例**：在 `.gitlab-ci.yml` 中包含该组件并传入 `auth_json` 和 `message` (Prompt)。
+
+#### B. GitLab Duo (代理方式)
+
+在评论中提及 `@opencode` 即可触发。
+
+* **功能**：自动分类 Issue、实现功能、创建分支并提交 Merge Request (MR)。
+* **运行环境**：在您的 GitLab Runner 上执行。
+
+### 设置流程
+
+1. **配置环境**：设置 GitLab CI/CD 变量。
+2. **获取 API 密钥**：获取 AI 模型供应商（如 Anthropic）的密钥。
+3. **创建服务账号**：用于执行 Git 操作和调用 GitLab API。
+4. **配置流水线**：编写 `.gitlab-ci.yml`，安装 `opencode-ai` 和 `glab` (GitLab CLI)。
+
+### 使用示例
+
+* **解释 Issue**：添加评论 `@opencode explain this issue`。
+* **修复功能**：添加评论 `@opencode fix this`。
+* **代码审查**：在 MR 中回复 `@opencode review this merge request`。

@@ -6,6 +6,10 @@
 - Ensuring all MDX files are free from hydration errors caused by multi-line HTML tables.
 
 ## Recent Changes
+- **中文集成文档更新 ([TASK085])**:
+    - **内容替换**: 使用官方文档翻译替换了 `/zh/docs/share`、`/zh/docs/github` 和 `/zh/docs/gitlab` 的内容。
+    - **SEO 优化**: 为三个新页面添加了 `metadata` 导出，提供了更准确的标题和描述。
+    - **排版修正**: 规范了命令块、列表和标题层级，确保在 Docusaurus 风格的侧边栏布局下具有良好的可读性。
 - **Guide/Docs Sidebar Split ([TASK084])**:
     - **Separation of Concerns**: Split `lib/docs-config.ts` into `guideConfigZh` (for articles) and `docsConfigZh` (for technical docs).
     - **UX Improvement**: Chinese "Guide" pages (`/zh/opencode`, etc.) now display a relevant list of guide articles instead of the technical documentation tree.
