@@ -1,57 +1,97 @@
 export const metadata = {
-  title: "Opencode MCP Guide: Tools, Use Cases, and Setup",
-  description: "Learn how to use Model Context Protocol (MCP) with opencode. Explore Playwright, Figma, n8n, and more.",
+  title: "OpenCode MCP Tools & Integrations",
+  description: "Learn how to use Model Context Protocol (MCP) with OpenCode. Explore Playwright, Figma, n8n, and more.",
   keywords: ["opencode mcp", "model context protocol opencode", "opencode mcp tools"],
   alternates: {
-    canonical: '/en/opencode-mcp',
+    canonical: '/en/mcp',
   },
 }
 
-# Opencode MCP
+# OpenCode MCP Tools & Integrations
 
-MCP (Model Context Protocol) allows opencode to interact with external tools and environments.
+This page lists **popular MCP tools and integrations** you can use with OpenCode.
 
-This page explains how MCP works and how to use it with opencode.
-
----
-
-## What is MCP?
-
-MCP lets models access:
-
-- Browsers
-- Design tools
-- Automation platforms
-- Code execution environments
+If you are new to MCP, start with:
+→ [What is MCP in OpenCode](/en/mcp)
 
 ---
 
-## MCP with opencode
+## Browser Automation
 
-Opencode supports MCP servers that expose tools to Claude or other models.
+### Playwright MCP
+Automate browsers for testing, scraping, and interaction.
 
----
+Use cases:
+- End-to-end testing
+- Web scraping
+- UI interaction
 
-## Popular MCP integrations
-
-- [Playwright MCP](/en/opencode-mcp-playwright)
-- Figma MCP
-- n8n MCP
-- LangChain MCP
-
----
-
-## When should you use MCP?
-
-Use MCP if you want opencode to:
-
-- Control a browser
-- Read design files
-- Automate workflows
-- Interact with external systems
+→ [Playwright MCP Guide](/en/opencode-mcp-playwright)
 
 ---
 
-## Related
+## Code & Repository Access
 
-- [Opencode + Claude](/en/opencode-claude)
+### GitHub MCP
+Allow models to read repositories, issues, and pull requests.
+
+Use cases:
+- Code review
+- Repository analysis
+- Refactoring workflows
+
+---
+
+## Design Tools
+
+### Figma MCP
+Let models inspect design files and components.
+
+Use cases:
+- Design review
+- UI consistency checks
+- Spec validation
+
+---
+
+## Workflow Automation
+
+### n8n MCP
+Trigger workflows and automation pipelines from OpenCode.
+
+Use cases:
+- Task orchestration
+- Internal automation
+- Integration with third-party services
+
+---
+
+## Custom MCP Servers
+
+You can build **custom MCP servers** to expose internal tools or systems.
+
+Typical scenarios:
+- Internal APIs
+- Company dashboards
+- Proprietary workflows
+
+---
+
+## How to Choose the Right MCP Tool
+
+Use MCP tools when your task requires:
+
+- Interaction with external systems
+- Multi-step automation
+- Persistent state or workflows
+
+For protocol-level details, see:
+→ [OpenCode MCP Overview](/en/mcp)
+
+---
+
+## Related Guides
+
+- [OpenCode MCP Overview](/en/mcp)
+- [MCP Configuration Guide](/en/mcp-configuration)
+- [OpenCode + Claude](/en/opencode-claude)
