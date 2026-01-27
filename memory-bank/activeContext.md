@@ -6,6 +6,10 @@
 - Ensuring all MDX files are free from hydration errors caused by multi-line HTML tables.
 
 ## Recent Changes
+- **English Article Navigation Optimization ([TASK090])**:
+    - **Unified Sidebar**: Integrated all English articles (Best Practices, MCP Tools, Update Guide, etc.) into `docsConfigEn` to solve the "missing menu" issue identified in screenshots.
+    - **Layout Overhaul**: Refactored `app/(main)/en/(articles)/layout.tsx` to use the three-column grid layout with `DocsSidebar` and `TableOfContents`, matching the Documentation experience.
+    - **Strategy**: Adopted a simplified "Unified English Guide" approach to avoid over-engineering the documentation structure for the English locale.
 - **English MCP Tools & Integrations Update ([TASK089])**:
     - **Content Refresh**: Replaced `/en/opencode-mcp` with a focused listing of popular MCP tools (Playwright, GitHub, Figma, n8n).
     - **SEO Strategy**: Updated title to "OpenCode MCP Tools & Integrations" and set `canonical` to `/en/mcp` to consolidate authority.

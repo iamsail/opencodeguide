@@ -18,3 +18,11 @@
  GET /zh/docs/github 200 in 148ms (compile: 134ms, render: 14ms)
  GET /zh/docs/gitlab 200 in 152ms (compile: 130ms, render: 22ms)
 ✓ Compiled in 322ms
+✓ Compiled in 501ms
+✓ Compiled in 823ms
+Persisting failed: Unable to write SST file 00001403.sst
+
+Caused by:
+    No such file or directory (os error 2)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
