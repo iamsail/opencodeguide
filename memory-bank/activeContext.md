@@ -6,6 +6,10 @@
 - Ensuring all MDX files are free from hydration errors caused by multi-line HTML tables.
 
 ## Recent Changes
+- **English MCP Hub Update ([TASK088])**:
+    - **Content Upgrade**: Updated `/en/mcp` with authoritative, SEO-optimized content to serve as the central hub for MCP documentation.
+    - **Structure**: Defined MCP components (Server, Client, Skills) and use cases clearly.
+    - **SEO**: Reinforced `canonical: "/en/mcp"` to consolidate authority from supporting pages like `/en/opencode-mcp`.
 - **路线图同步与韩国语支持 ([TASK087])**:
     - **同步 ROUTE_MAP.md**: 全面更新了 `ROUTE_MAP.md`，包含新添加的合规性页面（关于、联系、隐私）以及韩国语落地页。
     - **SEO 增强**: 在文档中明确了引流文章与权威文档的 `canonical` 关系。
