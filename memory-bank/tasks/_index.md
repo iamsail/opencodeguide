@@ -3,6 +3,7 @@
 ## In Progress
 
 ## Completed
+- [TASK090] Optimize English Article Navigation - Integrated missing English articles into a unified sidebar and updated the article layout to include TOC and navigation - Completed on 2026-01-27
 - [TASK089] Update English MCP Tools & Integrations Page - Refreshed content and updated canonical link to /en/mcp - Completed on 2026-01-27
 - [TASK088] Update English MCP Hub Page - Updated /en/mcp with authoritative content to serve as the central MCP guide - Completed on 2026-01-27
 - [TASK087] Synchronize Route Map with New Pages and Korean Locale - Updated ROUTE_MAP.md to reflect the current state of the project including compliance and Korean pages - Completed on 2026-01-27
