@@ -36,6 +36,10 @@ export const docsConfigEn: DocsConfig = [
         title: "Quick Start",
         href: "/en/oh-my-opencode/quick-start",
       },
+      {
+        title: "Best Practices",
+        href: "/en/oh-my-opencode-best-practices",
+      },
     ],
   },
   {
@@ -53,6 +57,10 @@ export const docsConfigEn: DocsConfig = [
         title: "CLI MCP Commands",
         href: "/en/cli-mcp",
       },
+      {
+        title: "Update Guide",
+        href: "/en/how-to-update-opencode",
+      },
     ],
   },
   {
@@ -61,6 +69,22 @@ export const docsConfigEn: DocsConfig = [
       {
         title: "Ollama Integration",
         href: "/en/opencode-with-ollama",
+      },
+      {
+        title: "Claude Integration",
+        href: "/en/opencode-claude",
+      },
+      {
+        title: "MCP Tools",
+        href: "/en/opencode-mcp",
+      },
+      {
+        title: "Playwright MCP",
+        href: "/en/opencode-mcp-playwright",
+      },
+      {
+        title: "Anthropic Auth",
+        href: "/en/opencode-anthropic-auth",
       },
       {
         title: "Neovim Setup",
