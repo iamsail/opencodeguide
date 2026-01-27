@@ -27,6 +27,7 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (Completed)
+- [x] **English Article Navigation**: Integrated 6+ guide articles into a unified sidebar and refactored the English article layout to include TOC and navigation ([TASK090]).
 - [x] **Chinese Guide Sidebar Split**: Separated `lib/docs-config.ts` into guide and docs configurations, enabling distinct navigation experiences for guides and technical docs ([TASK084]).
 - [x] **Chinese Guide Sidebar**: Added sidebar navigation to all Chinese guide articles for unified UX ([TASK083]).
 - [x] **Site-wide Table Fix**: Resolved all `mdxRs` "Paragraph" and Hydration errors by minifying and styling all HTML tables project-wide ([TASK082]).
