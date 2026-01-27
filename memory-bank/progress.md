@@ -86,6 +86,12 @@
 -   [ ] Implement "Edit this page" links.
 
 
+## 最新进展 (2026-01-27)
+- **路线图同步 (Route Map Synchronization)**: 完成了 `ROUTE_MAP.md` 的全面审计与更新 ([TASK087])。
+    - **新页面集成**: 添加了 `/about`、`/contact`、`/privacy` 等合规页面以及 `/ko/opencode` 韩国语页面。
+    - **SEO 路由映射**: 明确了中文科普文章与 `/zh/docs/` 权威页面的 Canonical 映射。
+    - **导航一致性**: 重新核对了所有引流文章的路径，确保与 `lib/docs-config.ts` 中的指南配置保持同步。
+
 ## 最新进展 (2026-01-25)
 - **中文指南侧边栏 (Chinese Guide Sidebar)**: 完成了中文指南文章区域的侧边栏集成 ([TASK083])。
     - **统一体验**: 所有 `/zh/*` 下的文章现在都使用与 `/zh/docs/*` 相同的侧边栏和 TOC 布局。

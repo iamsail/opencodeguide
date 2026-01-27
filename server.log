@@ -17,3 +17,4 @@
  GET /zh/docs/share 200 in 597ms (compile: 578ms, render: 19ms)
  GET /zh/docs/github 200 in 148ms (compile: 134ms, render: 14ms)
  GET /zh/docs/gitlab 200 in 152ms (compile: 130ms, render: 22ms)
+✓ Compiled in 322ms

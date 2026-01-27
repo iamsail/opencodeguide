@@ -7,6 +7,9 @@
 | :--- | :--- | :--- |
 | `/` | `app/(main)/page.tsx` | 项目主页 (Landing Page) |
 | `/zh/opencode` | `app/(zh)/zh/opencode/page.mdx` | 中文指南总入口 (Hub) - 引导用户前往文档中心 |
+| `/about` | `app/(main)/about/page.mdx` | 关于我们 (About Us) |
+| `/contact` | `app/(main)/contact/page.mdx` | 联系我们 (Contact Us) |
+| `/privacy` | `app/(main)/privacy/page.mdx` | 隐私政策 (Privacy Policy) |
 
 ## 2. 英文文档 (English Documentation)
 | 路由 (Route) | 对应中文对等页 (ZH Equivalent) | 功能说明 (Description) |
@@ -49,9 +52,12 @@
 | `/zh/install` | `/zh/docs/intro` | 安装教程引流 |
 | `/zh/vs-claude-code` | - | 竞品对比专题 (与 `/en/...` 互链) |
 | `/zh/opencode-claude` | - | **Opencode + Claude 使用指南** |
-| `/zh/opencode-vs-cursor-claude` | - | **OpenCode vs Cursor vs Claude** (暂无 Canonical - Phase 1) |
+| `/zh/opencode-vs-cursor-claude` | - | **OpenCode vs Cursor vs Claude** |
 | `/zh/oh-my-opencode-best-practices` | `/zh/docs/usage` | Oh My OpenCode 快速上手与最佳实践 |
 | `/zh/how-to-update-opencode` | - | **官方更新指南** (与 `/en/...` 互链) |
+| `/zh/what-is-opencode` | `/zh/docs/intro` | 什么是 OpenCode |
+| `/zh/what-is-mcp` | `/zh/docs/mcp` | 什么是 MCP |
+| `/zh/ollama-local-deploy` | `/zh/docs/providers` | Ollama 本地部署 |
 
 ## 4. 中文官方文档中心 (Chinese Documentation Center - /zh/docs)
 所有技术细节的唯一事实来源。采用分层路由架构。
@@ -76,7 +82,6 @@
 | `/zh/docs/cli` | 命令行工具 (CLI) 指南 |
 | `/zh/docs/ide` | VS Code / Neovim 编辑器集成 |
 | `/zh/docs/zen` | OpenCode Zen 精选模型列表 |
-| `/zh/docs/mcp` | MCP 协议总览 (Hub) |
 | `/zh/docs/share` | 会话分享功能 |
 | `/zh/docs/github` | GitHub 集成 |
 | `/zh/docs/gitlab` | GitLab 集成 |
@@ -96,7 +101,7 @@
 | `/zh/docs/configure/lsp-servers` | LSP 服务器集成 |
 | `/zh/docs/configure/mcp-servers` | MCP 服务器扩展 |
 | `/zh/docs/configure/acp-support` | ACP 协议支持 |
-| `/zh/docs/configure/agent-skills` | 智能体技能库 |
+| `/zh/docs/configure/agent-skills` | 智能体技能 (Skills) |
 | `/zh/docs/configure/custom-tools` | 自定义工具开发 |
 
 ### 4.4 开发 (Develop)
@@ -106,6 +111,11 @@
 | `/zh/docs/develop/server` | 集成服务端配置 |
 | `/zh/docs/develop/plugins` | 插件系统开发 |
 | `/zh/docs/develop/ecosystem` | 社区生态与扩展 |
+
+## 5. 韩国语页面 (Korean Version)
+| 路由 (Route) | 说明 (Description) |
+| :--- | :--- |
+| `/ko/opencode` | 韩国语落地页 (Korean Landing Page) |
 
 ---
 **SEO 说明**：

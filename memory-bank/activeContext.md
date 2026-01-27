@@ -6,6 +6,10 @@
 - Ensuring all MDX files are free from hydration errors caused by multi-line HTML tables.
 
 ## Recent Changes
+- **路线图同步与韩国语支持 ([TASK087])**:
+    - **同步 ROUTE_MAP.md**: 全面更新了 `ROUTE_MAP.md`，包含新添加的合规性页面（关于、联系、隐私）以及韩国语落地页。
+    - **SEO 增强**: 在文档中明确了引流文章与权威文档的 `canonical` 关系。
+    - **术语统一**: 同步了“智能体技能 (Skills)”等最新术语，确保技术文档与导航文案一致。
 - **智能体技能文档更新 ([TASK086])**:
     - **内容替换**: 使用官方翻译更新了 `/zh/docs/configure/agent-skills`，将“代理技能”统一替换为“智能体技能”。
     - **SEO 优化**: 更新了 `metadata`，提供了更准确的简体中文标题和描述。
