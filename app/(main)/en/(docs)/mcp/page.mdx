@@ -1,154 +1,152 @@
 export const metadata = {
-  title: "Model Context Protocol (MCP) in OpenCode — Complete Guide",
-  description: "Learn what Model Context Protocol (MCP) is, why OpenCode uses it, how to set up MCP servers, and available MCP integrations like Playwright and GitHub.",
+  title: "OpenCode MCP: What It Is, Servers, Skills, and Real Use Cases",
+  description:
+    "OpenCode MCP (Model Context Protocol) lets AI models use real tools like browsers, GitHub, and automation platforms. Learn what MCP is, how MCP servers work, and when to use MCP in OpenCode.",
   keywords: [
     "opencode mcp",
-    "model context protocol",
-    "mcp servers",
-    "opencode mcp setup",
-    "mcp configuration"
+    "opencode mcp server",
+    "model context protocol opencode",
+    "opencode mcp skills",
+    "opencode mcp tools",
   ],
   alternates: {
     canonical: "/en/mcp",
-    languages: {
-      en: "/en/mcp",
-      zh: "/zh/docs/mcp",
-    },
   },
-};
+}
 
-# Model Context Protocol (MCP) in OpenCode — Complete Guide
+# OpenCode MCP (Model Context Protocol)
 
-Model Context Protocol (MCP) is the open standard that enables OpenCode to connect directly with your **tools, data, and context**. Unlike closed plugin systems, MCP creates a universal interface for AI to query your code, databases, and local environment securely.
+**MCP (Model Context Protocol)** allows OpenCode to connect AI models with real-world tools and systems through MCP servers.  
+Instead of responding with text only, models can browse websites, read repositories, automate workflows, and interact with external environments.
 
-If you are looking to **automate browser testing**, **manage GitHub issues**, or **connect internal APIs** to OpenCode, MCP is the answer.
-
----
-
-## What is MCP (Model Context Protocol)?
-
-MCP is a standardized protocol that connects AI models to external tools and context.
-
-Think of it as **USB-C for AI applications**. Instead of every AI editor building its own custom integrations for GitHub, PostgreSQL, or Slack, MCP provides a single standard. Any tool that speaks MCP can immediately work with OpenCode.
-
-> **Need deep technical details?**  
-> For the JSON-RPC spec, schema details, and protocol internals, see our [**MCP Technical Deep Dive**](/en/mcp-explained).
+This page explains **what MCP is**, **how MCP works in OpenCode**, and **when you should use it**.
 
 ---
 
-## Why OpenCode Uses MCP
+## What is MCP in OpenCode?
 
-Traditional editors use isolated plugins or scripts. OpenCode adopts MCP because it offers:
+MCP is a protocol that lets AI models access external tools through a standardized interface.
 
-1.  **Universality**: The same MCP server you write for OpenCode works with other MCP-compliant clients (like Claude Desktop).
-2.  **Context-Awareness**: Tools aren't just "commands"; they provide context that the AI can read before acting.
-3.  **Security**: You control exactly what the AI can see and do via your local MCP servers, keeping data private.
+In OpenCode, MCP is used to:
+
+- Control browsers and web pages
+- Read and modify files or repositories
+- Trigger automation workflows
+- Interact with design tools and internal systems
+
+MCP is **not a plugin system** and **not simple tool calling**.  
+It defines a consistent way for models, clients, and servers to communicate with tools safely and predictably.
 
 ---
 
 ## How MCP Works in OpenCode
 
-Architecture:
+A typical MCP setup in OpenCode has four parts:
 
-```text
-User Request
-     |
-     v
-OpenCode (Client)
-     |
-     +--- connects via stdio/http ---+
-     |                               |
-MCP Server A                     MCP Server B
-(e.g., Filesystem)               (e.g., GitHub)
-     |                               |
-     v                               v
-Local Files                      Issues/PRs
-```
+1. **Model**  
+   The AI model (Claude, Gemini, local models, etc.)
 
-When you ask OpenCode to "Check the latest PR", it doesn't hallucinate. It asks the **GitHub MCP Server** to fetch the real data, then uses that grounded context to answer you.
+2. **OpenCode MCP Client**  
+   The MCP client built into OpenCode that manages connections and permissions.
+
+3. **MCP Server**  
+   A server that exposes tools and capabilities (browser, GitHub, automation, etc.)
+
+4. **Tools / Skills**  
+   Concrete actions the model can invoke, such as clicking a page, reading a file, or running a workflow.
+
+OpenCode handles the MCP client layer, so you only need to configure which servers and tools are available.
 
 ---
 
-## Available MCP Servers
+## MCP Servers in OpenCode
 
-These are the most popular MCP integrations ready to use with OpenCode.
+An **MCP server** exposes a set of tools that models can use.
 
-<div className="my-6 w-full overflow-y-auto"><table className="w-full text-left border-collapse"><thead><tr className="border-b dark:border-gray-800"><th className="py-2 pr-4 font-bold">MCP Server</th><th className="py-2 px-4 font-bold">What It Does</th><th className="py-2 px-4 font-bold">Typical Use Case</th><th className="py-2 pl-4 font-bold">Guide</th></tr></thead><tbody><tr className="border-b dark:border-gray-800"><td className="py-2 pr-4 font-medium italic">Playwright MCP</td><td className="py-2 px-4 text-sm">Browser automation</td><td className="py-2 px-4 text-sm">Run E2E tests, take screenshots, scrape web data</td><td className="py-2 pl-4 text-sm underline"><a href="/en/opencode-mcp-playwright">View Guide</a></td></tr><tr className="border-b dark:border-gray-800"><td className="py-2 pr-4 font-medium italic">Filesystem MCP</td><td className="py-2 px-4 text-sm">Safe file access</td><td className="py-2 px-4 text-sm">Read/write files outside the workspace securely</td><td className="py-2 pl-4 text-sm underline"><a href="/en/mcp-configuration">View Config</a></td></tr><tr className="border-b dark:border-gray-800"><td className="py-2 pr-4 font-medium italic">GitHub MCP</td><td className="py-2 px-4 text-sm">Repo management</td><td className="py-2 px-4 text-sm">Search issues, read PRs, manage comments</td><td className="py-2 pl-4 text-sm text-gray-400">Coming Soon</td></tr><tr className="border-b dark:border-gray-800"><td className="py-2 pr-4 font-medium italic">PostgreSQL MCP</td><td className="py-2 px-4 text-sm">Database access</td><td className="py-2 px-4 text-sm">Query read-only replicas for context</td><td className="py-2 pl-4 text-sm text-gray-400">Coming Soon</td></tr></tbody></table></div>
+Common MCP server types include:
 
----
+- **Browser automation servers**
+- **Code and repository access servers**
+- **Workflow and automation servers**
+- **Custom internal tool servers**
 
-## How to Set Up MCP in OpenCode
+MCP servers can run locally or remotely, depending on your setup and security requirements.
 
-Enabling MCP is a 3-step process.
+### Popular MCP Integrations
 
-### 1. Install OpenCode CLI (Optional)
-Ensure you are running the latest version of OpenCode.
+- **Playwright MCP** – browser automation and testing  
+  → [Playwright MCP Guide](/en/opencode-mcp-playwright)
 
-### 2. Configure Your Servers
-Edit your `config.json` to tell OpenCode where your MCP servers connect.
+- **GitHub MCP** – repository access and code workflows
 
-### 3. Verify Connection
-Restart OpenCode. You should see "MCP Servers Connected" in the status bar or logs.
+- **Figma MCP** – design file inspection and review
 
-> **Full Setup Guide**  
-> For detailed installation steps and troubleshooting, see [**MCP Configuration Guide**](/en/mcp-configuration).
+- **n8n MCP** – workflow and automation pipelines
 
----
-
-## MCP Configuration Examples
-
-Here are quick copy-paste snippets for common setups.
-
-### Playwright (Browser Automation)
-
-```json
-{
-  "mcpServers": {
-    "playwright": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-playwright"]
-    }
-  }
-}
-```
-
-### Generic Local Server (Python)
-
-```json
-{
-  "mcpServers": {
-    "my-tool": {
-      "command": "python",
-      "args": ["/path/to/server.py"]
-    }
-  }
-}
-```
+Each integration focuses on a specific domain and exposes only the tools it supports.
 
 ---
 
-## Common MCP Use Cases
+## MCP Skills and Agent Skills
 
-**1. "Fix the test failure in the browser"**  
-Using **Playwright MCP**, OpenCode can launch a browser, reproduce the error, capture the console log, and suggest a fix.
+In OpenCode, **skills** are reusable capabilities that agents can apply across tasks.
 
-**2. "Summarize the last 5 user issues related to login"**  
-Using **GitHub MCP**, OpenCode fetches real issue descriptions and synthesizes a report.
+MCP skills are typically built on top of MCP servers and allow agents to:
 
-**3. "Validate this SQL query against the schema"**  
-Using **Postgres MCP**, OpenCode checks your query columns against the live database schema.
+- Perform multi-step tool interactions
+- Reuse workflows across sessions
+- Combine reasoning with real-world actions
 
----
-
-## MCP vs Other Integrations
-
-<div className="my-6 w-full overflow-y-auto"><table className="w-full text-left border-collapse"><thead><tr className="border-b dark:border-gray-800"><th className="py-2 pr-4 font-bold">Feature</th><th className="py-2 px-4 font-bold">MCP</th><th className="py-2 px-4 font-bold">Custom Scripts</th><th className="py-2 pl-4 font-bold">VS Code Extensions</th></tr></thead><tbody><tr className="border-b dark:border-gray-800"><td className="py-2 pr-4 font-medium italic">Integration</td><td className="py-2 px-4 text-sm">Standard Protocol</td><td className="py-2 px-4 text-sm">Manual / Hacky</td><td className="py-2 pl-4 text-sm">Editor-specific API</td></tr><tr className="border-b dark:border-gray-800"><td className="py-2 pr-4 font-medium italic">Context</td><td className="py-2 px-4 text-sm">Structured & Two-way</td><td className="py-2 px-4 text-sm">Text Output Only</td><td className="py-2 pl-4 text-sm">Limited</td></tr><tr className="border-b dark:border-gray-800"><td className="py-2 pr-4 font-medium italic">Portability</td><td className="py-2 px-4 text-sm font-bold">High (Universal)</td><td className="py-2 px-4 text-sm">Low</td><td className="py-2 pl-4 text-sm">None</td></tr><tr className="border-b dark:border-gray-800"><td className="py-2 pr-4 font-medium italic">AI Access</td><td className="py-2 px-4 text-sm">Native</td><td className="py-2 px-4 text-sm">Hard to parse</td><td className="py-2 pl-4 text-sm">Varies</td></tr></tbody></table></div>
+Skills are especially useful for long-running or repeatable workflows, such as audits, reviews, and automation tasks.
 
 ---
 
-## Next Steps
+## When Should You Use MCP?
 
-*   [**Install Playwright MCP**](/en/opencode-mcp-playwright) - Start automating browsers.
-*   [**MCP Configuration**](/en/mcp-configuration) - Deep dive into settings.
-*   [**OpenCode vs Claude Code**](/en/opencode-vs-claude-code) - See how we compare.
-*   [**Troubleshooting MCP**](/en/mcp-client) - Fix connection issues.
+You should use MCP if your workflow requires more than pure text generation.
+
+Common scenarios include:
+
+- Controlling a browser to test or scrape pages
+- Reading or modifying repositories and files
+- Reviewing design assets or structured data
+- Automating multi-step workflows
+- Integrating AI into internal tools or systems
+
+If a task needs **state, tools, or external context**, MCP is usually the right choice.
+
+---
+
+## MCP Configuration and Setup
+
+To start using MCP in OpenCode, you need to:
+
+- Configure MCP servers
+- Define permissions and access rules
+- Enable tools or skills as needed
+
+For step-by-step setup instructions, see:
+
+- [MCP Configuration Guide](/en/mcp-configuration)
+
+---
+
+## MCP Use Cases (Real Examples)
+
+MCP is commonly used for:
+
+- **Browser automation** – testing, scraping, and interaction
+- **Design review** – inspecting Figma files or assets
+- **Code workflows** – repository analysis and refactoring
+- **Automation** – triggering pipelines and integrations
+- **Internal tooling** – connecting AI to company systems
+
+These use cases combine model reasoning with real-world actions.
+
+---
+
+## Related Guides
+
+- [OpenCode + Claude](/en/opencode-claude)
+- [Playwright MCP](/en/opencode-mcp-playwright)
+- [MCP Configuration](/en/mcp-configuration)

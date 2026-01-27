@@ -3,6 +3,7 @@
 ## In Progress
 
 ## Completed
+- [TASK088] Update English MCP Hub Page - Updated /en/mcp with authoritative content to serve as the central MCP guide - Completed on 2026-01-27
 - [TASK087] Synchronize Route Map with New Pages and Korean Locale - Updated ROUTE_MAP.md to reflect the current state of the project including compliance and Korean pages - Completed on 2026-01-27
 - [TASK086] Update Chinese Agent Skills Documentation - Replacing "代理技能" with "智能体技能" and updating content - Completed on 2026-01-26
 - [TASK085] Update Chinese Integrations Documentation (Share, GitHub, GitLab) - Updated localized content with SEO metadata - Completed on 2026-01-26
