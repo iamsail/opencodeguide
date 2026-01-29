@@ -1,0 +1,243 @@
+export const metadata = {
+  title: "Opencode Agents Guide",
+  description: "Learn how agents work in OpenCode. Configure behavior, permissions, tools, and connect agents with skills and MCP integrations.",
+  keywords: [
+    "opencode agents",
+    "agent configuration",
+    "opencode permissions",
+    "agent tools",
+  ],
+  alternates: {
+    canonical: "/en/opencode-agents",
+    languages: {
+      "zh-CN": "/zh/docs/configure/agents",
+    },
+  },
+}
+
+# Opencode Agents
+
+**Agents define how OpenCode thinks, acts, and decides.**
+
+If MCP connects agents to *external tools*, and Skills define *reusable behaviors*, agents are where everything comes together.
+
+---
+
+## What is an agent?
+
+An **agent** is a configured persona that controls:
+
+- Which tools it can use
+- Which skills it can load
+- What permissions it has
+- How it behaves during tasks
+
+Every interaction in OpenCode runs through an agent—either a built-in one or a custom-defined agent.
+
+---
+
+## Agents vs Skills vs MCP
+
+Think of OpenCode as a layered system:
+
+```text
+Agent
+├─ decides what is allowed
+├─ selects skills when needed
+└─ invokes MCP tools if permitted
+```
+
+| Layer | Role |
+|----|----|
+| **MCP** | External capabilities (browser, automation, design tools) |
+| **Skills** | Internal, reusable instructions |
+| **Agents** | Behavior, policy, and orchestration |
+
+👉 Agents do not add new capabilities.  
+They **control access and behavior**.
+
+---
+
+## Built-in vs custom agents
+
+### Built-in agents
+
+OpenCode ships with built-in agents (e.g. `plan`, `code`, etc.).
+
+You can:
+- Override their permissions
+- Enable or disable tools
+- Restrict skills
+
+Configuration lives in `opencode.json`.
+
+---
+
+### Custom agents
+
+Custom agents are defined via frontmatter in agent files.
+
+They allow you to:
+- Create task-specific personas
+- Enforce strict permission boundaries
+- Tailor behavior per workflow
+
+Custom agents are ideal for:
+- Review-only roles
+- Internal documentation assistants
+- Security-sensitive environments
+
+---
+
+## Agent permissions
+
+Agents control access using **pattern-based permissions**.
+
+Permissions apply to:
+- Tools (including MCP tools)
+- Skills
+- Other controllable resources
+
+Example (global):
+
+```json
+{
+  "permission": {
+    "skill": {
+      "*": "allow",
+      "internal-*": "deny"
+    }
+  }
+}
+```
+
+Permissions cascade downward and can be overridden per agent.
+
+---
+
+## Per-agent overrides
+
+### Custom agents
+
+```yaml
+---
+permission:
+  skill:
+    "documents-*": "allow"
+    "experimental-*": "ask"
+---
+```
+
+### Built-in agents
+
+```json
+{
+  "agent": {
+    "plan": {
+      "permission": {
+        "skill": {
+          "internal-*": "allow"
+        }
+      }
+    }
+  }
+}
+```
+
+This allows fine-grained control without duplicating global rules.
+
+---
+
+## Tool control
+
+Agents can enable or disable tools explicitly.
+
+Example (disable skills entirely):
+
+### Custom agent
+
+```yaml
+---
+tools:
+  skill: false
+---
+```
+
+### Built-in agent
+
+```json
+{
+  "agent": {
+    "plan": {
+      "tools": {
+        "skill": false
+      }
+    }
+  }
+}
+```
+
+When a tool is disabled, it is completely hidden from the agent.
+
+---
+
+## Common agent patterns
+
+### 🔹 Planning agent
+
+* No external tools
+* Skills allowed
+* Focused on reasoning and structure
+
+### 🔹 Execution agent
+
+* MCP tools enabled
+* Limited skills
+* Operates under strict permissions
+
+### 🔹 Review agent
+
+* Read-only
+* No mutation tools
+* Often paired with documentation skills
+
+These patterns help prevent accidental overreach.
+
+---
+
+## When should you create a new agent?
+
+Create a custom agent when you need:
+
+* Different permission boundaries
+* Predictable behavior for automation
+* Safer separation between thinking and acting
+* Reusable task roles across projects
+
+If behavior and permissions are the same, reuse an existing agent.
+
+---
+
+## Troubleshooting agent behavior
+
+If an agent behaves unexpectedly:
+
+* Check tool permissions
+* Verify skill patterns (`deny` hides skills entirely)
+* Look for per-agent overrides
+* Confirm tools are enabled
+
+Most issues come from overlapping permission rules.
+
+---
+
+## Next steps
+
+* 👉 [Agent Skills Guide](/en/opencode-skills)
+  Learn how reusable behaviors are defined.
+
+* 👉 [MCP Integrations](/en/opencode-mcp)
+  Connect agents to external tools.
+
+* 👉 [Agent Configuration Reference](/en/docs/configure/agents)
+  Full agent frontmatter and permission schema.
