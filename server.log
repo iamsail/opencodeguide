@@ -26,3 +26,53 @@ Caused by:
     No such file or directory (os error 2)
 Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
 Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+
+thread 'tokio-runtime-worker' (1237885) panicked at /Users/geist/dev/actions-runner/_work/next.js/next.js/turbopack/crates/turbo-tasks-backend/src/backend/operation/mod.rs:156:17:
+Failed to restore task data (corrupted database or bug): Data for get_directory_tree (TaskId 254))
+
+Caused by:
+    0: Looking up data for TaskId 254 from database failed
+    1: Unable to open static sorted file referenced from 00001383.meta
+    2: Unable to open static sorted file 00001378.sst
+    3: No such file or directory (os error 2)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'tokio-runtime-worker' (1237885) panicked at /Users/geist/dev/actions-runner/_work/next.js/next.js/turbopack/crates/turbo-tasks-backend/src/backend/operation/mod.rs:156:17:
+Failed to restore task data (corrupted database or bug): Data for get_directory_tree (TaskId 254))
+
+Caused by:
+    0: Looking up data for TaskId 254 from database failed
+    1: Unable to open static sorted file referenced from 00001383.meta
+    2: Unable to open static sorted file 00001378.sst
+    3: No such file or directory (os error 2)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+
+thread 'tokio-runtime-worker' (1245877) panicked at /Users/geist/dev/actions-runner/_work/next.js/next.js/turbopack/crates/turbo-tasks-backend/src/backend/operation/mod.rs:156:17:
+Failed to restore task data (corrupted database or bug): Meta for get_type (TaskId 55114))
+
+Caused by:
+    0: Looking up data for TaskId 55114 from database failed
+    1: Unable to open static sorted file referenced from 00001395.meta
+    2: Unable to open static sorted file 00001391.sst
+    3: No such file or directory (os error 2)
+
+thread 'tokio-runtime-worker' (1245877) panicked at /Users/geist/dev/actions-runner/_work/next.js/next.js/turbopack/crates/turbo-tasks-backend/src/backend/operation/mod.rs:156:17:
+Failed to restore task data (corrupted database or bug): Meta for get_type (TaskId 55114))
+
+Caused by:
+    0: Looking up data for TaskId 55114 from database failed
+    1: Unable to open static sorted file referenced from 00001395.meta
+    2: Unable to open static sorted file 00001391.sst
+    3: No such file or directory (os error 2)
+
+thread 'tokio-runtime-worker' (1245877) panicked at /Users/geist/dev/actions-runner/_work/next.js/next.js/turbopack/crates/turbo-tasks-backend/src/backend/operation/mod.rs:156:17:
+Failed to restore task data (corrupted database or bug): Meta for get_type (TaskId 55114))
+
+Caused by:
+    0: Looking up data for TaskId 55114 from database failed
+    1: Unable to open static sorted file referenced from 00001395.meta
+    2: Unable to open static sorted file 00001391.sst
+    3: No such file or directory (os error 2)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)

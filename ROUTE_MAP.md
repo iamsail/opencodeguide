@@ -25,6 +25,7 @@
 | `/en/opencode-vs-claude-code` | `/zh/vs-claude-code` | Comparisons |
 | `/en/opencode-with-ollama` | `/zh/docs/providers` | Local Models (Ollama) |
 | `/en/mcp` | `/zh/docs/mcp` | **MCP Hub (Central Guide)** |
+| `/en/opencode-skills` | `/zh/docs/configure/agent-skills` | **Agent Skills Guide** |
 | `/en/mcp-configuration` | `/zh/docs/configure/mcp-servers` | MCP Configuration Guide |
 | `/en/mcp-client` | `/zh/docs/develop/server` | MCP Client Architecture |
 | `/en/neovim-integration` | `/zh/docs/ide` | Neovim Setup |
