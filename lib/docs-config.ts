@@ -83,6 +83,10 @@ export const docsConfigEn: DocsConfig = [
         href: "/en/opencode-skills",
       },
       {
+        title: "Opencode Agents",
+        href: "/en/opencode-agents",
+      },
+      {
         title: "Playwright MCP",
         href: "/en/opencode-mcp-playwright",
       },
