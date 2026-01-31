@@ -79,6 +79,14 @@ export const docsConfigEn: DocsConfig = [
         href: "/en/opencode-mcp",
       },
       {
+        title: "Agent Skills Guide",
+        href: "/en/opencode-skills",
+      },
+      {
+        title: "Opencode Agents",
+        href: "/en/opencode-agents",
+      },
+      {
         title: "Playwright MCP",
         href: "/en/opencode-mcp-playwright",
       },
@@ -93,6 +101,15 @@ export const docsConfigEn: DocsConfig = [
       {
         title: "Use Cases",
         href: "/en/use-cases",
+      },
+    ],
+  },
+  {
+    title: "Reference",
+    items: [
+      {
+        title: "Agent Configuration",
+        href: "/en/docs/configure/agents",
       },
     ],
   },

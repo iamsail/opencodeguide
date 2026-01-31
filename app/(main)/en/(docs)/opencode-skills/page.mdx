@@ -1,0 +1,377 @@
+export const metadata = {
+  title: "OpenCode Agent Skills Guide",
+  description: "Learn how Agent Skills work in OpenCode. Define reusable behaviors with SKILL.md, control permissions, and connect skills to agents.",
+  keywords: [
+    "opencode skills",
+    "agent skills",
+    "opencode skill configuration",
+    "SKILL.md",
+  ],
+  alternates: {
+    canonical: "/en/opencode-skills",
+    languages: {
+      "zh-CN": "/zh/docs/configure/agent-skills",
+    },
+  },
+}
+
+# OpenCode Agent Skills
+
+**Agent Skills let you define reusable behaviors that agents can discover and load on demand.**
+
+If MCP is how OpenCode connects to *external tools*, skills are how you package *internal knowledge and workflows*—cleanly, explicitly, and safely.
+
+---
+
+## What are Agent Skills?
+
+An **agent skill** is a reusable instruction bundle defined by a `SKILL.md` file.
+
+Skills allow OpenCode agents to:
+
+- Discover available behaviors from your repo or home directory
+- Load instructions only when needed
+- Reuse consistent workflows across agents and projects
+
+Skills are surfaced to agents via the native **skill tool**.
+
+---
+
+## Skills vs MCP (important distinction)
+
+<div className="my-6 w-full overflow-y-auto">
+  <table>
+    <thead>
+      <tr>
+        <th>Capability</th>
+        <th>MCP</th>
+        <th>Agent Skills</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>External tools</td>
+        <td>✅</td>
+        <td>❌</td>
+      </tr>
+      <tr>
+        <td>Browser / design / automation</td>
+        <td>✅</td>
+        <td>❌</td>
+      </tr>
+      <tr>
+        <td>Internal workflows</td>
+        <td>❌</td>
+        <td>✅</td>
+      </tr>
+      <tr>
+        <td>Reusable instructions</td>
+        <td>❌</td>
+        <td>✅</td>
+      </tr>
+      <tr>
+        <td>Permission control</td>
+        <td>✅</td>
+        <td>✅</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+👉 **Rule of thumb**  
+- Use **MCP** when an agent needs to *do something outside OpenCode*  
+- Use **Skills** when an agent needs to *know how to do something consistently*
+
+---
+
+## Where skills live
+
+Each skill lives in its own folder and must include a `SKILL.md`.
+
+OpenCode searches these locations:
+
+### Project-level
+
+- `.opencode/skills/<name>/SKILL.md`
+- `.claude/skills/<name>/SKILL.md` (Claude-compatible)
+
+### Global-level
+
+- `~/.config/opencode/skills/<name>/SKILL.md`
+- `~/.claude/skills/<name>/SKILL.md`
+
+---
+
+## How skill discovery works
+
+For project-local skills, OpenCode:
+
+1. Starts from your current working directory
+2. Walks upward until it reaches the git worktree root
+3. Loads all matching `skills/*/SKILL.md` files along the way
+
+Global skills are always loaded.
+
+This means:
+- Repo-specific skills override global conventions
+- Monorepos can share skills naturally
+- You don’t need to register skills manually
+
+---
+
+## SKILL.md structure
+
+Every `SKILL.md` **must start with YAML frontmatter**.
+
+Only the following fields are recognized:
+
+<div className="my-6 w-full overflow-y-auto">
+  <table>
+    <thead>
+      <tr>
+        <th>Field</th>
+        <th>Required</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>`name`</td>
+        <td>✅</td>
+        <td>Must match folder name</td>
+      </tr>
+      <tr>
+        <td>`description`</td>
+        <td>✅</td>
+        <td>Used for agent selection</td>
+      </tr>
+      <tr>
+        <td>`license`</td>
+        <td>❌</td>
+        <td>Optional</td>
+      </tr>
+      <tr>
+        <td>`compatibility`</td>
+        <td>❌</td>
+        <td>e.g. `opencode`</td>
+      </tr>
+      <tr>
+        <td>`metadata`</td>
+        <td>❌</td>
+        <td>Key–value map</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+Unknown fields are ignored.
+
+---
+
+## Naming rules (strict)
+
+Skill names must:
+
+- Be **1–64 characters**
+- Use **lowercase letters and numbers**
+- Use **single hyphens** as separators
+- Match the containing folder name exactly
+
+Regex equivalent:
+
+```
+^[a-z0-9]+(-[a-z0-9]+)*$
+```
+
+---
+
+## Description guidelines
+
+- Length: **1–1024 characters**
+- Be concrete, not generic
+- Write for agent *selection*, not for humans
+
+Bad:
+> “Helps with GitHub stuff”
+
+Good:
+> “Create consistent releases and changelogs from merged pull requests”
+
+---
+
+## Example skill
+
+Create `.opencode/skills/git-release/SKILL.md`:
+
+```yaml
+---
+name: git-release
+description: Create consistent releases and changelogs
+license: MIT
+compatibility: opencode
+metadata:
+  audience: maintainers
+  workflow: github
+---
+```
+
+```md
+## What I do
+- Draft release notes from merged PRs
+- Propose a version bump
+- Generate a copy-pasteable `gh release create` command
+
+## When to use me
+Use this skill when preparing a tagged release.
+Ask clarifying questions if the versioning scheme is unclear.
+```
+
+---
+
+## How agents see skills
+
+OpenCode exposes skills to agents like this:
+
+```xml
+<available_skills>
+  <skill>
+    <name>git-release</name>
+    <description>Create consistent releases and changelogs</description>
+  </skill>
+</available_skills>
+```
+
+Agents load a skill by calling:
+
+```
+skill({ name: "git-release" })
+```
+
+The full content is loaded only when needed.
+
+---
+
+## Skill permissions
+
+Control access using pattern-based permissions in `opencode.json`:
+
+```json
+{
+  "permission": {
+    "skill": {
+      "*": "allow",
+      "internal-*": "deny",
+      "experimental-*": "ask"
+    }
+  }
+}
+```
+
+### Permission behaviors
+
+<div className="my-6 w-full overflow-y-auto">
+  <table>
+    <thead>
+      <tr>
+        <th>Mode</th>
+        <th>Effect</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>`allow`</td>
+        <td>Loads immediately</td>
+      </tr>
+      <tr>
+        <td>`deny`</td>
+        <td>Hidden and inaccessible</td>
+      </tr>
+      <tr>
+        <td>`ask`</td>
+        <td>User approval required</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+Wildcard patterns are supported.
+
+---
+
+## Per-agent overrides
+
+### Custom agents
+
+```yaml
+---
+permission:
+  skill:
+    "documents-*": "allow"
+---
+```
+
+### Built-in agents
+
+```json
+{
+  "agent": {
+    "plan": {
+      "permission": {
+        "skill": {
+          "internal-*": "allow"
+        }
+      }
+    }
+  }
+}
+```
+
+---
+
+## Disable skills entirely
+
+Disable the skill tool when an agent should not load skills.
+
+### Custom agents
+
+```yaml
+---
+tools:
+  skill: false
+---
+```
+
+### Built-in agents
+
+```json
+{
+  "agent": {
+    "plan": {
+      "tools": {
+        "skill": false
+      }
+    }
+  }
+}
+```
+
+When disabled, no skills are exposed.
+
+---
+
+## Troubleshooting
+
+If a skill does not appear:
+
+* Ensure the file is named `SKILL.md` (all caps)
+* Check `name` and `description` exist
+* Verify names are unique
+* Check permission rules (`deny` hides skills)
+
+---
+
+## Next steps
+
+* 👉 [Configure Agents](/en/opencode-agents)
+* 👉 [MCP Integrations](/en/opencode-mcp)
+* 👉 [Agent Configuration (Reference)](/en/docs/configure/agents)
