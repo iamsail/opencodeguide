@@ -6,6 +6,10 @@
 - Ensuring all MDX files are free from hydration errors caused by multi-line HTML tables.
 
 ## Recent Changes
+- **Implement Agent Configuration Reference (EN) ([TASK092])**:
+    - **New Reference Page**: Created `/en/docs/configure/agents` as the authoritative English reference for agent configuration.
+    - **Rendering Fix**: Utilized raw HTML tables to prevent MDX hydration errors.
+    - **Navigation**: Integrated into English Sidebar and updated cross-links in `/en/opencode-skills`.
 - **Opencode Agents Guide (EN) ([TASK091])**:
     - **Hub Creation**: Created `/en/opencode-agents` as a central mental model for agents.
     - **Content**: Detailed the role of agents, built-in vs custom agents, permissions, and tool control.

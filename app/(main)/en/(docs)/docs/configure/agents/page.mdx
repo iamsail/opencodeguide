@@ -1,0 +1,209 @@
+export const metadata = {
+  title: 'Agent Configuration',
+  description: 'Reference documentation for configuring agents in OpenCode. Covers permissions, tools, overrides, and agent-specific settings.',
+  keywords: [
+    'opencode agent configuration',
+    'agent permissions',
+    'opencode tools',
+  ],
+  alternates: {
+    canonical: '/en/docs/configure/agents',
+    languages: {
+      'zh-CN': '/zh/docs/configure/agents',
+    },
+  },
+}
+
+# Agent Configuration
+
+This page documents **all supported agent configuration options** in OpenCode.
+
+Agent configuration controls:
+- Tool availability
+- Skill access
+- Permission boundaries
+- Agent-specific overrides
+
+This is a **reference page**. For conceptual guidance, see:
+- [Opencode Agents Guide](/en/opencode-agents)
+
+---
+
+## Configuration locations
+
+Agent configuration can appear in two places:
+
+### 1. Built-in agents
+
+Configured in `opencode.json`:
+
+```json
+{
+  "agent": {
+    "<agent-name>": {
+      // agent configuration
+    }
+  }
+}
+```
+
+### 2. Custom agents
+
+Defined using YAML frontmatter in agent files:
+
+```yaml
+---
+# agent configuration
+---
+```
+
+---
+
+## permission
+
+Controls what an agent is allowed to access.
+
+### Schema
+
+```json
+permission:
+  <resource-type>:
+    <pattern>: allow | deny | ask
+```
+
+### Supported resource types
+
+<div className="my-6 w-full overflow-y-auto"><table className="w-full border-collapse"><thead><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">Resource</th><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">Description</th></tr></thead><tbody><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm font-mono">skill</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">Agent skills</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm font-mono">tool</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">Tools (including MCP tools)</td></tr></tbody></table></div>
+
+> Unknown resource types are ignored.
+
+---
+
+### Patterns
+
+Patterns are matched by name and support wildcards.
+
+<div className="my-6 w-full overflow-y-auto"><table className="w-full border-collapse"><thead><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">Pattern</th><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">Matches</th></tr></thead><tbody><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm font-mono">&#42;</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">All resources</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm font-mono">internal-&#42;</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm"><code className="text-sm">internal-docs</code>, <code className="text-sm">internal-tools</code></td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm font-mono">review-&#42;</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm"><code className="text-sm">review-code</code>, <code className="text-sm">review-security</code></td></tr></tbody></table></div>
+
+---
+
+### Values
+
+<div className="my-6 w-full overflow-y-auto"><table className="w-full border-collapse"><thead><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">Value</th><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">Behavior</th></tr></thead><tbody><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm font-mono">allow</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">Resource is immediately available</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm font-mono">deny</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">Resource is hidden and inaccessible</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm font-mono">ask</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800 text-sm">User approval required before access</td></tr></tbody></table></div>
+
+---
+
+### Example
+
+```yaml
+permission:
+  skill:
+    "*": allow
+    "internal-*": deny
+  tool:
+    "browser": ask
+```
+
+---
+
+## tools
+
+Enables or disables tools for the agent.
+
+### Schema
+
+```json
+tools:
+  <tool-name>: true | false
+```
+
+If a tool is set to `false`, it is completely disabled and hidden.
+
+---
+
+### Example
+
+```yaml
+tools:
+  skill: true
+  browser: false
+```
+
+---
+
+## Overrides and precedence
+
+Configuration is merged in the following order (lowest → highest priority):
+
+1. Global configuration
+2. Built-in agent configuration
+3. Custom agent configuration
+
+Higher-priority settings override lower ones.
+
+---
+
+## Built-in agent override example
+
+```json
+{
+  "agent": {
+    "plan": {
+      "permission": {
+        "skill": {
+          "internal-*": "allow"
+        }
+      },
+      "tools": {
+        "skill": true
+      }
+    }
+  }
+}
+```
+
+---
+
+## Custom agent example
+
+```yaml
+---
+permission:
+  skill:
+    "documents-*": allow
+    "experimental-*": ask
+tools:
+  skill: true
+---
+```
+
+---
+
+## Disable all skills for an agent
+
+To prevent an agent from using skills entirely:
+
+```yaml
+tools:
+  skill: false
+```
+
+When disabled, skills are omitted from the agent’s tool list.
+
+---
+
+## Notes and constraints
+
+* Permission patterns are evaluated per resource type
+* `deny` always hides a resource
+* Tool disablement overrides permission rules
+* Unknown fields are ignored
+* Invalid patterns are skipped silently
+
+---
+
+## Related references
+
+* [Agent Skills Configuration](/en/docs/configure/agent-skills)
+* [MCP Configuration](/en/docs/configure/mcp-servers)
+* [Permissions Overview](/en/docs/configure/permissions)
