@@ -105,6 +105,15 @@ export const docsConfigEn: DocsConfig = [
     ],
   },
   {
+    title: "Reference",
+    items: [
+      {
+        title: "Agent Configuration",
+        href: "/en/docs/configure/agents",
+      },
+    ],
+  },
+  {
     title: "Comparisons",
     items: [
       {

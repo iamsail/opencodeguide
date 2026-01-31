@@ -4,6 +4,7 @@
 
 ## Completed
 - [TASK091] Add Opencode Agents Guide (English) - Created /en/opencode-agents with configuration and usage details - Completed on 2026-01-29
+- [TASK092] Implement Agent Configuration Reference (EN) - Created /en/docs/configure/agents reference page - Completed on 2026-01-31
 - [TASK090] Optimize English Article Navigation - Integrated missing English articles into a unified sidebar and updated the article layout to include TOC and navigation - Completed on 2026-01-27
 - [TASK089] Update English MCP Tools & Integrations Page - Refreshed content and updated canonical link to /en/mcp - Completed on 2026-01-27
 - [TASK088] Update English MCP Hub Page - Updated /en/mcp with authoritative content to serve as the central MCP guide - Completed on 2026-01-27
