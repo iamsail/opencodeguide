@@ -25,6 +25,8 @@
 | `/en/opencode-vs-claude-code` | `/zh/vs-claude-code` | Comparisons |
 | `/en/opencode-with-ollama` | `/zh/docs/providers` | Local Models (Ollama) |
 | `/en/mcp` | `/zh/docs/mcp` | **MCP Hub (Central Guide)** |
+| `/en/opencode-skills` | `/zh/docs/configure/agent-skills` | **Agent Skills Guide** |
+| `/en/opencode-agents` | `/zh/docs/configure/agents` | **Opencode Agents Guide** |
 | `/en/mcp-configuration` | `/zh/docs/configure/mcp-servers` | MCP Configuration Guide |
 | `/en/mcp-client` | `/zh/docs/develop/server` | MCP Client Architecture |
 | `/en/neovim-integration` | `/zh/docs/ide` | Neovim Setup |
@@ -40,6 +42,7 @@
 | `/en/opencode/errors/claude-credential-only-authorized` | **Error Fix**: "credential is only authorized for use with Claude Code" |
 | `/en/oh-my-opencode-best-practices` | **Oh My OpenCode Quick Start** (Multi-agent guide) |
 | `/en/how-to-update-opencode` | **Update Guide** (Manual & Auto update mechanism) |
+| `/en/docs/configure/agents` | `/zh/docs/configure/agents` | **Agent Configuration** (Reference) |
 
 ## 3. 中文科普/引流文章 (Chinese SEO Articles)
 这些页面主要用于外部引流，通过 `canonical` 将权重集中到官方文档。

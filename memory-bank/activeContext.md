@@ -6,6 +6,14 @@
 - Ensuring all MDX files are free from hydration errors caused by multi-line HTML tables.
 
 ## Recent Changes
+- **Implement Agent Configuration Reference (EN) ([TASK092])**:
+    - **New Reference Page**: Created `/en/docs/configure/agents` as the authoritative English reference for agent configuration.
+    - **Rendering Fix**: Utilized raw HTML tables to prevent MDX hydration errors.
+    - **Navigation**: Integrated into English Sidebar and updated cross-links in `/en/opencode-skills`.
+- **Opencode Agents Guide (EN) ([TASK091])**:
+    - **Hub Creation**: Created `/en/opencode-agents` as a central mental model for agents.
+    - **Content**: Detailed the role of agents, built-in vs custom agents, permissions, and tool control.
+    - **Navigation**: Integrated into the English sidebar and updated the Route Map.
 - **English Article Navigation Optimization ([TASK090])**:
     - **Unified Sidebar**: Integrated all English articles (Best Practices, MCP Tools, Update Guide, etc.) into `docsConfigEn` to solve the "missing menu" issue identified in screenshots.
     - **Layout Overhaul**: Refactored `app/(main)/en/(articles)/layout.tsx` to use the three-column grid layout with `DocsSidebar` and `TableOfContents`, matching the Documentation experience.
