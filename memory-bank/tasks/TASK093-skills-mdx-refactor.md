@@ -59,3 +59,4 @@ The user requested to "Start implementation" of the "MDX as Database" architectu
 - Refactored list pages and created detail pages.
 - Verified localized content functioning correctly.
 - Restarted dev server to fix port lock issue.
+- Refined UI: Removed "Trending/Hot" tabs (kept "All Time" only) and removed "Available for these agents" section based on user feedback.

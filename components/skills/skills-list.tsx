@@ -78,24 +78,6 @@ export function SkillsList({ skills, locale = "en", labels = {} }: SkillsListPro
         >
           {defaultLabels.allTime} <span className="text-muted-foreground/60 ml-1">({skills.length})</span>
         </button>
-        <button
-          onClick={() => setActiveTab("trending")}
-          className={cn(
-            "font-medium transition-colors hover:text-foreground whitespace-nowrap",
-            activeTab === "trending" ? "text-foreground" : "text-muted-foreground"
-          )}
-        >
-          {defaultLabels.trending}
-        </button>
-        <button
-          onClick={() => setActiveTab("hot")}
-          className={cn(
-            "font-medium transition-colors hover:text-foreground whitespace-nowrap",
-            activeTab === "hot" ? "text-foreground" : "text-muted-foreground"
-          )}
-        >
-          {defaultLabels.hot}
-        </button>
       </div>
 
       {/* List Header */}

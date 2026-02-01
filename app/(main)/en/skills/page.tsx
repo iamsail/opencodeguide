@@ -52,22 +52,6 @@ export default async function SkillsPage() {
               <InstallBlock command="npx skills add <owner/repo>" />
             </div>
           </div>
-
-          <div className="space-y-6 pt-4">
-             <div className="space-y-2">
-               <p className="text-xs font-mono text-muted-foreground uppercase tracking-wider">
-                 Available for these agents
-               </p>
-               <div className="flex gap-6 items-center opacity-70 grayscale hover:grayscale-0 transition-all duration-500">
-                  {/* Mock logos for visual parity */}
-                  <div className="w-8 h-8 rounded bg-neutral-200 dark:bg-neutral-800" />
-                  <div className="w-8 h-8 rounded bg-neutral-200 dark:bg-neutral-800" />
-                  <div className="w-8 h-8 rounded bg-neutral-200 dark:bg-neutral-800" />
-                  <div className="w-8 h-8 rounded bg-neutral-200 dark:bg-neutral-800" />
-                  <div className="w-8 h-8 rounded bg-neutral-200 dark:bg-neutral-800" />
-               </div>
-             </div>
-          </div>
         </div>
 
         {/* Leaderboard Section */}

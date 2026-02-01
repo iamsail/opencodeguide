@@ -9,7 +9,7 @@
 - **Refactor Skills to MDX-as-Database ([TASK093])**:
     - **Architecture**: Migrated from static `lib/data/skills.ts` to `content/skills/{locale}/*.mdx`.
     - **Backend**: Implemented `lib/skills.ts` using `gray-matter` for parsing metadata and `next-mdx-remote` for rendering.
-    - **Frontend**: Created dynamic detail pages (`/en/skills/[slug]`, `/zh/skills/[slug]`) and updated list pages to fetch data from the file system.
+    - **Frontend**: Created dynamic detail pages (`/en/skills/[slug]`, `/zh/skills/[slug]`) and updated list pages to fetch data from the file system. Refined UI to remove unnecessary sorting tabs and confusing agent icons.
     - **I18n**: Fully localized content structure with fallback logic.
 - **Implement Agent Configuration Reference (EN) ([TASK092])**:
     - **New Reference Page**: Created `/en/docs/configure/agents` as the authoritative English reference for agent configuration.
