@@ -47,7 +47,12 @@ We distinguish between "Technical Reference" and "Educational Articles/Blog" to 
     -   This loop ensures high user retention and strong topical authority for search engines.
 
 ### Content Engine
--   **Source**: Local `.mdx` files stored in `app/(main)/en/**/*.mdx` and `app/(zh)/zh/**/*.mdx`.
+-   **Documentation Source**: Local `.mdx` files stored in `app/(main)/en/**/*.mdx` and `app/(zh)/zh/**/*.mdx`.
+-   **Database-like Content (Skills)**: 
+    -   **Source**: `content/skills/{locale}/*.mdx`.
+    -   **Pattern**: "MDX as Database". Files are treated as data records where Frontmatter provides structured metadata (Title, Tags, Stats) and the body provides rich descripton.
+    -   **Access**: Parsed via `gray-matter` in `lib/skills.ts` for list views, rendered via `next-mdx-remote` for detail views.
+
 -   **Processor**: `@next/mdx` (Native Next.js MDX implementation).
     -   **Compiler**: `experimental.mdxRs: true` enabled in `next.config.mjs` for Rust-based compilation. This is the **standardized pattern** to ensure compatibility with Next.js 16 Turbopack while providing built-in GFM support for tables.
     -   **Stability & Hydration**: When using HTML `<table>` tags in MDX with `mdxRs` enabled, the compiler may preserve newlines and indentation inside raw HTML blocks. This triggers React hydration errors (e.g., Error #418/425). 
