@@ -6,6 +6,8 @@
 - Maintaining site stability while expanding the Chinese documentation suite.
 
 ## Recent Changes
+- **Add ads.txt Verification ([TASK097])**:
+    - **Verification**: Created `public/ads.txt` with publisher ID `pub-1345496474366685` for AdSense domain verification.
 - **Integrate Google AdSense ([TASK096])**:
     - **Integration**: Added `components/google-adsense.tsx` using `next/script` with ID `ca-pub-1345496474366685`.
     - **Implementation**: Injected the component into global layouts for English `(main)`, Chinese `(zh)`, and Korean `(ko)` route groups.
