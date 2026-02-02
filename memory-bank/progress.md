@@ -27,6 +27,7 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (Completed)
+- [x] **Update Skills Content**: Updated "Vercel React Best Practices" and "Find Skills" with authoritative documentation from skills.sh ([TASK094]).
 - [x] **Skills Architecture Upgrade**: Refactored Skills section to "MDX as Database" architecture, enabling file-based content management and dynamic detail pages ([TASK093]).
 - [x] **Opencode Agents Guide (EN)**: Created the authoritative English hub for agents at `/en/opencode-agents`, covering mental models, permissions, and tool control ([TASK091]).
 

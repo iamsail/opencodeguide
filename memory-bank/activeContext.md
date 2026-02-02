@@ -6,6 +6,11 @@
 - Maintaining site stability while expanding the Chinese documentation suite.
 
 ## Recent Changes
+- **Update Skills Content ([TASK094])**:
+    - **Content Upgrade**: Updated `vercel-react-best-practices.mdx` and `find-skills.mdx` in both English and Chinese.
+    - **New Reference**: Focused "Find Skills" on the `npx skills` CLI capability, providing clear workflows for discovery and installation.
+    - **Performance Optimization**: Added detailed categorization to Vercel Best Practices and implemented `overflow-y-auto` wrappers for the rule category table to ensure MDX compatibility.
+    - **Localization**: Ensured technical terms are correctly localized and terminology is consistent with "智能体技能 (Skills)".
 - **Refactor Skills to MDX-as-Database ([TASK093])**:
     - **Architecture**: Migrated from static `lib/data/skills.ts` to `content/skills/{locale}/*.mdx`.
     - **Backend**: Implemented `lib/skills.ts` using `gray-matter` for parsing metadata and `next-mdx-remote` for rendering.
