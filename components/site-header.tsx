@@ -27,7 +27,7 @@ export function SiteHeader({ lang = "en" }: SiteHeaderProps) {
                    文档中心
                  </Link>
                  <Link href="/zh/skills" prefetch={false} className="transition-colors hover:text-gray-800/80 text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
-                   技能广场
+                   智能体技能 (Skills)
                  </Link>
                </>
             ) : lang === "ko" ? (
