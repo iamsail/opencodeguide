@@ -27,6 +27,7 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (Completed)
+- [x] **Monetization**: Integrated Google AdSense across all main site layouts (EN/ZH/KO) ([TASK096]).
 - [x] **Add New Skills**: Integrated "Web Interface Guidelines" and "Remotion Best Practices" skills and synchronized installation statistics with real-time leaderboard data ([TASK095]).
 - [x] **Update Skills Content**: Updated "Vercel React Best Practices" and "Find Skills" with authoritative documentation from skills.sh ([TASK094]).
 - [x] **Skills Architecture Upgrade**: Refactored Skills section to "MDX as Database" architecture, enabling file-based content management and dynamic detail pages ([TASK093]).

@@ -6,6 +6,9 @@
 - Maintaining site stability while expanding the Chinese documentation suite.
 
 ## Recent Changes
+- **Integrate Google AdSense ([TASK096])**:
+    - **Integration**: Added `components/google-adsense.tsx` using `next/script` with ID `ca-pub-1345496474366685`.
+    - **Implementation**: Injected the component into global layouts for English `(main)`, Chinese `(zh)`, and Korean `(ko)` route groups.
 - **Add New Skills & Fix Installation Counts ([TASK095])**:
     - **New Skills**: Added "Web Interface Guidelines" and "Remotion Best Practices" skills in both English and Chinese.
     - **Content Delivery**: Created four new MDX files in `content/skills/` with fully localized content and metadata.
