@@ -76,7 +76,8 @@
 | `/zh/docs/providers` | 模型提供商 (OpenAI, Claude, Ollama 等) |
 | `/zh/docs/network` | 网络与代理配置 |
 | `/zh/docs/enterprise` | 企业版功能 |
-| `/zh/docs/troubleshooting` | 常见问题排查 |
+| `/zh/docs/troubleshooting` | 说明 (Description) |
+| `/zh/docs/windows-wsl` | Windows (WSL) 运行指南 |
 | `/zh/docs/migrating-to-1-0` | 1.0 迁移指南 |
 
 ### 4.2 使用 (Usage)
