@@ -15,8 +15,77 @@ Vercel 维护的 React 和 Next.js 应用程序的综合性能优化指南。包
 
 在以下情况下参考这些指南：
 
-- 编写新的 React 组件或 Next.js 页面
-- 实现数据获取（客户端或服务器端）
-- 审查代码的性能问题
-- 重构现有的 React/Next.js 代码
-- 优化包大小或加载时间
+* 编写新的 React 组件或 Next.js 页面
+* 实现数据获取（客户端或服务器端）
+* 审查代码的性能问题
+* 重构现有的 React/Next.js 代码
+* 优化包大小或加载时间
+
+## 按优化优先级分类
+
+<div className="my-6 w-full overflow-y-auto"><table className="w-full border-collapse"><thead><tr className="border-b text-muted-foreground"><th className="py-2 px-4 text-left font-semibold">优先级</th><th className="py-2 px-4 text-left font-semibold">类别</th><th className="py-2 px-4 text-left font-semibold">影响前缀</th></tr></thead><tbody><tr className="border-b"><td className="py-2 px-4">1</td><td className="py-2 px-4">消除瀑布流 (Waterfalls)</td><td className="py-2 px-4">关键 (async-)</td></tr><tr className="border-b"><td className="py-2 px-4">2</td><td className="py-2 px-4">包体积优化 (Bundle Size)</td><td className="py-2 px-4">关键 (bundle-)</td></tr><tr className="border-b"><td className="py-2 px-4">3</td><td className="py-2 px-4">服务端性能</td><td className="py-2 px-4">高 (server-)</td></tr><tr className="border-b"><td className="py-2 px-4">4</td><td className="py-2 px-4">客户端数据获取</td><td className="py-2 px-4">中高 (client-)</td></tr><tr className="border-b"><td className="py-2 px-4">5</td><td className="py-2 px-4">重复渲染控制 (Re-render)</td><td className="py-2 px-4">中 (rerender-)</td></tr><tr className="border-b"><td className="py-2 px-4">6</td><td className="py-2 px-4">渲染性能 (Rendering)</td><td className="py-2 px-4">中 (rendering-)</td></tr><tr className="border-b"><td className="py-2 px-4">7</td><td className="py-2 px-4">JavaScript 性能</td><td className="py-2 px-4">低中 (js-)</td></tr><tr className="border-b"><td className="py-2 px-4">8</td><td className="py-2 px-4">高级模式</td><td className="py-2 px-4">低 (advanced-)</td></tr></tbody></table></div>
+
+## 快速参考手册
+
+### 1. 消除瀑布流 (关键)
+
+* **async-defer-await**: 将 await 移入实际使用的分支中
+* **async-parallel**: 对独立操作使用 `Promise.all()`
+* **async-dependencies**: 对部分依赖使用 `better-all`
+* **async-api-routes**: 在 API 路由中尽早开始 promise，稍后进行 await
+* **async-suspense-boundaries**: 使用 Suspense 边界流式传输内容
+
+### 2. 包体积优化 (关键)
+
+* **bundle-barrel-imports**: 直接导入，跳过桶文件 (Barrel Files)
+* **bundle-dynamic-imports**: 对大体积组件使用 `next/dynamic`
+* **bundle-defer-third-party**: 在注水 (Hydration) 后加载分析/日志脚本
+* **bundle-conditional**: 仅在功能激活时加载相关模块
+* **bundle-preload**: 在悬停/聚焦时预加载以提升感知速度
+
+### 3. 服务端性能 (高)
+
+* **server-auth-actions**: 像 API 路由一样对服务端操作 (Server Actions) 进行鉴权
+* **server-cache-react**: 使用 `React.cache()` 进行单次请求内的数据去重
+* **server-cache-lru**: 使用 LRU 缓存进行跨请求缓存
+* **server-dedup-props**: 避免在 RSC props 中进行重复序列化
+* **server-serialization**: 尽量减少传递给客户端组件的数据量
+* **server-parallel-fetching**: 重构组件结构以实现并行获取
+* **server-after-nonblocking**: 使用 `after()` 执行非阻塞操作
+
+### 4. 客户端数据获取 (中高)
+
+* **client-swr-dedup**: 使用 SWR 进行自动请求去重
+* **client-event-listeners**: 对全局事件监听器进行去重
+* **client-passive-event-listeners**: 对滚动事件使用被动 (Passive) 监听器
+* **client-localstorage-schema**: 对 localStorage 数据进行版本控制并精简体积
+
+### 5. 重复渲染控制 (中)
+
+* **rerender-defer-reads**: 不要订阅仅在回调函数中使用的状态
+* **rerender-memo**: 将昂贵的计算任务提取到经过 memo 优化的组件中
+* **rerender-derived-state-no-effect**: 在渲染期间派生状态，而不是在 Effect 中
+* **rerender-functional-setstate**: 使用函数式 setState 以保持回调稳定性
+* **rerender-transitions**: 使用 `startTransition` 进行非紧急更新
+* **rerender-use-ref-transient-values**: 对频繁变动的瞬态值使用 refs
+
+### 6. 渲染性能 (中)
+
+* **rendering-content-visibility**: 对长列表使用 `content-visibility`
+* **rendering-hoist-jsx**: 将静态 JSX 提取到组件外部
+* **rendering-svg-precision**: 降低 SVG 坐标精度
+* **rendering-usetransition-loading**: 优先使用 `useTransition` 处理加载状态
+
+### 7. JavaScript 性能 (低中)
+
+* **js-batch-dom-css**: 通过 class 或 cssText 批量修改 CSS
+* **js-index-maps**: 为重复查找构建 Map
+* **js-combine-iterations**: 将多个 filter/map 组合进单次循环
+* **js-early-exit**: 在函数中尽早返回
+* **js-set-map-lookups**: 对 O(1) 查找使用 Set/Map
+
+### 8. 高级模式 (低)
+
+* **advanced-event-handler-refs**: 在 refs 中存储事件处理逻辑
+* **advanced-init-once**: 每个应用加载仅初始化一次
+* **advanced-use-latest**: 使用 `useLatest` 获取稳定的回调引用

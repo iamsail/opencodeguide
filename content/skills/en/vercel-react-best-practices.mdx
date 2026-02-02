@@ -15,8 +15,77 @@ Comprehensive performance optimization guide for React and Next.js applications,
 
 Reference these guidelines when:
 
-- Writing new React components or Next.js pages
-- Implementing data fetching (client or server-side)
-- Reviewing code for performance issues
-- Refactoring existing React/Next.js code
-- Optimizing bundle size or load times
+* Writing new React components or Next.js pages
+* Implementing data fetching (client or server-side)
+* Reviewing code for performance issues
+* Refactoring existing React/Next.js code
+* Optimizing bundle size or load times
+
+## Rule Categories by Priority
+
+<div className="my-6 w-full overflow-y-auto"><table className="w-full border-collapse"><thead><tr className="border-b text-muted-foreground"><th className="py-2 px-4 text-left font-semibold">Priority</th><th className="py-2 px-4 text-left font-semibold">Category</th><th className="py-2 px-4 text-left font-semibold">Impact Prefix</th></tr></thead><tbody><tr className="border-b"><td className="py-2 px-4">1</td><td className="py-2 px-4">Eliminating Waterfalls</td><td className="py-2 px-4">CRITICAL (async-)</td></tr><tr className="border-b"><td className="py-2 px-4">2</td><td className="py-2 px-4">Bundle Size Optimization</td><td className="py-2 px-4">CRITICAL (bundle-)</td></tr><tr className="border-b"><td className="py-2 px-4">3</td><td className="py-2 px-4">Server-Side Performance</td><td className="py-2 px-4">HIGH (server-)</td></tr><tr className="border-b"><td className="py-2 px-4">4</td><td className="py-2 px-4">Client-Side Data Fetching</td><td className="py-2 px-4">MEDIUM-HIGH (client-)</td></tr><tr className="border-b"><td className="py-2 px-4">5</td><td className="py-2 px-4">Re-render Optimization</td><td className="py-2 px-4">MEDIUM (rerender-)</td></tr><tr className="border-b"><td className="py-2 px-4">6</td><td className="py-2 px-4">Rendering Performance</td><td className="py-2 px-4">MEDIUM (rendering-)</td></tr><tr className="border-b"><td className="py-2 px-4">7</td><td className="py-2 px-4">JavaScript Performance</td><td className="py-2 px-4">LOW-MEDIUM (js-)</td></tr><tr className="border-b"><td className="py-2 px-4">8</td><td className="py-2 px-4">Advanced Patterns</td><td className="py-2 px-4">LOW (advanced-)</td></tr></tbody></table></div>
+
+## Quick Reference
+
+### 1. Eliminating Waterfalls (CRITICAL)
+
+* **async-defer-await**: Move await into branches where actually used
+* **async-parallel**: Use `Promise.all()` for independent operations
+* **async-dependencies**: Use `better-all` for partial dependencies
+* **async-api-routes**: Start promises early, await late in API routes
+* **async-suspense-boundaries**: Use Suspense to stream content
+
+### 2. Bundle Size Optimization (CRITICAL)
+
+* **bundle-barrel-imports**: Import directly, avoid barrel files
+* **bundle-dynamic-imports**: Use `next/dynamic` for heavy components
+* **bundle-defer-third-party**: Load analytics/logging after hydration
+* **bundle-conditional**: Load modules only when feature is activated
+* **bundle-preload**: Preload on hover/focus for perceived speed
+
+### 3. Server-Side Performance (HIGH)
+
+* **server-auth-actions**: Authenticate server actions like API routes
+* **server-cache-react**: Use `React.cache()` for per-request deduplication
+* **server-cache-lru**: Use LRU cache for cross-request caching
+* **server-dedup-props**: Avoid duplicate serialization in RSC props
+* **server-serialization**: Minimize data passed to client components
+* **server-parallel-fetching**: Restructure components to parallelize fetches
+* **server-after-nonblocking**: Use `after()` for non-blocking operations
+
+### 4. Client-Side Data Fetching (MEDIUM-HIGH)
+
+* **client-swr-dedup**: Use SWR for automatic request deduplication
+* **client-event-listeners**: Deduplicate global event listeners
+* **client-passive-event-listeners**: Use passive listeners for scroll
+* **client-localstorage-schema**: Version and minimize localStorage data
+
+### 5. Re-render Optimization (MEDIUM)
+
+* **rerender-defer-reads**: Don't subscribe to state only used in callbacks
+* **rerender-memo**: Extract expensive work into memoized components
+* **rerender-derived-state-no-effect**: Derive state during render, not effects
+* **rerender-functional-setstate**: Use functional setState for stable callbacks
+* **rerender-transitions**: Use `startTransition` for non-urgent updates
+* **rerender-use-ref-transient-values**: Use refs for transient frequent values
+
+### 6. Rendering Performance (MEDIUM)
+
+* **rendering-content-visibility**: Use `content-visibility` for long lists
+* **rendering-hoist-jsx**: Extract static JSX outside components
+* **rendering-svg-precision**: Reduce SVG coordinate precision
+* **rendering-usetransition-loading**: Prefer `useTransition` for loading state
+
+### 7. JavaScript Performance (LOW-MEDIUM)
+
+* **js-batch-dom-css**: Group CSS changes via classes or cssText
+* **js-index-maps**: Build Map for repeated lookups
+* **js-combine-iterations**: Combine multiple filter/map into one loop
+* **js-early-exit**: Return early from functions
+* **js-set-map-lookups**: Use Set/Map for O(1) lookups
+
+### 8. Advanced Patterns (LOW)
+
+* **advanced-event-handler-refs**: Store event handlers in refs
+* **advanced-init-once**: Initialize app once per app load
+* **advanced-use-latest**: `useLatest` for stable callback refs
