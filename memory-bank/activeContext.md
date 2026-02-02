@@ -1,11 +1,26 @@
 # Active Context
 
 ## Current Focus
-- **Unified Navigation Experience**: 扩展侧边栏功能到中文指南文章区域，确保所有中文内容（文章和文档）使用统一的导航体验。
+- **Skills Content Expansion**: Increasing the variety of available smart agent skills to provide more value to developers.
+- **Skills Architecture Upgrade**: Solidifying the "MDX as Database" pattern for the Skills section to enable community contributions.
 - Maintaining site stability while expanding the Chinese documentation suite.
-- Ensuring all MDX files are free from hydration errors caused by multi-line HTML tables.
 
 ## Recent Changes
+- **Add New Skills & Fix Installation Counts ([TASK095])**:
+    - **New Skills**: Added "Web Interface Guidelines" and "Remotion Best Practices" skills in both English and Chinese.
+    - **Content Delivery**: Created four new MDX files in `content/skills/` with fully localized content and metadata.
+    - **Data Accuracy**: Updated installation counts for multiple skills (Vercel React, Find Skills, Web Design, Remotion) based on the latest `skills.sh` leaderboard screenshot.
+    - **Navigation UI Enhancement**: Renamed "技能广场" to "智能体技能 (Skills)" in the Chinese header to better align with industry terminology and improve clarity.
+- **Update Skills Content ([TASK094])**:
+    - **Content Upgrade**: Updated `vercel-react-best-practices.mdx` and `find-skills.mdx` in both English and Chinese.
+    - **New Reference**: Focused "Find Skills" on the `npx skills` CLI capability, providing clear workflows for discovery and installation.
+    - **Performance Optimization**: Added detailed categorization to Vercel Best Practices and implemented `overflow-y-auto` wrappers for the rule category table to ensure MDX compatibility.
+    - **Localization**: Ensured technical terms are correctly localized and terminology is consistent with "智能体技能 (Skills)".
+- **Refactor Skills to MDX-as-Database ([TASK093])**:
+    - **Architecture**: Migrated from static `lib/data/skills.ts` to `content/skills/{locale}/*.mdx`.
+    - **Backend**: Implemented `lib/skills.ts` using `gray-matter` for parsing metadata and `next-mdx-remote` for rendering.
+    - **Frontend**: Created dynamic detail pages (`/en/skills/[slug]`, `/zh/skills/[slug]`) and updated list pages to fetch data from the file system. Refined UI to remove unnecessary sorting tabs and confusing agent icons.
+    - **I18n**: Fully localized content structure with fallback logic.
 - **Implement Agent Configuration Reference (EN) ([TASK092])**:
     - **New Reference Page**: Created `/en/docs/configure/agents` as the authoritative English reference for agent configuration.
     - **Rendering Fix**: Utilized raw HTML tables to prevent MDX hydration errors.

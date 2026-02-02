@@ -22,6 +22,9 @@
 *   `@opencode-ai/cli` (referred to in content, not a project dep)
 *   `clsx`, `tailwind-merge` (Class utility)
 *   `@tailwindcss/typography` (Markdown styling)
+*   **Content Processing**: 
+    *   `gray-matter`: For parsing Frontmatter from MDX files (used in Skills).
+    *   `next-mdx-remote`: For rendering MDX content in Server Components (used in Skills).
 *   **Search**: `cmdk` (UI), `fuse.js` (Logic), `globby` (Build script)
 *   **Theme**: `next-themes` (Dark mode)
 *   **Analytics**: `@vercel/analytics`

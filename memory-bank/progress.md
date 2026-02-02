@@ -27,7 +27,11 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (Completed)
+- [x] **Add New Skills**: Integrated "Web Interface Guidelines" and "Remotion Best Practices" skills and synchronized installation statistics with real-time leaderboard data ([TASK095]).
+- [x] **Update Skills Content**: Updated "Vercel React Best Practices" and "Find Skills" with authoritative documentation from skills.sh ([TASK094]).
+- [x] **Skills Architecture Upgrade**: Refactored Skills section to "MDX as Database" architecture, enabling file-based content management and dynamic detail pages ([TASK093]).
 - [x] **Opencode Agents Guide (EN)**: Created the authoritative English hub for agents at `/en/opencode-agents`, covering mental models, permissions, and tool control ([TASK091]).
+
 - [x] **English Article Navigation**: Integrated 6+ guide articles into a unified sidebar and refactored the English article layout to include TOC and navigation ([TASK090]).
 - [x] **Chinese Guide Sidebar Split**: Separated `lib/docs-config.ts` into guide and docs configurations, enabling distinct navigation experiences for guides and technical docs ([TASK084]).
 - [x] **Chinese Guide Sidebar**: Added sidebar navigation to all Chinese guide articles for unified UX ([TASK083]).

@@ -26,6 +26,7 @@
 | `/en/opencode-with-ollama` | `/zh/docs/providers` | Local Models (Ollama) |
 | `/en/mcp` | `/zh/docs/mcp` | **MCP Hub (Central Guide)** |
 | `/en/opencode-skills` | `/zh/docs/configure/agent-skills` | **Agent Skills Guide** |
+| `/en/skills` | `/zh/skills` | **Skills Ecosystem Hub** |
 | `/en/opencode-agents` | `/zh/docs/configure/agents` | **Opencode Agents Guide** |
 | `/en/mcp-configuration` | `/zh/docs/configure/mcp-servers` | MCP Configuration Guide |
 | `/en/mcp-client` | `/zh/docs/develop/server` | MCP Client Architecture |
@@ -60,6 +61,7 @@
 | `/zh/how-to-update-opencode` | - | **官方更新指南** (与 `/en/...` 互链) |
 | `/zh/what-is-opencode` | `/zh/docs/intro` | 什么是 OpenCode |
 | `/zh/what-is-mcp` | `/zh/docs/mcp` | 什么是 MCP |
+| `/zh/skills` | - | **技能生态中心** (Skills Ecosystem) |
 | `/zh/ollama-local-deploy` | `/zh/docs/providers` | Ollama 本地部署 |
 
 ## 4. 中文官方文档中心 (Chinese Documentation Center - /zh/docs)
