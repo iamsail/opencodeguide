@@ -27,6 +27,7 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (Completed)
+- [x] **Windows (WSL) Guide (ZH)**: Created a dedicated guide for running OpenCode on Windows via WSL, including installation, desktop app linkage, and file system tips ([TASK098]).
 - [x] **Monetization**: Integrated Google AdSense (Script & ads.txt) ([TASK096], [TASK097]).
 - [x] **Add New Skills**: Integrated "Web Interface Guidelines" and "Remotion Best Practices" skills and synchronized installation statistics with real-time leaderboard data ([TASK095]).
 - [x] **Update Skills Content**: Updated "Vercel React Best Practices" and "Find Skills" with authoritative documentation from skills.sh ([TASK094]).
