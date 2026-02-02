@@ -6,6 +6,9 @@
 - Maintaining site stability while expanding the Chinese documentation suite.
 
 ## Recent Changes
+- **Windows (WSL) Guide ([TASK098])**:
+    - **New Article**: Created a dedicated guide for running OpenCode on Windows via WSL, including installation, desktop app linkage, and file system tips.
+    - **Navigation**: Integrated into the Chinese sidebar and installation landing page.
 - **Add ads.txt Verification ([TASK097])**:
     - **Verification**: Created `public/ads.txt` with publisher ID `pub-1345496474366685` for AdSense domain verification.
 - **Integrate Google AdSense ([TASK096])**:
