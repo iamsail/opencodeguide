@@ -1,11 +1,16 @@
 # Active Context
 
 ## Current Focus
+- **Skills Content Expansion**: Increasing the variety of available smart agent skills to provide more value to developers.
 - **Skills Architecture Upgrade**: Solidifying the "MDX as Database" pattern for the Skills section to enable community contributions.
-- **Unified Navigation Experience**: 扩展侧边栏功能到中文指南文章区域，确保所有中文内容（文章和文档）使用统一的导航体验。
 - Maintaining site stability while expanding the Chinese documentation suite.
 
 ## Recent Changes
+- **Add New Skills & Fix Installation Counts ([TASK095])**:
+    - **New Skills**: Added "Web Interface Guidelines" and "Remotion Best Practices" skills in both English and Chinese.
+    - **Content Delivery**: Created four new MDX files in `content/skills/` with fully localized content and metadata.
+    - **Data Accuracy**: Updated installation counts for multiple skills (Vercel React, Find Skills, Web Design, Remotion) based on the latest `skills.sh` leaderboard screenshot.
+    - **Navigation UI Enhancement**: Renamed "技能广场" to "智能体技能 (Skills)" in the Chinese header to better align with industry terminology and improve clarity.
 - **Update Skills Content ([TASK094])**:
     - **Content Upgrade**: Updated `vercel-react-best-practices.mdx` and `find-skills.mdx` in both English and Chinese.
     - **New Reference**: Focused "Find Skills" on the `npx skills` CLI capability, providing clear workflows for discovery and installation.
