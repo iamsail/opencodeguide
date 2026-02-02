@@ -83,6 +83,10 @@ export const docsConfigEn: DocsConfig = [
         href: "/en/opencode-skills",
       },
       {
+        title: "Skills Ecosystem",
+        href: "/en/skills",
+      },
+      {
         title: "Opencode Agents",
         href: "/en/opencode-agents",
       },
@@ -155,6 +159,7 @@ export const guideConfigZh: DocsConfig = [
       { title: "对比 Cursor & Claude", href: "/zh/opencode-vs-cursor-claude" },
       { title: "对比 Claude Code", href: "/zh/vs-claude-code" },
       { title: "什么是 MCP", href: "/zh/what-is-mcp" },
+      { title: "技能生态 (Skills Ecosystem)", href: "/zh/skills" },
       { title: "Ollama 本地部署", href: "/zh/ollama-local-deploy" },
       { title: "最佳实践", href: "/zh/oh-my-opencode-best-practices" },
     ],

@@ -26,6 +26,9 @@ export function SiteHeader({ lang = "en" }: SiteHeaderProps) {
                  <Link href="/zh/docs" prefetch={false} className="transition-colors hover:text-gray-800/80 text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
                    文档中心
                  </Link>
+                 <Link href="/zh/skills" prefetch={false} className="transition-colors hover:text-gray-800/80 text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
+                   智能体技能 (Skills)
+                 </Link>
                </>
             ) : lang === "ko" ? (
                 <>
@@ -37,6 +40,9 @@ export function SiteHeader({ lang = "en" }: SiteHeaderProps) {
                 <>
                   <Link href="/en/what-is-opencode" prefetch={false} className="transition-colors hover:text-gray-800/80 text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
                     Docs
+                  </Link>
+                  <Link href="/en/skills" prefetch={false} className="transition-colors hover:text-gray-800/80 text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
+                    Skills
                   </Link>
                 </>
             )}

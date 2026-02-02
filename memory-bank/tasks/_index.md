@@ -3,6 +3,9 @@
 ## In Progress
 
 ## Completed
+- [TASK095] Add New Skills: Web Interface Guidelines and Remotion Best Practices - Added English and Chinese versions for two new skills - Completed on 2026-02-02
+- [TASK094] Update skills content from skills.sh - Updated Vercel React Best Practices and Find Skills with latest documentation - Completed on 2026-02-02
+- [TASK093] Refactor Skills to MDX-as-Database - Migrated skills data from static TS to file-based MDX system - Completed on 2026-02-01
 - [TASK091] Add Opencode Agents Guide (English) - Created /en/opencode-agents with configuration and usage details - Completed on 2026-01-29
 - [TASK092] Implement Agent Configuration Reference (EN) - Created /en/docs/configure/agents reference page - Completed on 2026-01-31
 - [TASK090] Optimize English Article Navigation - Integrated missing English articles into a unified sidebar and updated the article layout to include TOC and navigation - Completed on 2026-01-27

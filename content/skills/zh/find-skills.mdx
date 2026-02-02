@@ -1,0 +1,71 @@
+---
+title: "查找技能"
+description: "通过 Skills CLI 在生态系统中搜索并发现可用的智能体技能。"
+repo: "vercel-labs/skills"
+author: "vercel-labs"
+tags: ["utility", "search", "cli"]
+installs: "78.0K"
+---
+
+# 查找技能 (Find Skills)
+
+此技能可帮助您在开放式智能体技能 (Agent Skills) 生态系统中发现并安装新技能。
+
+## 何时使用此技能
+
+当用户执行以下操作时，请使用此技能：
+
+* 询问“如何执行 X”，其中 X 可能是已有技能可以处理的常见任务
+* 说“查找 X 的技能”或“是否有关于 X 的技能”
+* 询问“你能做 X 吗”，其中 X 是一项专业能力
+* 表现出对扩展智能体能力的兴趣
+* 想要搜索工具、模板或工作流
+
+## 什么是 Skills CLI？
+
+Skills CLI (`npx skills`) 是开放式智能体技能生态系统的包管理器。技能是模块化的软件包，可以通过专业知识、工作流和工具来扩展智能体的能力。
+
+**核心命令：**
+
+* `npx skills find [query]` - 以交互方式或通过关键字搜索技能
+* `npx skills add <package>` - 从 GitHub 或其他源安装技能
+* `npx skills check` - 检查技能更新
+* `npx skills update` - 更新所有已安装的技能
+
+## 如何帮助用户查找技能
+
+### 第 1 步：了解他们的需求
+
+确定领域（例如：React、测试）和具体任务（例如：编写测试、审查 PR）。
+
+### 第 2 步：搜索技能
+
+运行查找命令：`npx skills find [query]`
+示例：`npx skills find react performance`
+
+### 第 3 步：向用户展示选项
+
+展示技能名称、其功能、安装命令以及了解更多信息的链接。
+
+### 第 4 步：提供安装建议
+
+如果用户想要继续，您可以协助安装：
+`npx skills add <owner/repo@skill> -g -y`
+
+## 常见技能类别
+
+* **Web 开发 (Web Development)**: react, nextjs, typescript, tailwind
+* **测试 (Testing)**: testing, jest, playwright, e2e
+* **运维 (DevOps)**: deploy, docker, kubernetes, ci-cd
+* **代码质量 (Code Quality)**: review, lint, refactor, best-practices
+* **生产力 (Productivity)**: workflow, automation, git
+
+## 高效搜索技巧
+
+* 使用具体的关键字。
+* 尝试替代术语（例如，使用 "ci-cd" 代替 "deploy"）。
+* 查看热门源，如 `vercel-labs/agent-skills`。
+
+## 未找到技能时
+
+告知用户未找到相关技能，提供直接的帮助建议，或提议使用 `npx skills init` 创建新技能。
