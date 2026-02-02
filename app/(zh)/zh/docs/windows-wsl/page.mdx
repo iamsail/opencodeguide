@@ -1,0 +1,104 @@
+export const metadata = {
+  title: 'Windows (WSL) 指南 | OpenCode 中文指南',
+  description: '在 Windows 上通过 WSL (Windows Subsystem for Linux) 运行 OpenCode 的最佳实践。包含安装、桌面端与服务端联动、文件系统访问等深度指引。',
+  alternates: {
+    canonical: '/zh/docs/windows-wsl',
+  },
+}
+
+# Windows (WSL)
+
+为了获得最佳体验，建议在 Windows 上通过 WSL 运行 OpenCode。
+
+虽然 OpenCode 可以直接在 Windows 上运行，但我们建议使用 **Windows Subsystem for Linux (WSL)**。WSL 提供了一个与 OpenCode 功能无缝衔接的 Linux 环境。
+
+### 为什么选择 WSL？
+
+WSL 提供了更好的文件系统性能、完整的终端支持，以及与 OpenCode 所依赖的开发工具的兼容性。
+
+---
+
+## 设置
+
+### 1. 安装 WSL
+
+如果您尚未安装，请参考微软官方指南安装 WSL。
+
+### 2. 在 WSL 中安装 OpenCode
+
+WSL 设置完成后，打开 WSL 终端并使用以下命令安装 OpenCode：
+
+```bash
+curl -fsSL https://opencode.ai/install | bash
+```
+
+### 3. 在 WSL 中使用 OpenCode
+
+进入您的项目目录（可以通过 `/mnt/c/`、`/mnt/d/` 等路径访问 Windows 文件）并运行 OpenCode：
+
+```bash
+cd /mnt/c/Users/YourName/project
+opencode
+```
+
+---
+
+## 桌面应用 + WSL 服务端
+
+如果您希望使用 OpenCode 桌面应用，但让服务端运行在 WSL 中：
+
+1. 在 WSL 中启动服务端，并添加 `--hostname 0.0.0.0` 以允许外部连接：
+```bash
+opencode serve --hostname 0.0.0.0 --port 4096
+```
+
+2. 将桌面应用连接至 `http://localhost:4096`。
+
+> **注意：** 如果 `localhost` 无法工作，请使用 WSL 的 IP 地址（在 WSL 中通过 `hostname -I` 获取）进行连接，即 `http://<wsl-ip>:4096`。
+
+> **警告：** 使用 `--hostname 0.0.0.0` 时，请务必设置 `OPENCODE_SERVER_PASSWORD` 以确保服务端安全：
+> ```bash
+> OPENCODE_SERVER_PASSWORD=your-password opencode serve --hostname 0.0.0.0
+> ```
+
+---
+
+## Web 客户端 + WSL
+
+为了在 Windows 上获得最佳的 Web 体验：
+
+1. 在 WSL 终端（而非 PowerShell）中运行 `opencode web`：
+```bash
+opencode web --hostname 0.0.0.0
+```
+
+2. 在 Windows 浏览器中访问 `http://localhost:<端口号>`（OpenCode 会在终端打印具体 URL）。
+
+从 WSL 运行 `opencode web` 可以确保文件系统访问和终端集成的正确性，同时依然能通过 Windows 浏览器访问。
+
+---
+
+## 访问 Windows 文件
+
+WSL 可以通过 `/mnt/` 目录访问所有 Windows 文件：
+
+* **C 盘：** `/mnt/c/`
+* **D 盘：** `/mnt/d/`
+* 依此类推...
+
+**示例：**
+
+```bash
+cd /mnt/c/Users/YourName/Documents/project
+opencode
+```
+
+> **提示：** 为了获得最流畅的体验，建议将代码仓库克隆或复制到 WSL 本地文件系统中（例如 `~/code/`），并在那里运行 OpenCode。
+
+---
+
+## 使用技巧
+
+* 对于存储在 Windows 驱动器上的项目，保持 OpenCode 在 WSL 中运行，文件访问是无缝的。
+* 建议将 VS Code 的 WSL 扩展与 OpenCode 配合使用，以获得集成开发工作流。
+* 您的 OpenCode 配置和会话存储在 WSL 环境中的 `~/.local/share/opencode/` 目录下。
