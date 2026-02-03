@@ -45,17 +45,17 @@ export function LanguageSwitcher() {
       {isOpen && (
         <div className="absolute right-0 top-full mt-2 w-32 rounded-md border border-gray-200 bg-white p-1 shadow-md animate-in fade-in zoom-in-95 duration-100">
           <Link
-            href="/en/installation"
+            href="/en/"
             className={cn(
               "flex w-full items-center rounded-sm px-2 py-1.5 text-sm transition-colors hover:bg-gray-100",
-              !isZh && "bg-gray-50 font-medium text-gray-900"
+              !isZh && !isKo && "bg-gray-50 font-medium text-gray-900"
             )}
             onClick={() => setIsOpen(false)}
           >
             English
           </Link>
           <Link
-            href="/zh/docs"
+            href="/zh/docs/"
             className={cn(
               "flex w-full items-center rounded-sm px-2 py-1.5 text-sm transition-colors hover:bg-gray-100",
               isZh && "bg-gray-50 font-medium text-gray-900"
@@ -65,7 +65,7 @@ export function LanguageSwitcher() {
             中文
           </Link>
           <Link
-            href="/ko/opencode"
+            href="/ko/opencode/"
             className={cn(
               "flex w-full items-center rounded-sm px-2 py-1.5 text-sm transition-colors hover:bg-gray-100",
               isKo && "bg-gray-50 font-medium text-gray-900"

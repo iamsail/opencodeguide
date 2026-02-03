@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { GoogleAnalytics } from "@/components/google-analytics";
 import { GoogleAdsense } from "@/components/google-adsense";
 import { Analytics } from "@vercel/analytics/react";
+import Script from "next/script";
 
 import { ThemeProvider } from "@/components/theme-provider";
 
@@ -29,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-smooth" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${inter.className} min-h-screen bg-white text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-50`}
         suppressHydrationWarning
@@ -40,6 +41,17 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <Script id="clear-stale-cache" strategy="beforeInteractive">
+            {`
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                  for(let registration of registrations) {
+                    registration.unregister();
+                  }
+                });
+              }
+            `}
+          </Script>
           <SiteHeader lang="en" />
           <div className="flex min-h-screen flex-col">
             <main className="flex-1">{children}</main>
