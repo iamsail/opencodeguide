@@ -27,6 +27,7 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
+- [x] **Chinese Introduction v2**: Updated the core entry guide for the Chinese locale with improved linking, installation methods, and usage scenarios ([TASK099]).
 - [x] **LLM Provider Expansion (ZH)**: Updated the model providers guide to support 75+ sources with updated configuration steps (GitLab Duo, Bedrock, etc.) and fixed global TOC layout issues ([TASK038]).
 - [x] **Windows (WSL) Guide (ZH)**: Created a dedicated guide for running OpenCode on Windows via WSL, including installation, desktop app linkage, and file system tips ([TASK098]).
 - [x] **Monetization**: Integrated Google AdSense (Script & ads.txt) ([TASK096], [TASK097]).
