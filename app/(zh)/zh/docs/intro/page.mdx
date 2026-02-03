@@ -9,124 +9,168 @@ export const metadata = {
   },
 }
 
-# OpenCode 文档（中文版）
+# OpenCode 使用文档
 
-**OpenCode** 是一个开源的 AI 编码代理，支持终端界面、桌面应用或 IDE 扩展使用。
+## 介绍
+OpenCode 是一款开源 AI 编码代理工具，支持终端界面、桌面应用程序或 IDE 扩展三种使用形式。
 
-## 前提条件
-
-要在终端中使用 OpenCode，需要：
-1. 一个现代终端模拟器，例如：
-   - [WezTerm](https://wezterm.org)（跨平台）
-   - [Alacritty](https://alacritty.org)（跨平台）
-   - [Ghostty](https://ghostty.org)（Linux 和 macOS）
-   - [Kitty](https://sw.kovidgoyal.net/kitty/)（Linux 和 macOS）
-2. 所用 LLM 提供商的 API 密钥。
+## 前置条件
+要在终端中使用 OpenCode，你需要满足以下条件：
+- 一款现代终端模拟器，例如：
+  - [WezTerm](https://wezterm.org)（跨平台）
+  - [Alacritty](https://alacritty.org)（跨平台）
+  - [Ghostty](https://ghostty.org)（Linux 和 macOS 系统）
+  - [Kitty](https://sw.kovidgoyal.net/kitty/)（Linux 和 macOS 系统）
+- 你想要使用的大语言模型（LLM）提供商的 API 密钥
 
 ## 安装
+安装 OpenCode 最简便的方式是通过安装脚本，也可根据自身系统和工具偏好选择以下其他安装方式：
 
-安装 OpenCode 最简单的方法是通过安装脚本：
-
+### 通用安装脚本
 ```bash
 curl -fsSL https://opencode.ai/install | bash
 ```
 
-其他安装方式：
-
-**使用 Node.js**
-
+### 使用 Node.js 相关包管理器
+- npm：
 ```bash
 npm install -g opencode-ai
 ```
+- Bun：
+```bash
+bun install -g opencode-ai
+```
+- pnpm：
+```bash
+pnpm install -g opencode-ai
+```
+- Yarn：
+```bash
+yarn global add opencode-ai
+```
 
-**macOS 和 Linux 使用 Homebrew**
-
+### macOS 和 Linux 系统（使用 Homebrew）
 ```bash
 brew install anomalyco/tap/opencode
 ```
+> 建议使用 OpenCode 专属仓库源以获取最新版本，官方 `brew install opencode` 公式由 Homebrew 团队维护，更新频率较低。
 
-**Arch Linux 使用 Paru**
-
+### Arch Linux 系统（使用 Paru）
 ```bash
 paru -S opencode-bin
 ```
 
-**Windows**
-
-- **Chocolatey**：`choco install opencode`
-- **Scoop**：`scoop bucket add extras` 然后 `scoop install extras/opencode`
-- **NPM**：`npm install -g opencode-ai`
-- **Mise**：`mise use -g github:anomalyco/opencode`
-- **Docker**：`docker run -it --rm ghcr.io/anomalyco/opencode`
-
-也可以从 [Releases](https://github.com/anomalyco/opencode/releases) 下载二进制文件。
-
-## 配置
-
-配置 API 密钥以使用任意 LLM 提供商。
-
-推荐使用 [OpenCode Zen](/zh/docs/zen)（团队验证的模型列表）。
-
-1. 在 TUI 中运行 `/connect`，选择 `opencode`，访问 [opencode.ai/auth](https://opencode.ai/auth)。
-2. 登录并添加计费信息，复制 API 密钥。
-3. 粘贴密钥。
-
-或者选择其他提供商，详见 [提供商配置](/zh/docs/providers)。
-
-## 初始化
-
-进入项目目录：
-
+### Windows 系统
+- Chocolatey：
 ```bash
-cd /path/to/project
-opencode
+choco install opencode
+```
+- Scoop：
+```bash
+scoop install opencode
+```
+- NPM：
+```bash
+npm install -g opencode-ai
+```
+- Mise：
+```bash
+mise use -g github:anomalyco/opencode
 ```
 
-运行：
+### Docker 安装
+```bash
+docker run -it --rm ghcr.io/anomalyco/opencode
+```
 
+> 注意：目前正在开发通过 Bun 在 Windows 系统上安装 OpenCode 的功能。你也可以从 [Releases](https://github.com/anomalyco/opencode/releases) 中直接获取二进制文件。
+
+## 配置
+通过配置对应 API 密钥，OpenCode 可支持任意 LLM 提供商。如果是首次使用 LLM 提供商，推荐使用 [OpenCode Zen](/zh/docs/zen)——这是由 OpenCode 团队测试验证过的精选模型列表。配置步骤如下：
+1. 在 TUI 中运行 `/connect` 命令，选择 opencode 并访问 [opencode.ai/auth](https://opencode.ai/auth)
+2. 登录账号，添加账单信息并复制 API 密钥
+3. 粘贴 API 密钥并回车确认
+```text
+┌ API key
+│
+│
+└ enter
+```
+你也可以选择其他提供商，了解更多相关信息可查看官方[详细说明](/zh/docs/providers)。
+
+## 初始化
+配置好提供商后，按以下步骤初始化项目：
+1. 导航至目标项目目录
+```bash
+cd /path/to/project
+```
+2. 运行 OpenCode
+```bash
+opencode
+```
+3. 执行初始化命令，OpenCode 将分析项目并在项目根目录创建 `AGENTS.md` 文件
 ```bash
 /init
 ```
+> 提示：建议将项目的 `AGENTS.md` 文件提交至 Git，这有助于 OpenCode 理解项目结构和编码模式。
 
-这会生成 `AGENTS.md` 文件，帮助 OpenCode 理解项目结构。
-
-## 使用
-
-现在可以自由提问！
-
-### 提问示例
-
+## 使用方法
+### 咨询问题
+可向 OpenCode 咨询代码库相关问题，使用 `@` 键可模糊搜索项目文件
 ```text
 How is authentication handled in @packages/functions/src/api/index.ts
 ```
+该功能适用于不熟悉的代码部分查询。
 
 ### 添加功能
-
-1. **创建计划**：按 **Tab** 切换到计划模式，描述需求。
-2. **迭代计划**：提供反馈或图片。
-3. **构建**：切换回构建模式，执行更改。
-
-### 进行更改
-
-直接要求更改，例如：
-
+#### 1. 创建方案
+OpenCode 的计划模式会禁用直接修改功能，仅提供实现建议。按 Tab 键切换至该模式（右下角将显示对应标识），然后描述需求：
 ```text
-We need to add authentication to the /settings route...
+When a user deletes a note, we'd like to flag it as deleted in the database.Then create a screen that shows all the recently deleted notes.From this screen, the user can undelete a note or permanently delete it.
+```
+> 提示：提供足够详细的上下文和示例，可按与团队初级开发沟通的方式描述需求，帮助 OpenCode 准确理解。
+
+#### 2. 迭代方案
+收到方案后，可提供反馈或补充细节，支持拖放图片至终端添加到提示中
+```text
+We'd like to design this new screen using a design I've used before.[Image #1] Take a look at this image and use it as a reference.
 ```
 
-### 撤销/重做更改
+#### 3. 实现功能
+方案确认后，再次按 Tab 键切换回构建模式，下达执行命令：
+```text
+Sounds good! Go ahead and make the changes.
+```
 
-- `/undo`：撤销
-- `/redo`：重做
+### 直接修改
+对于简单修改，可跳过方案审核直接要求 OpenCode 实现，需提供详细需求确保修改准确性：
+```text
+We need to add authentication to the /settings route. Take a look at how this is handled in the /notes route in @packages/functions/src/notes.ts and implement the same logic in @packages/functions/src/settings.ts
+```
+
+### 撤销/重做修改
+- 撤销修改：执行 `/undo` 命令可还原更改并显示原始请求，支持多次执行撤销多步操作
+```bash
+/undo
+```
+- 重做修改：使用 `/redo` 命令可恢复之前撤销的更改
+```bash
+/redo
+```
 
 ### 分享对话
+通过 `/share` 命令可生成当前对话链接并复制到剪贴板，方便与团队共享
+```bash
+/share
+```
+> 注意：对话默认不会自动共享，点击示例对话可查看 OpenCode 交互演示。
 
-`/share` 生成分享链接。
-
-## 自定义
-
+## 自定义设置
+可通过以下方式个性化配置 OpenCode：
 - [选择主题](/zh/docs/configure/themes)
-- [自定义键绑定](/zh/docs/configure/keybinds)
+- [自定义快捷键](/zh/docs/configure/keybinds)
 - [配置代码格式化工具](/zh/docs/configure/formatters)
 - [创建自定义命令](/zh/docs/configure/commands)
-- [OpenCode 配置](/zh/docs/config)
+- [调整 OpenCode 配置参数](/zh/docs/config)
+
+文档更新时间：2026年1月28日
