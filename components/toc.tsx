@@ -108,7 +108,7 @@ export function TableOfContents({ className }: TableOfContentsProps) {
       <p className="font-medium text-sm text-gray-900 dark:text-gray-100">
         {isZh ? "本页内容" : "On This Page"}
       </p>
-      <ul className="m-0 list-none text-sm">
+      <ul className="m-0 list-none text-sm pr-4">
         {items.map((item) => (
           <li
             key={item.url}

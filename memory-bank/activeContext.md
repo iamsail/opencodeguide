@@ -6,9 +6,15 @@
 - Maintaining site stability while expanding the Chinese documentation suite.
 
 ## Recent Changes
+- **LLM Provider Expansion (ZH) ([TASK038])**:
+    - **Content Overhaul**: Replaced the Chinese model providers documentation with a new comprehensive guide supporting 75+ providers.
+    - **Detailed Configs**: Added or refined configuration steps for high-demand services like Amazon Bedrock, GitLab Duo, Azure Cognitive Services, and local models (Ollama, LM Studio).
+    - **UI/Layout Fixes**: Resolved Table of Contents (TOC) overflow and sticky positioning issues across all site layouts (ZH/EN).
+    - **Optimization**: Updated SEO metadata descriptions and maintained site-consistent MDX formatting for tables and callouts.
 - **Windows (WSL) Guide ([TASK098])**:
-    - **New Article**: Created a dedicated guide for running OpenCode on Windows via WSL, including installation, desktop app linkage, and file system tips.
-    - **Navigation**: Integrated into the Chinese sidebar and installation landing page.
+    - **New Article**: Created a dedicated guide for running OpenCode on Windows via WSL at `/zh/docs/windows-wsl`.
+    - **Fixes**: Resolved SWC compiler panic (multibyte character bug) and Chrome production navigation issues.
+    - **Navigation**: Integrated into the Chinese sidebar, installation landing page, and added a server-side redirect in `vercel.json`.
 - **Add ads.txt Verification ([TASK097])**:
     - **Verification**: Created `public/ads.txt` with publisher ID `pub-1345496474366685` for AdSense domain verification.
 - **Integrate Google AdSense ([TASK096])**:

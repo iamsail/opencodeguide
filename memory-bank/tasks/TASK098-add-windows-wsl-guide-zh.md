@@ -42,4 +42,7 @@
 - 在 `ROUTE_MAP.md` 中修正了新路由。
 - 在 `install/page.mdx` 中更新了指向新文档路径 `/zh/docs/windows-wsl` 的链接。
 - 将页面 `canonical` 修改为自指向 `/zh/docs/windows-wsl`。
+- 修复了 Vercel 编译时的 SWC Rust panic 问题，通过将元数据改为英文并在文件头增加内容缓冲实现。
+- 修复了 Chrome 浏览器生产环境点击链接无反应的问题（通过启用 `trailingSlash`、移除 `scroll-smooth` 以及注入 Service Worker 清理脚本）。
+- 在 `vercel.json` 中配置了 301 重定向，确保旧链接兼容性。
 
