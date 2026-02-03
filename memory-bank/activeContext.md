@@ -6,6 +6,10 @@
 - Maintaining site stability while expanding the Chinese documentation suite.
 
 ## Recent Changes
+- **Introduction Documentation v2 ([TASK099])**:
+    - **Content Overhaul**: Replaced the Chinese introduction at `/zh/docs/intro` with a more comprehensive guide covering install scripts, various package managers, detailed initialization steps, and multi-mode usage (Plan vs Build).
+    - **Link Optimization**: Integrated localized internal links for OpenCode Zen, providers, themes, keybinds, and customization options.
+    - **Freshness**: Added a specific documentation update timestamp (2026-01-28) to the page footer.
 - **LLM Provider Expansion (ZH) ([TASK038])**:
     - **Content Overhaul**: Replaced the Chinese model providers documentation with a new comprehensive guide supporting 75+ providers.
     - **Detailed Configs**: Added or refined configuration steps for high-demand services like Amazon Bedrock, GitLab Duo, Azure Cognitive Services, and local models (Ollama, LM Studio).
