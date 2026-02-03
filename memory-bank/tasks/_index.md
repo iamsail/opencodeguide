@@ -3,6 +3,7 @@
 ## In Progress
 
 ## Completed
+- [TASK038] Update Chinese Model Providers Documentation - Updated with 75+ providers on 2026-02-03
 - [TASK098] 增加 Windows (WSL) 中文指南 - Created dedicated WSL guide for Windows users - Completed on 2026-02-02
 - [TASK097] Add ads.txt for AdSense Verification - Adding ads.txt to public directory - Completed on 2026-02-02
 - [TASK096] Integrate Google AdSense - Adding Google AdSense script to all layouts - Completed on 2026-02-02
