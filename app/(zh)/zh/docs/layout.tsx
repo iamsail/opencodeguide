@@ -8,7 +8,7 @@ export default function ZhDocsLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="container flex-1 items-start md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)_200px] lg:gap-10 px-4 mx-auto max-w-7xl">
+    <div className="container flex-1 md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)_200px] lg:gap-10 px-4 mx-auto max-w-7xl">
       <DocsSidebar config={docsConfigZh} />
       <main className="relative py-6 lg:py-8 w-full min-w-0">
          <DocsMobileNav config={docsConfigZh} />
@@ -17,7 +17,7 @@ export default function ZhDocsLayout({
         </article>
       </main>
       <div className="hidden text-sm lg:block">
-        <div className="sticky top-16 -mt-10 h-[calc(100vh-3.5rem)] overflow-hidden pt-6">
+        <div className="sticky top-16 -mt-10 h-[calc(100vh-3.5rem)] overflow-y-auto pt-6 pb-10">
           <TableOfContents />
         </div>
       </div>
