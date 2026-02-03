@@ -10,6 +10,11 @@
       "source": "/en/mcp-explained",
       "destination": "/en/mcp",
       "permanent": true
+    },
+    {
+      "source": "/zh/windows-wsl",
+      "destination": "/zh/docs/windows-wsl/",
+      "permanent": true
     }
   ],
   "headers": [
