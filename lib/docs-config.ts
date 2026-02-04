@@ -175,7 +175,7 @@ export const docsConfigZh: DocsConfig = [
       { title: "模型提供商 (Providers)", href: "/zh/docs/providers" },
       { title: "网络 (Network)", href: "/zh/docs/network" },
       { title: "企业版 (Enterprise)", href: "/zh/docs/enterprise" },
-      { title: "故障排查 (Troubleshooting)", href: "/zh/docs/troubleshooting" },
+      { title: "故障排除 (Troubleshooting)", href: "/zh/docs/troubleshooting" },
       { title: "Windows (WSL)", href: "/zh/docs/windows-wsl" },
       { title: "迁移指南 (Migrating to 1.0)", href: "/zh/docs/migrating-to-1-0" },
     ],
