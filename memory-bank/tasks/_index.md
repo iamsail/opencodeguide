@@ -3,6 +3,7 @@
 ## In Progress
 
 ## Completed
+- [TASK100] 更新中文故障排除文档 - 完善日志、存储及桌面端故障指南 - Completed on 2026-02-04
 - [TASK099] Update Chinese Documentation Introduction v2 - Refreshing intro content and links - Completed on 2026-02-03
 - [TASK038] Update Chinese Model Providers Documentation - Updated with 75+ providers on 2026-02-03
 - [TASK098] 增加 Windows (WSL) 中文指南 - Created dedicated WSL guide for Windows users - Completed on 2026-02-02
