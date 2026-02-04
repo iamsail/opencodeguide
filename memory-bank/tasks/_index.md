@@ -1,8 +1,7 @@
 # Tasks Index
 
-## In Progress
-
 ## Completed
+- [TASK102] 更新中文 CLI 文档 (v2) - 同步最新命令、环境变量及实验性选项 - Completed on 2026-02-04
 - [TASK101] 更新中文 IDE 文档 (v2) - 完善快捷键及多编辑器支持 - Completed on 2026-02-04
 - [TASK100] 更新中文故障排除文档 - 完善日志、存储及桌面端故障指南 - Completed on 2026-02-04
 - [TASK099] Update Chinese Documentation Introduction v2 - Refreshing intro content and links - Completed on 2026-02-03
