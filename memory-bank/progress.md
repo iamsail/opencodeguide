@@ -27,6 +27,7 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
+- [x] **Chinese IDE Documentation Update (v2)**: Overhauled the IDE guide with VS Code, Cursor, and Windsurf support, including detailed shortcuts and troubleshooting ([TASK101]).
 - [x] **Troubleshooting Documentation Update (ZH)**: Overhauled the Chinese troubleshooting guide with detailed logs, storage, desktop app, and system-specific diagnostics ([TASK100]).
 - [x] **Chinese Introduction v2**: Updated the core entry guide for the Chinese locale with improved linking, installation methods, and usage scenarios ([TASK099]).
 - [x] **LLM Provider Expansion (ZH)**: Updated the model providers guide to support 75+ sources with updated configuration steps (GitLab Duo, Bedrock, etc.) and fixed global TOC layout issues ([TASK038]).
