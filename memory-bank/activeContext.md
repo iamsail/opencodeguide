@@ -6,6 +6,11 @@
 - Maintaining site stability while expanding the Chinese documentation suite.
 
 ## Recent Changes
+- **Chinese CLI Documentation Update (v2) ([TASK102])**:
+    - **Content Overhaul**: Synchronized `/zh/docs/cli` with the latest official documentation including the new `session` subcommand structure.
+    - **Subcommands**: Refactored `agent`, `auth`, `mcp`, and `session` into optimized HTML tables for mobile responsiveness and MDX compatibility.
+    - **Feature Updates**: Explicitly documented `acp` as a "Quick Submit" tool and added missing flags like `--format`, `--file`, and `--title`.
+    - **Env Vars & Experimental**: Included new environment variables and the `PLAN_MODE` experimental flag.
 - **Chinese IDE Documentation Update (v2) ([TASK101])**:
     - **Content Overhaul**: Replaced the Chinese IDE guide at `/zh/docs/ide` with a version covering VS Code, Cursor, and Windsurf.
     - **Shortcuts**: Added detailed shortcut commands for Mac/Windows/Linux, including the new `@File` reference shortcut (`Cmd+Option+K`).
