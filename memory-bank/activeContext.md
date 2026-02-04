@@ -6,6 +6,11 @@
 - Maintaining site stability while expanding the Chinese documentation suite.
 
 ## Recent Changes
+- **Chinese IDE Documentation Update (v2) ([TASK101])**:
+    - **Content Overhaul**: Replaced the Chinese IDE guide at `/zh/docs/ide` with a version covering VS Code, Cursor, and Windsurf.
+    - **Shortcuts**: Added detailed shortcut commands for Mac/Windows/Linux, including the new `@File` reference shortcut (`Cmd+Option+K`).
+    - **Installation**: Clarified the `opencode` automatic installation workflow and manual marketplace alternative.
+    - **Troubleshooting**: Added specific CLI command installation steps for Cursor and Windsurf to the troubleshooting section.
 - **Troubleshooting Documentation Update (ZH) ([TASK100])**:
     - **Content Overhaul**: Replaced the Chinese troubleshooting guide at `/zh/docs/troubleshooting` with a comprehensive version covering logs, storage, desktop app debugging, and system-specific fixes (Linux clipboard, Windows WebView2).
     - **SEO**: Maintained metadata and authoritative URL structure while improving searchability for specific error codes like `ProviderModelNotFoundError` and `ProviderInitError`.
