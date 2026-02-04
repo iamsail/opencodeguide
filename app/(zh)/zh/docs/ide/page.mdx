@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "IDE 指南 (VS Code & Cursor) | OpenCode 中文文档",
-  description: "了解如何在 VS Code, Cursor 及其他 IDE 中安装 and 使用 OpenCode 扩展，包括快捷键、上下文感知和故障排除",
+  title: "IDE 指南 (VS Code, Cursor, Windsurf) | OpenCode 中文文档",
+  description: "了解如何在 VS Code, Cursor, Windsurf 及其他 IDE 中安装和使用 OpenCode 扩展，包含快速启动快捷键、增强的文件引用功能、自动安装步骤及故障排除指南。",
   alternates: {
     canonical: "/zh/docs/ide",
     languages: {
@@ -9,52 +9,70 @@ export const metadata = {
   },
 }
 
-# IDE
+# OpenCode 文档（IDE 集成）
 
-OpenCode 是适用于 VS Code、Cursor 以及其他 IDE 的扩展。
+OpenCode 扩展支持 VS Code、Cursor 及其他任何兼容终端的 IDE。只需在终端中运行 `opencode` 即可启动使用。
 
 ## 使用方法
 
-- **快速启动**：使用 `Cmd+Esc`（Mac）或 `Ctrl+Esc`（Windows/Linux）在分屏终端视图中打开 OpenCode；如果已经有运行中的会话，则会聚焦到现有终端会话。
-- **新建会话**：使用 `Cmd+Shift+Esc`（Mac）或 `Ctrl+Shift+Esc`（Windows/Linux）启动一个全新的 OpenCode 终端会话（即使已经有一个在运行）。你也可以点击界面中的 OpenCode 按钮。
-- **上下文感知**：会自动把当前选中的代码或当前打开的标签页内容分享给 OpenCode。
-- **文件引用快捷键**：使用 `Cmd+Option+K`（Mac）或 `Alt+Ctrl+K`（Linux/Windows）插入文件引用。例如：`@File#L37-42`。
+### 快速启动
 
-## 安装方法
+- **Mac 系统**：使用快捷键 `Cmd+Esc`
+- **Windows/Linux 系统**：使用快捷键 `Ctrl+Esc`
+- **功能**：在分屏终端视图中打开 OpenCode；若已有运行中的终端会话，将直接聚焦该会话。
 
-要在 VS Code 及其常见分支版本（Cursor、Windsurf、VSCodium 等）上安装 OpenCode：
+### 新建会话
 
-1. 打开 VS Code（或对应 IDE）
+- **Mac 系统**：使用快捷键 `Cmd+Shift+Esc`
+- **Windows/Linux 系统**：使用快捷键 `Ctrl+Shift+Esc`
+- **功能**：即使已有 OpenCode 终端会话，仍可新建一个；也可通过 UI 中的 OpenCode 按钮点击创建。
+
+### 上下文感知
+
+自动共享当前选中的内容或标签页给 OpenCode。
+
+### 文件引用快捷键
+
+- **Mac 系统**：使用快捷键 `Cmd+Option+K`
+- **Windows/Linux 系统**：使用快捷键 `Alt+Ctrl+K`
+- **功能**：插入文件引用，示例格式为 `@File#L37-42`（表示引用文件 File 的第 37-42 行）。
+
+## 安装步骤
+
+适用于 VS Code 及热门衍生版本（如 Cursor、Windsurf、VSCodium）：
+
+1. 打开对应的 IDE（如 VS Code）
 2. 打开集成终端
-3. 直接运行命令：
+3. 运行命令：
    ```bash
    opencode
    ```
-   → 扩展会自动安装完成
+   → 扩展将自动安装完成
 
-**另一种场景**：如果你希望在 TUI 中使用 `/editor` 或 `/export` 命令时打开你自己的 IDE，需要设置环境变量：
+### 自定义 IDE 配置
 
-```bash
-export EDITOR="code --wait"
-```
+若希望在 TUI 中运行 `/editor` 或 `/export` 命令时使用自定义 IDE，需执行以下配置：
+
+- 设置环境变量：`export EDITOR="code --wait"`
 
 （更多关于 TUI 中编辑器设置的内容可参考：[/zh/docs/tui/#editor-setup](/zh/docs/tui/#editor-setup)）
 
-### 手动安装
+## 手动安装
 
-在 VS Code 的扩展市场（Extensions Marketplace）中搜索 **OpenCode**，然后点击 **Install** 安装即可。
+1. 在 IDE 的「扩展市场」（Extensions Marketplace）中搜索 **OpenCode**
+2. 点击「安装」按钮完成安装
 
 ## 故障排除
 
-如果扩展未能自动安装，请检查以下几点：
+若扩展无法自动安装，可按以下步骤排查：
 
-- 确保你是在**集成终端**中运行的 `opencode` 命令
-- 确认你的 IDE 已正确安装对应的 CLI 命令：
-  - VS Code → `code` 命令
-  - Cursor → `cursor` 命令
-  - Windsurf → `windsurf` 命令
-  - VSCodium → `codium` 命令
-- 如果缺少对应命令：
-  - 按 `Cmd+Shift+P`（Mac）或 `Ctrl+Shift+P`（Windows/Linux）打开命令面板
-  - 搜索并执行 “Shell Command: Install ‘code’ command in PATH”（或你所用 IDE 的对应命令）
-- 确保 VS Code（或对应 IDE）有权限安装扩展
+1. 确保在 IDE 的**集成终端**中运行 `opencode` 命令
+2. 验证 IDE 对应的 CLI 命令是否已安装：
+   - VS Code：`code` 命令
+   - Cursor：`cursor` 命令
+   - Windsurf：`windsurf` 命令
+   - VSCodium：`codium` 命令
+3. 若 CLI 命令未安装，执行以下操作：
+   - 按 `Cmd+Shift+P`（Mac）或 `Ctrl+Shift+P`（Windows/Linux）打开命令面板
+   - 搜索并执行 “Shell Command: Install 'code' command in PATH”（其它 IDE 请替换为对应命令，如 Cursor 搜索 “Install 'cursor' command in PATH”）
+4. 确保 IDE 拥有安装扩展的权限
