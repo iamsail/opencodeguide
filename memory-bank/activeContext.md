@@ -6,6 +6,9 @@
 - Maintaining site stability while expanding the Chinese documentation suite.
 
 ## Recent Changes
+- **Troubleshooting Documentation Update (ZH) ([TASK100])**:
+    - **Content Overhaul**: Replaced the Chinese troubleshooting guide at `/zh/docs/troubleshooting` with a comprehensive version covering logs, storage, desktop app debugging, and system-specific fixes (Linux clipboard, Windows WebView2).
+    - **SEO**: Maintained metadata and authoritative URL structure while improving searchability for specific error codes like `ProviderModelNotFoundError` and `ProviderInitError`.
 - **Introduction Documentation v2 ([TASK099])**:
     - **Content Overhaul**: Replaced the Chinese introduction at `/zh/docs/intro` with a more comprehensive guide covering install scripts, various package managers, detailed initialization steps, and multi-mode usage (Plan vs Build).
     - **Link Optimization**: Integrated localized internal links for OpenCode Zen, providers, themes, keybinds, and customization options.
