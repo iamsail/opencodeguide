@@ -4,7 +4,6 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { GoogleAnalytics } from "@/components/google-analytics";
 import { GoogleAdsense } from "@/components/google-adsense";
-import { Analytics } from "@vercel/analytics/react";
 import Script from "next/script";
 
 import { ThemeProvider } from "@/components/theme-provider";
@@ -59,7 +58,6 @@ export default function RootLayout({
             <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
           )}
           <GoogleAdsense pId="1345496474366685" />
-          <Analytics />
         </ThemeProvider>
       </body>
     </html>
