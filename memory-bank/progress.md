@@ -27,6 +27,7 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
+- [x] **Homepage API CTA**: Added a high-visibility external API registration CTA to the root homepage hero and shared top navigation while preserving the core documentation CTA ([TASK103]).
 - [x] **Chinese CLI Documentation Update (v2)**: Synchronized CLI reference with the latest `session` command logic, updated environment variables, and refactored UI for mobile parity ([TASK102]).
 - [x] **Chinese IDE Documentation Update (v2)**: Overhauled the IDE guide with VS Code, Cursor, and Windsurf support, including detailed shortcuts and troubleshooting ([TASK101]).
 - [x] **Troubleshooting Documentation Update (ZH)**: Overhauled the Chinese troubleshooting guide with detailed logs, storage, desktop app, and system-specific diagnostics ([TASK100]).
