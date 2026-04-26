@@ -13,7 +13,7 @@ export default function Home() {
           OpenCode is the offline-first, plugin-driven alternative to cloud coding assistants. 
           Learn how to run it with Ollama, connect via <Link href="/en/mcp" className="underline hover:text-gray-900 dark:hover:text-gray-50">Model Context Protocol (MCP)</Link>, and integrate with Neovim.
         </p>
-        <div className="flex gap-4">
+        <div className="flex w-full max-w-md flex-col gap-4 sm:w-auto sm:max-w-none sm:flex-row sm:justify-center">
           <Link
             href="/en/installation"
             className="inline-flex items-center justify-center rounded-md bg-gray-900 px-8 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-700 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-200"
@@ -21,6 +21,15 @@ export default function Home() {
             Get Started
             <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
+          <a
+            href="https://ccapi.ai/register?aff=6dhz"
+            target="_blank"
+            rel="noopener noreferrer sponsored"
+            className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-8 py-3 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-800"
+          >
+            Get AI API Access
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </a>
         </div>
       </section>
 
