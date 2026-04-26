@@ -6,6 +6,11 @@
 - Maintaining site stability while expanding the Chinese documentation suite.
 
 ## Recent Changes
+- **Homepage API CTA ([TASK103])**:
+    - **Homepage Monetization**: Added a high-visibility external CTA to the root homepage hero linking to `https://ccapi.ai/register?aff=6dhz`.
+    - **Placement Strategy**: Kept the existing `Get Started` documentation path while introducing `Get AI API Access` as a strong secondary action for maximum visibility.
+    - **Implementation Detail**: Used a native external anchor with `target="_blank"` and `rel="noopener noreferrer sponsored"`, plus a responsive stacked/mobile CTA layout.
+    - **Header Distribution**: Added the same external API link to the shared top navigation for English, Chinese, and Korean headers.
 - **Chinese CLI Documentation Update (v2) ([TASK102])**:
     - **Content Overhaul**: Synchronized `/zh/docs/cli` with the latest official documentation including the new `session` subcommand structure.
     - **Subcommands**: Refactored `agent`, `auth`, `mcp`, and `session` into optimized HTML tables for mobile responsiveness and MDX compatibility.
