@@ -1,11 +1,18 @@
 # Active Context
 
 ## Current Focus
+- **[TASK103] OpenCode v2 文档同步 (进行中)**: Phase 0 流水线 + Phase 1 试点 5 页已完成并提交（`7b755e4` on dev，未 push）。**下一步：用户人工审阅试点 diff 后执行 Phase 2**（剩余 16 个 update 页原地更新 + 14 个 legacy 页注入迁移提示），随后 Phase 3（45 个新增页 + 侧边栏扩展）、Phase 4（SEO 回归）。剩余 TODO 详见 `tasks/TASK103-docs-sync-pipeline-v2.md` 的 Subtasks 表。
 - **Skills Content Expansion**: Increasing the variety of available smart agent skills to provide more value to developers.
 - **Skills Architecture Upgrade**: Solidifying the "MDX as Database" pattern for the Skills section to enable community contributions.
 - Maintaining site stability while expanding the Chinese documentation suite.
 
 ## Recent Changes
+- **v2 文档同步流水线与试点同步 ([TASK103], 2026-10-24)**:
+    - **流水线**: 新增 `scripts/docs-sync/`（fetch→diff→transform→translate→generate→validate→report）与命令 `npm run docs:sync`；数据文件 `page-map.json`（66 slug 映射）+ `glossary.zh.json`（术语表）；`.upstream/` 快照入库作 diff 基线，`.translation-cache/` gitignore。
+    - **组件**: `components/docs-mdx/` 新增 Callout/Card/CardGroup/CodeTabs 并注册；**CodeTabs 采用 JSON 字符串属性**（mdxjs-rs 会在对象字面量内部逗号处截断 JSX 属性表达式，数组对象语法无法编译）。
+    - **SEO 护栏**: update-in-place 强制保留 `export const metadata`；缺 metadata 拒绝覆盖（已为 `/zh/docs/config` 补齐）；内链经 linkRewrites 重写；零删页零重定向。
+    - **试点成果**: `/zh/docs/{intro,config,cli,troubleshooting}` + `/zh/docs/configure/agents` 已同步 v2 内容，build 全绿、幂等通过；已提交 `7b755e4`（95 files）。
+    - **注意**: `/zh/docs/cli` 在 Phase 3 创建 `/zh/docs/cli/commands` 前内容较薄（命令参考已迁移）。
 - **Chinese CLI Documentation Update (v2) ([TASK102])**:
     - **Content Overhaul**: Synchronized `/zh/docs/cli` with the latest official documentation including the new `session` subcommand structure.
     - **Subcommands**: Refactored `agent`, `auth`, `mcp`, and `session` into optimized HTML tables for mobile responsiveness and MDX compatibility.
