@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "node scripts/build-search.mjs && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "docs:sync": "node scripts/docs-sync/run.mjs",
+    "docs:sync:check": "node scripts/docs-sync/run.mjs --dry-run",
+    "docs:validate": "node scripts/docs-sync/validate.mjs"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.0.0",
