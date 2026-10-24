@@ -6,158 +6,223 @@ export const metadata = {
   },
 }
 
-# OpenCode 故障排除指南
-本文档汇总了 OpenCode 的常见问题及解决方案，排查问题前建议优先检查日志和本地存储数据。
+<Callout type="tip">
+  你可以让 OpenCode 自行调试。描述问题，并要求它使用本故障排除页面；它可以阅读以下步骤、检查其服务与日志，并帮助定位问题。
+</Callout>
 
-## 一、日志（Logs）
-日志文件记录了应用运行状态，是排查问题的重要依据。
-- **存储路径**：
-  - macOS/Linux：`~/.local/share/opencode/log/`
-  - Windows：按下 `WIN+R`，粘贴 `%USERPROFILE%\.local\share\opencode\log`
-- **文件命名**：以时间戳命名（例如 `2025-01-09T123456.log`），仅保留最近 10 个日志文件
-- **日志级别设置**：通过命令行参数 `--log-level` 调整详细程度，示例：`opencode --log-level DEBUG`（获取调试级详细信息）
+OpenCode 采用客户端-服务器架构。后台服务持有会话、插件、权限及其他应用状态。排查时请先判断问题出在客户端、共享服务，还是特定项目。
 
-## 二、存储（Storage）
-OpenCode 将会话数据和应用数据存储在以下路径：
-- **基础存储路径**：
-  - macOS/Linux：`~/.local/share/opencode/`
-  - Windows：按下 `WIN+R`，粘贴 `%USERPROFILE%\.local\share\opencode`
-- **目录包含内容**：
-  - `auth.json`：认证数据（如 API 密钥、OAuth 令牌）
-  - `log/`：应用日志（同「日志」章节路径）
-  - `project/`：项目特定数据（如会话、消息数据）
-    - Git 仓库项目：存储在 `./<project-slug>/storage/`
-    - 非 Git 仓库项目：存储在 `./global/storage/`
+## 检查后台服务
 
-## 三、桌面应用（Desktop App）
-OpenCode 桌面版后台运行本地 OpenCode 服务器（`opencode-cli` 辅助进程），常见问题多由插件异常、缓存损坏或服务器设置错误导致。
+显示当前服务信息：
 
-### 3.1 快速检查
-1. 完全退出并重新启动应用
-2. 若显示错误界面，点击「重启」并复制错误详情
-3. macOS 专属：点击 `OpenCode` 菜单 →「重新加载 Webview」（适用于 UI 空白/冻结场景）
+```bash
+opencode service status
+```
 
-### 3.2 禁用插件
-若应用启动崩溃、卡顿或行为异常，优先禁用插件排查：
-1. **检查全局配置文件**：
-   - 路径：
-     - macOS/Linux：`~/.config/opencode/opencode.jsonc`（或 `~/.config/opencode/opencode.json`）；旧版本安装路径为 `~/.local/share/opencode/opencode.jsonc`
-     - Windows：按下 `WIN+R`，粘贴 `%USERPROFILE%\.config\opencode\opencode.jsonc`
-   - 操作：若配置中有 `plugin` 字段，临时删除该字段或设为空数组：
-     ```json
-     {
-       "$schema": "https://opencode.ai/config.json",
-       "plugin": []
-     }
-     ```
-2. **检查插件目录**（本地插件可能单独加载）：
-   - 全局插件：
-     - macOS/Linux：`~/.config/opencode/plugins/`
-     - Windows：按下 `WIN+R`，粘贴 `%USERPROFILE%\.config\opencode\plugins`
-   - 项目插件（仅使用项目专属配置时）：`<your-project>/.opencode/plugins/`
-   - 操作：临时移走插件目录（或重命名），重启应用。若恢复正常，逐个启用插件定位问题插件
+验证其 API 是否健康：
 
-### 3.3 清除缓存
-禁用插件无效（或插件安装卡住）时，清除缓存后重建：
-1. 完全退出 OpenCode 桌面版
-2. 删除缓存目录：
-   - macOS：打开访达 → 按下 `Cmd+Shift+G` → 粘贴 `~/.cache/opencode`
-   - Linux：删除 `~/.cache/opencode`（或执行命令 `rm -rf ~/.cache/opencode`）
-   - Windows：按下 `WIN+R`，粘贴 `%USERPROFILE%\.cache\opencode`
-3. 重启 OpenCode 桌面版
+```bash
+opencode api get /api/info
+```
 
-### 3.4 修复服务器连接问题
-桌面版默认启动本地服务器，也可连接自定义服务器 URL，连接失败时按以下步骤排查：
-1. **清除默认服务器 URL**：在首页点击服务器名称（带状态点）打开服务器选择器，在「默认服务器」栏点击「清除」
-2. **移除配置中的服务器设置**：若 `opencode.json(c)` 包含 `server` 章节，临时删除该章节后重启应用
-3. **检查环境变量**：若设置了 `OPENCODE_PORT` 环境变量，应用会使用该端口启动本地服务器，需取消设置（或选择空闲端口）后重启
+如果服务卡住或不健康，重启它：
 
-### 3.5 系统专属问题
-- **Linux：Wayland / X11 问题**：Wayland 环境可能导致空白窗口或合成器错误
-  - 尝试用 `OC_ALLOW_WAYLAND=1` 启动应用
-  - 若问题加剧，移除该环境变量，改用 X11 会话启动
-- **Windows：WebView2 运行时**：桌面版依赖 Microsoft Edge WebView2 Runtime，若应用空白或无法启动，需安装/更新该运行时
-- **Windows：性能问题**：若出现运行缓慢、文件访问异常或终端问题，建议使用 WSL（Windows Subsystem for Linux）
+```bash
+opencode service restart
+```
 
-### 3.6 通知不显示
-需同时满足以下条件才会显示系统通知：
-1. 操作系统设置中启用了 OpenCode 的通知权限
-2. 应用窗口未处于聚焦状态
+也可以显式停止并启动：
 
-### 3.7 重置桌面应用存储（最后手段）
-若应用无法启动且无法通过 UI 清除设置，可重置保存状态：
-1. 完全退出 OpenCode 桌面版
-2. 删除以下文件（位于应用数据目录）：
-   - `opencode.settings.dat`：桌面版默认服务器 URL
-   - `opencode.global.dat` 和 `opencode.workspace.*.dat`：UI 状态（如最近服务器/项目）
-3. 快速定位目录：
-   - macOS：打开访达 → 按下 `Cmd+Shift+G` → 输入 `~/Library/Application Support`，搜索上述文件名
-   - Linux：在 `~/.local/share` 下搜索上述文件名
-   - Windows：按下 `WIN+R` → 输入 `%APPDATA%`，搜索上述文件名
+```bash
+opencode service stop
+opencode service start
+```
 
-## 四、获取帮助
-### 4.1 报告问题
-- 首选渠道：通过 GitHub 仓库提交问题：[github.com/anomalyco/opencode/issues](https://github.com/anomalyco/opencode/issues)
-- 提交前请搜索现有问题，避免重复提交
+<Callout type="note">
+  OpenCode 通常会自动发现或启动共享的后台服务。仅在诊断服务生命周期时才需要这些服务命令。
+</Callout>
 
-### 4.2 社区支持
-加入 Discord 服务器获取实时帮助 and 社区讨论：[opencode.ai/discord](https://opencode.ai/discord)
+## 允许浏览器来源
 
-## 五、常见问题及解决方案
-### 5.1 OpenCode 无法启动
-1. 查看日志中的错误信息
-2. 执行 `opencode --print-logs` 在终端查看输出
-3. 用 `opencode upgrade` 确保安装最新版本
+如果其他来源的浏览器客户端因 CORS 无法连接，请将该客户端的来源添加到服务配置中：
 
-### 5.2 认证问题
-1. 在 TUI 中执行 `/connect` 命令重新认证
-2. 检查 API 密钥有效性
-3. 确保网络允许连接到提供商的 API
+```bash
+opencode service set cors http://192.168.1.10:3001
+opencode service get cors
+```
 
-### 5.3 模型不可用
-1. 确认已完成提供商认证
-2. 验证配置中的模型名称是否正确
-3. 部分模型可能需要特定访问权限或订阅
-4. 若出现 `ProviderModelNotFoundError`：模型引用格式错误，正确格式为 `<providerId>/<modelId>`，示例：
-   - `openai/gpt-4.1`
-   - `openrouter/google/gemini-2.5-flash`
-   - `opencode/kimi-k2`
-5. 执行 `opencode models` 查看可访问的模型列表
+请使用精确的 HTTP 或 HTTPS 来源，必要时包含端口，且不含路径或结尾斜杠。要允许多个来源，请以单个参数传入以逗号分隔的列表；每个来源前后的空白会被去除：
 
-### 5.4 ProviderInitError
-原因：配置无效或损坏
-解决方案：
-1. 按照提供商指南验证配置是否正确
-2. 清除存储的配置：
-   - macOS/Linux：执行 `rm -rf ~/.local/share/opencode`
-   - Windows：按下 `WIN+R`，删除 `%USERPROFILE%\.local\share\opencode`
-3. 在 TUI 中用 `/connect` 命令重新认证
+```bash
+opencode service set cors "http://192.168.1.10:3001, https://app.example.com"
+```
 
-### 5.5 AI_APICallError 及提供商包问题
-原因：提供商包过时（OpenCode 动态安装并缓存提供商包）
-解决方案：
-1. 清除提供商包缓存：
-   - macOS/Linux：执行 `rm -rf ~/.cache/opencode`
-   - Windows：按下 `WIN+R`，删除 `%USERPROFILE%\.cache\opencode`
-2. 重启 OpenCode，自动重新安装最新版提供商包
+`service get cors` 会打印一个 JSON 数组。使用以下命令移除已配置的列表：
 
-### 5.6 Linux 系统复制/粘贴功能失效
-需安装以下剪贴板工具之一：
-- X11 系统：
+```bash
+opencode service unset cors
+```
+
+设置或取消设置服务配置会停止后台服务。下次启动时会读取新配置；使用 `opencode service start` 可显式启动。
+
+对于前台服务器，为每个额外允许的来源重复 `--cors`：
+
+```bash
+opencode serve --cors http://192.168.1.10:3001 --cors https://app.example.com
+```
+
+使用 `serve --service` 时，提供的 `--cors` 标志会覆盖该进程的持久化列表。若不提供这些标志，服务模式将使用持久化列表。CORS 不会改变监听地址，也不会绕过服务端认证。
+
+## 检查 API
+
+`api` 命令使用本地服务发现与认证流程。它接受 HTTP 方法与路径，或 OpenAPI 操作 ID。
+
+有关全部端点与操作 ID，请参阅 [API 参考](https://opencode.ai/v2/docs/api)。
+
+使用 `--data` 或 `-d` 传递 JSON 请求体，使用 `--header` 或 `-H` 添加请求头。
+
+<Callout type="warning">
+  当没有兼容的健康服务可用时，运行 `opencode api` 可能会启动后台服务。
+</Callout>
+
+## 读取日志
+
+已安装的构建会将日志写入：
+
+```text
+~/.local/share/opencode/log/opencode.log
+```
+
+复现问题时跟踪日志：
+
+```bash
+tail -f ~/.local/share/opencode/log/opencode.log
+```
+
+每行都包含进程 `run` ID 和 `role` 字段。使用 `role=server` 查看会话、提供商、插件、权限与工具相关活动。
+
+```bash
+grep 'role=server' ~/.local/share/opencode/log/opencode.log
+grep 'run=8fc3b1d5' ~/.local/share/opencode/log/opencode.log
+```
+
+## 捕获堆快照
+
+在任意平台上为正在运行的后台服务写入内存（堆）快照：
+
+```bash
+opencode debug heap-dump
+```
+
+该命令会等待快照完成，然后打印其路径：
+
+```text
+/home/me/.local/share/opencode/log/heap-48213-2026-10-23T013012345Z.heapsnapshot
+```
+
+使用 `--directory` 可将快照写入其他位置。若目录不存在，服务会创建它：
+
+```bash
+opencode debug heap-dump --directory ./snapshots
+```
+
+- 它只使用已在运行的服务。绝不会启动、替换或重启服务。
+- 使用 `--server <url>` 可捕获你通过 `opencode serve` 启动的服务器。若其设置了密码，请设置 `OPENCODE_PASSWORD`。此时 `--directory` 是服务器所在机器上的路径。
+- 在 Chrome DevTools 的 Memory 面板中打开该文件。
+
+<Callout type="warning">
+  服务在写入快照期间会暂停，其内存占用可能短时上升。快照可能包含提示词、文件内容与凭据。请勿公开分享。
+</Callout>
+
+### 在桌面应用中
+
+从命令面板运行 **捕获堆快照**。它会在你的下载文件夹中写入一个文件夹，内含应用各部分的快照，以及快照无法展示的内存明细：
+
+```text
+opencode-heap-2026-10-23T013012345Z/
+  memory.json                  where the memory is, per process, in MiB: start here
+  memory-infra.json            Chromium's memory dump trace; open it in https://ui.perfetto.dev
+  heap-48213-….heapsnapshot    the desktop's own server
+  window-1-48390.heapsnapshot  one per app window
+  main-48102.heapsnapshot      the desktop main process
+  gpu.json                     the GPU and driver
+  manifest.json                processes, PIDs, and memory before and after; written last
+```
+
+- 堆快照只包含 JavaScript 对象与页面。图像、布局、合成器层与 GPU 内存则记录在 `memory.json` 与 `memory-infra.json` 中。
+- 不会捕获远程服务器。请改为在该机器上使用 `opencode debug heap-dump`。
+- 服务会直接将快照写入该文件夹，因此不会移动或复制大文件。
+- 不包含浏览器标签页，因为其快照会包含你访问过的页面内容。
+
+## 捕获 CPU 与内存分析数据
+
+在 macOS 与 Linux 上，可以向运行中的 OpenCode 进程发送信号以捕获诊断数据。从健康端点获取后台服务 PID：
+
+```bash
+opencode api get /api/info
+```
+
+将响应中的 `pid` 与以下信号之一配合使用：
+
+- `SIGPROF` 会捕获十秒的 CPU 分析数据：
+
   ```bash
-  apt install -y xclip
-  # 或
-  apt install -y xsel
+  kill -SIGPROF <pid>
   ```
-- Wayland 系统：
+
+  结果以 `cpu-<pid>-<timestamp>.cpuprofile` 的形式写入日志目录。
+
+- `SIGUSR1` 会捕获内存（堆）快照：
+
   ```bash
-  apt install -y wl-clipboard
+  kill -SIGUSR1 <pid>
   ```
-- 无头环境（无图形界面）：
-  ```bash
-  apt install -y xvfb
-  # 启动命令：
-  Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-  export DISPLAY=:99.0
-  ```
-OpenCode 会自动检测环境，优先使用 Wayland 下的 `wl-clipboard`，否则按 `xclip` → `xsel` 顺序查找工具
+
+  结果以 `heap-<pid>-<timestamp>.heapsnapshot` 的形式写入日志目录。
+
+打开文件前，请等待 `opencode.log` 中出现 `CPU profile written` 或 `heap snapshot written`。对应的日志条目包含完整路径。这两种文件都可以在 Chrome DevTools 中查看。
+
+<Callout type="note">
+  Windows 上不支持通过信号触发的分析数据。请改用 `opencode debug heap-dump` 捕获堆快照。写入堆快照可能会暂停进程，并暂时增加其内存占用。
+</Callout>
+
+## 服务文件
+
+共享服务会将自己注册于：
+
+```text
+~/.local/state/opencode/service.json
+```
+
+其私有服务配置单独存储于：
+
+```text
+~/.config/opencode/service.json
+```
+
+数据库通常位于：
+
+```text
+~/.local/share/opencode/opencode.db
+```
+
+`OPENCODE_DB` 可覆盖数据库位置。
+
+<Callout type="warning">
+  排查期间请勿删除或编辑服务文件或数据库。请使用服务命令管理守护进程，并在使用外部工具检查持久化数据前先进行备份。
+</Callout>
+
+## 报告问题
+
+报告可复现的问题时，请附上以下内容：
+
+- `opencode --version` 的输出
+- `opencode service status` 的输出
+- 能复现该问题的最少步骤序列
+- 该问题影响的是共享服务、特定客户端，还是某个项目
+- 相关日志行，包括其 `run` 与 `role` 字段
+
+分享日志前，请移除 API 密钥、授权请求头、提示词、文件内容及其他敏感数据。
+
+可复现的问题请提交至 [GitHub Issues](https://github.com/anomalyco/opencode/issues)。

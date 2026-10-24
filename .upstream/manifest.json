@@ -1,0 +1,338 @@
+{
+  "repo": "anomalyco/opencode",
+  "ref": "dev",
+  "commitSha": "dev",
+  "fetchedAt": "2026-10-24T09:07:36.705Z",
+  "files": {
+    "agents": {
+      "sha": "4da30f18a67384c162e993dd93f94bd8f84edf40",
+      "path": "services/www/src/docs/content/agents.mdx",
+      "bytes": 8779
+    },
+    "attachments": {
+      "sha": "6a7342b7679abf25ec9a0597e6cba6639c32bb99",
+      "path": "services/www/src/docs/content/attachments.mdx",
+      "bytes": 6556
+    },
+    "build/client/effect": {
+      "sha": "9358c63e72a0cd301d52b4c4c689183b84e8abaa",
+      "path": "services/www/src/docs/content/build/client/effect.mdx",
+      "bytes": 5103
+    },
+    "build/client": {
+      "sha": "5634a90868e8a469c7255eb84d774388f23c3aba",
+      "path": "services/www/src/docs/content/build/client/index.mdx",
+      "bytes": 6177
+    },
+    "build": {
+      "sha": "3f71ce51ae2d77e10072ea9a1a282b48026c4ddf",
+      "path": "services/www/src/docs/content/build/index.mdx",
+      "bytes": 958
+    },
+    "build/plugins/cli": {
+      "sha": "4ebabf78f24d4b64d99c30bcd7c36f41b16a25ad",
+      "path": "services/www/src/docs/content/build/plugins/cli.mdx",
+      "bytes": 21958
+    },
+    "build/plugins/effect": {
+      "sha": "329f732a2166a77f72c7ce8f64393a28d7bef4ba",
+      "path": "services/www/src/docs/content/build/plugins/effect.mdx",
+      "bytes": 50709
+    },
+    "build/plugins/effect/rpc": {
+      "sha": "73cee5ce3011fd14bf652398e0a9eb4c8e58454a",
+      "path": "services/www/src/docs/content/build/plugins/effect/rpc.mdx",
+      "bytes": 3876
+    },
+    "build/plugins": {
+      "sha": "102b4a97448c4ffdd3598fd34c6080b4d8957d35",
+      "path": "services/www/src/docs/content/build/plugins/index.mdx",
+      "bytes": 60780
+    },
+    "build/plugins/migrate-v1": {
+      "sha": "1cd6a5afee3765caf1a34ecf1de9f7bf51cc97c0",
+      "path": "services/www/src/docs/content/build/plugins/migrate-v1.mdx",
+      "bytes": 15100
+    },
+    "build/plugins/rpc": {
+      "sha": "dba3e24f433ae0a2f7a8bc34f9aa265c8093d924",
+      "path": "services/www/src/docs/content/build/plugins/rpc.mdx",
+      "bytes": 5582
+    },
+    "build/sdk/cloudflare": {
+      "sha": "94b203b9089c227282677697e5740f2d1ee01d69",
+      "path": "services/www/src/docs/content/build/sdk/cloudflare.mdx",
+      "bytes": 2462
+    },
+    "build/sdk/effect": {
+      "sha": "a7ab85e3e842233885bf49c0489f7bd65ef3f35c",
+      "path": "services/www/src/docs/content/build/sdk/effect.mdx",
+      "bytes": 2674
+    },
+    "build/sdk": {
+      "sha": "c9618bd1a273f0512e5b8c2caa6163b63f2f16a9",
+      "path": "services/www/src/docs/content/build/sdk/index.mdx",
+      "bytes": 3053
+    },
+    "cli/acp": {
+      "sha": "04d2c858c92cef4adb24650f25691342ac2275c1",
+      "path": "services/www/src/docs/content/cli/acp.mdx",
+      "bytes": 18213
+    },
+    "cli/commands": {
+      "sha": "db38dbd6dceb1857cd6e5947a8e925d11f491b7b",
+      "path": "services/www/src/docs/content/cli/commands.mdx",
+      "bytes": 9882
+    },
+    "cli/config": {
+      "sha": "c4812d778f094fdde1c2211c3182c0da8f11c9d9",
+      "path": "services/www/src/docs/content/cli/config.mdx",
+      "bytes": 18967
+    },
+    "cli": {
+      "sha": "b6c997d536ac477360010988c61f6b368e15ad19",
+      "path": "services/www/src/docs/content/cli/index.mdx",
+      "bytes": 3232
+    },
+    "cli/keybinds": {
+      "sha": "a488c573855dddb2d5fd2642022cc9684f8cf6cb",
+      "path": "services/www/src/docs/content/cli/keybinds.mdx",
+      "bytes": 30654
+    },
+    "cli/plugins": {
+      "sha": "c1ecb0ff3587ec59ba9a18470b7043fb27c931d1",
+      "path": "services/www/src/docs/content/cli/plugins.mdx",
+      "bytes": 1779
+    },
+    "cli/providers": {
+      "sha": "01884b530dc299e9f9c15d1112fbeffefecdedb3",
+      "path": "services/www/src/docs/content/cli/providers.mdx",
+      "bytes": 5013
+    },
+    "cli/theme": {
+      "sha": "2617f13700ad8e7f9bd7af1c6b7906d03b5ce057",
+      "path": "services/www/src/docs/content/cli/theme.mdx",
+      "bytes": 7731
+    },
+    "cli/tui": {
+      "sha": "314e84eee3d2b1176899a9f204f572133ec2dd0c",
+      "path": "services/www/src/docs/content/cli/tui.mdx",
+      "bytes": 3363
+    },
+    "cli/web": {
+      "sha": "de349965d256277175b739241572d2a0e5a1da0e",
+      "path": "services/www/src/docs/content/cli/web.mdx",
+      "bytes": 3545
+    },
+    "commands": {
+      "sha": "1a513836567d7c9dc160bdf7c6c043b696413973",
+      "path": "services/www/src/docs/content/commands.mdx",
+      "bytes": 7242
+    },
+    "compaction": {
+      "sha": "a2c1357a1db35a192dce3a5c6ed6ea7564aa5728",
+      "path": "services/www/src/docs/content/compaction.mdx",
+      "bytes": 7925
+    },
+    "config": {
+      "sha": "eafc23472168296a05b096c81421ff0768d69658",
+      "path": "services/www/src/docs/content/config.mdx",
+      "bytes": 16687
+    },
+    "console/api": {
+      "sha": "00826d2f10db4eff9a05556fef127e8e2e974986",
+      "path": "services/www/src/docs/content/console/api/index.mdx",
+      "bytes": 8190
+    },
+    "console/api/inference": {
+      "sha": "e6d394167efe48c118212aac5c08cae6ccdce748",
+      "path": "services/www/src/docs/content/console/api/inference.mdx",
+      "bytes": 3276
+    },
+    "console/api/providers": {
+      "sha": "4d71021e94d044829303b6d725408c47a7513133",
+      "path": "services/www/src/docs/content/console/api/providers.mdx",
+      "bytes": 3462
+    },
+    "console/billing": {
+      "sha": "5d59c1a2888603151a3ac32b98b6002d592b2fec",
+      "path": "services/www/src/docs/content/console/billing.mdx",
+      "bytes": 2844
+    },
+    "console/budgets": {
+      "sha": "fe066e27ef979dc19c13ca694213c796e7a1f115",
+      "path": "services/www/src/docs/content/console/budgets.mdx",
+      "bytes": 4210
+    },
+    "console/go": {
+      "sha": "8b45a170b771c48c95b5a835b9053c916dfdcd84",
+      "path": "services/www/src/docs/content/console/go.mdx",
+      "bytes": 45307
+    },
+    "console/harnesses/claude-code": {
+      "sha": "1ffa4b0efd680d900d6caf28c496bd6aca884a6b",
+      "path": "services/www/src/docs/content/console/harnesses/claude-code.mdx",
+      "bytes": 2991
+    },
+    "console/harnesses/codex": {
+      "sha": "5fc1466047b509529a9bfa8d5b5f014f52b0be90",
+      "path": "services/www/src/docs/content/console/harnesses/codex.mdx",
+      "bytes": 2636
+    },
+    "console/harnesses/hermes": {
+      "sha": "6d61ab132b046226724b4f315cbd6f79c7922f73",
+      "path": "services/www/src/docs/content/console/harnesses/hermes.mdx",
+      "bytes": 1800
+    },
+    "console/harnesses": {
+      "sha": "b4dc331efa8625e3984cf886de0310fa426e0e1e",
+      "path": "services/www/src/docs/content/console/harnesses/index.mdx",
+      "bytes": 4592
+    },
+    "console/harnesses/pi": {
+      "sha": "dce88cffb7e5770e6fdb5b5d282398748719c5e3",
+      "path": "services/www/src/docs/content/console/harnesses/pi.mdx",
+      "bytes": 1694
+    },
+    "console/harnesses/raycast": {
+      "sha": "bc7f1c6332da1ae76a0019e7dab6d55d47a5734e",
+      "path": "services/www/src/docs/content/console/harnesses/raycast.mdx",
+      "bytes": 1426
+    },
+    "console": {
+      "sha": "3780c3954145682fe9e8eff8393b6a71fc39fa59",
+      "path": "services/www/src/docs/content/console/index.mdx",
+      "bytes": 1556
+    },
+    "console/members": {
+      "sha": "770878707f3b04a3e58d35b8c56d81e18317ea3d",
+      "path": "services/www/src/docs/content/console/members.mdx",
+      "bytes": 3009
+    },
+    "console/models": {
+      "sha": "a5985b20c95688a6031e864ec34f0b56b508b819",
+      "path": "services/www/src/docs/content/console/models.mdx",
+      "bytes": 38343
+    },
+    "console/providers": {
+      "sha": "ca0e4004aad5070fd8c6c5fdcb5a956504992652",
+      "path": "services/www/src/docs/content/console/providers.mdx",
+      "bytes": 5561
+    },
+    "console/scim": {
+      "sha": "7574b6d08c6329d3268b987576e2720842089de5",
+      "path": "services/www/src/docs/content/console/scim.mdx",
+      "bytes": 3837
+    },
+    "console/sso": {
+      "sha": "eb4f0225d28ebdc44616ee976a6700eec148ebcb",
+      "path": "services/www/src/docs/content/console/sso.mdx",
+      "bytes": 4207
+    },
+    "console/websearch": {
+      "sha": "939760d88820b9fa999ca30b9c6b3989b47a9e68",
+      "path": "services/www/src/docs/content/console/websearch.mdx",
+      "bytes": 1785
+    },
+    "console/workspaces": {
+      "sha": "88c88a3251fd6146132f90c363c2fbebf8e1f115",
+      "path": "services/www/src/docs/content/console/workspaces.mdx",
+      "bytes": 3933
+    },
+    "formatters": {
+      "sha": "e78821e0f6e82699518b203cda5730283614b06c",
+      "path": "services/www/src/docs/content/formatters.mdx",
+      "bytes": 6131
+    },
+    "index": {
+      "sha": "af9134d00584cc8bf9d04ac451897244b687ff70",
+      "path": "services/www/src/docs/content/index.mdx",
+      "bytes": 4926
+    },
+    "instructions": {
+      "sha": "1161e4e7577d5a3755eab01830d75ff67e0c3c3f",
+      "path": "services/www/src/docs/content/instructions.mdx",
+      "bytes": 5634
+    },
+    "mcp-servers": {
+      "sha": "bfea1f69632340091baac52c4c4e48140cb51720",
+      "path": "services/www/src/docs/content/mcp-servers.mdx",
+      "bytes": 15538
+    },
+    "migrate-v1": {
+      "sha": "3f1f94ec5655010fc2ecc03fb96039b0416a3c9e",
+      "path": "services/www/src/docs/content/migrate-v1.mdx",
+      "bytes": 20805
+    },
+    "models": {
+      "sha": "64cb618b97ddd2a8fb9410993e49254056ef82b4",
+      "path": "services/www/src/docs/content/models.mdx",
+      "bytes": 15539
+    },
+    "network": {
+      "sha": "be70545b519970a09f7f24db10f64e198f903c6c",
+      "path": "services/www/src/docs/content/network.mdx",
+      "bytes": 3370
+    },
+    "permissions": {
+      "sha": "31d26e6dcf030b75e3f6d838f67caa95666db11f",
+      "path": "services/www/src/docs/content/permissions.mdx",
+      "bytes": 12068
+    },
+    "plugins": {
+      "sha": "9356cd1ca49bb362749831f523e3e1d87d669577",
+      "path": "services/www/src/docs/content/plugins.mdx",
+      "bytes": 4371
+    },
+    "policies": {
+      "sha": "ae4dee398c8180988fa2ff0111f981f8944495ba",
+      "path": "services/www/src/docs/content/policies.mdx",
+      "bytes": 9539
+    },
+    "providers": {
+      "sha": "77cfe97009057a7a7c74d9cf980b98fd59bf121e",
+      "path": "services/www/src/docs/content/providers.mdx",
+      "bytes": 23164
+    },
+    "references": {
+      "sha": "947616ff775409cdf7659706bdd8049efdfc1ec4",
+      "path": "services/www/src/docs/content/references.mdx",
+      "bytes": 7012
+    },
+    "skills": {
+      "sha": "4281110e0f15e6cde1af0868e73add8f441d82ee",
+      "path": "services/www/src/docs/content/skills.mdx",
+      "bytes": 9187
+    },
+    "snapshots": {
+      "sha": "88bca613bcb714f0a320806c94ea6c4b5e9407f1",
+      "path": "services/www/src/docs/content/snapshots.mdx",
+      "bytes": 4876
+    },
+    "themes": {
+      "sha": "eb360c5ae5997447a6dc5bc3c3744b0bcb47ebcb",
+      "path": "services/www/src/docs/content/themes.mdx",
+      "bytes": 7657
+    },
+    "tools": {
+      "sha": "a42134a1f6d0021efb3e68caf70139651f6705a9",
+      "path": "services/www/src/docs/content/tools.mdx",
+      "bytes": 10268
+    },
+    "troubleshooting": {
+      "sha": "23587497955e9f0d1bb9b128b699762b75dcc73e",
+      "path": "services/www/src/docs/content/troubleshooting.mdx",
+      "bytes": 7714
+    },
+    "warming": {
+      "sha": "bd281fa99f361cfc3a4bdb923bed1991073bc253",
+      "path": "services/www/src/docs/content/warming.mdx",
+      "bytes": 3857
+    },
+    "websearch": {
+      "sha": "8409cabfd2c5aeaa29ab44985b88cf203fef285c",
+      "path": "services/www/src/docs/content/websearch.mdx",
+      "bytes": 2518
+    }
+  }
+}
