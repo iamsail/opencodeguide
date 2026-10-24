@@ -27,6 +27,7 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
+- [ ] **OpenCode v2 Docs Sync Pipeline (TASK103, In Progress)**: Automated fetch→translate→PR pipeline syncing `/zh/docs` with official v2 docs (https://opencode.ai/v2/docs). Phase 0 infrastructure + Phase 1 pilot (5 pages: intro/config/cli/troubleshooting/agents) done on 2026-10-24 (commit 7b755e4). Remaining: Phase 2 (16 update pages + 14 legacy banners) → Phase 3 (45 new pages + sidebar) → Phase 4 (SEO regression) → optional Phase 5 (CI weekly check). See TASK103 for the TODO table.
 - [x] **Chinese CLI Documentation Update (v2)**: Synchronized CLI reference with the latest `session` command logic, updated environment variables, and refactored UI for mobile parity ([TASK102]).
 - [x] **Chinese IDE Documentation Update (v2)**: Overhauled the IDE guide with VS Code, Cursor, and Windsurf support, including detailed shortcuts and troubleshooting ([TASK101]).
 - [x] **Troubleshooting Documentation Update (ZH)**: Overhauled the Chinese troubleshooting guide with detailed logs, storage, desktop app, and system-specific diagnostics ([TASK100]).
@@ -99,6 +100,14 @@
 -   [ ] Implement "Edit this page" links.
 
 
+## 最新进展 (2026-10-24)
+- **v2 文档同步流水线落地 (Phase 0+1) ([TASK103])**:
+    - **基础设施**: 新增 `scripts/docs-sync/` 流水线（fetch→diff→transform→translate→generate→validate→report）与 4 个 MDX 组件（Callout/Card/CardGroup/CodeTabs）；`npm run docs:sync` 一键同步，术语表 + 内容哈希缓存 + 断点续跑。
+    - **SEO 保护**: 原地更新保留 `export const metadata`（canonical/hreflang）；无 metadata 的页拒绝覆盖（已修复 `/zh/docs/config`）；零删页零重定向。
+    - **试点 5 页**: `/zh/docs/{intro,config,cli,troubleshooting}` 与 `/zh/docs/configure/agents` 已同步上游 v2 内容，build 全绿，幂等验证通过；已提交 `7b755e4`（dev 分支，未 push）。
+    - **关键技术发现**: mdxjs-rs 会在 JSX 属性对象字面量内部逗号处截断表达式，CodeTabs 改用 JSON 字符串属性方案规避。
+    - **待办**: 等试点 diff 人工审阅 → Phase 2（16 update + 14 legacy 提示）→ Phase 3（45 新增页 + 侧边栏 Console 组）→ Phase 4（SEO 回归）→ 可选 Phase 5（GitHub Actions 周检）。详见 TASK103。
+
 ## 最新进展 (2026-01-27)
 - **路线图同步 (Route Map Synchronization)**: 完成了 `ROUTE_MAP.md` 的全面审计与更新 ([TASK087])。
     - **新页面集成**: 添加了 `/about`、`/contact`、`/privacy` 等合规页面以及 `/ko/opencode` 韩国语页面。
@@ -135,3 +144,6 @@
 ## Known Issues
 -   Screenshots are still text-based placeholders.
 -   Chinese documentation depth still needs to be expanded for Providers/Configuration sections.
+-   **[TASK103] `/zh/docs/cli` 暂时变薄**: v2 将 CLI 命令参考移至 `cli/commands`（Phase 3 才建页 `/zh/docs/cli/commands`），当前该页仅为新版 CLI 简介；Phase 3.2 建议优先补 `cli/commands`。
+-   **[TASK103] `/zh/docs/configure/agent-skills` 存量多行 HTML table**: validate 报 MDX-RS 风险；该页在 Phase 2 update 名单内，同步时会被替换消解。
+-   **[TASK103] GitHub API 匿名限流**: 60 次/小时；流水线已回退缓存树 + raw 下载兜底，设置 `GITHUB_TOKEN` 可恢复完整树枚举。

@@ -1,5 +1,8 @@
 # Tasks Index
 
+## In Progress
+- [TASK103] OpenCode v2 文档自动化同步流水线 - Phase 0 基础设施与 Phase 1 试点 5 页已完成（commit 7b755e4）；待用户审阅试点 diff 后继续 Phase 2（16 update 页 + 14 legacy 提示）→ Phase 3（45 新增页 + 侧边栏）→ Phase 4（SEO 回归）；详见任务文件内的 Subtasks TODO 表
+
 ## Completed
 - [TASK102] 更新中文 CLI 文档 (v2) - 同步最新命令、环境变量及实验性选项 - Completed on 2026-02-04
 - [TASK101] 更新中文 IDE 文档 (v2) - 完善快捷键及多编辑器支持 - Completed on 2026-02-04
