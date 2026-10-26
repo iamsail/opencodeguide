@@ -20,6 +20,11 @@
     - **SEO 护栏**: update-in-place 强制保留 `export const metadata`；缺 metadata 拒绝覆盖（已为 `/zh/docs/config` 补齐）；内链经 linkRewrites 重写；零删页零重定向。
     - **试点成果**: `/zh/docs/{intro,config,cli,troubleshooting}` + `/zh/docs/configure/agents` 已同步 v2 内容，build 全绿、幂等通过；已提交 `7b755e4`（95 files）。
     - **注意**: `/zh/docs/cli` 在 Phase 3 创建 `/zh/docs/cli/commands` 前内容较薄（命令参考已迁移）。
+- **Homepage API CTA ([TASK103])**:
+    - **Homepage Monetization**: Added a high-visibility external CTA to the root homepage hero linking to `https://ccapi.ai/register?aff=6dhz`.
+    - **Placement Strategy**: Kept the existing `Get Started` documentation path while introducing `Get AI API Access` as a strong secondary action for maximum visibility.
+    - **Implementation Detail**: Used a native external anchor with `target="_blank"` and `rel="noopener noreferrer sponsored"`, plus a responsive stacked/mobile CTA layout.
+    - **Header Distribution**: Added the same external API link to the shared top navigation for English, Chinese, and Korean headers.
 - **Chinese CLI Documentation Update (v2) ([TASK102])**:
     - **Content Overhaul**: Synchronized `/zh/docs/cli` with the latest official documentation including the new `session` subcommand structure.
     - **Subcommands**: Refactored `agent`, `auth`, `mcp`, and `session` into optimized HTML tables for mobile responsiveness and MDX compatibility.

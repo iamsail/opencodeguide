@@ -20,6 +20,14 @@ export function SiteHeader({ lang = "en" }: SiteHeaderProps) {
           <nav className="flex items-center space-x-6 text-sm font-medium mr-4">
             {lang === "zh" ? (
                <>
+                 <a
+                   href="https://ccapi.ai/register?aff=6dhz"
+                   target="_blank"
+                   rel="noopener noreferrer sponsored"
+                   className="transition-colors hover:text-gray-800/80 text-gray-600 dark:text-gray-300 dark:hover:text-gray-100"
+                 >
+                   AI API
+                 </a>
                  <Link href="/zh/opencode" className="transition-colors hover:text-gray-800/80 text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
                    指南
                  </Link>
@@ -32,12 +40,28 @@ export function SiteHeader({ lang = "en" }: SiteHeaderProps) {
                </>
             ) : lang === "ko" ? (
                 <>
+                  <a
+                    href="https://ccapi.ai/register?aff=6dhz"
+                    target="_blank"
+                    rel="noopener noreferrer sponsored"
+                    className="transition-colors hover:text-gray-800/80 text-gray-600 dark:text-gray-300 dark:hover:text-gray-100"
+                  >
+                    AI API
+                  </a>
                   <Link href="/ko/opencode" className="transition-colors hover:text-gray-800/80 text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
                     가이드
                   </Link>
                 </>
             ) : (
                 <>
+                  <a
+                    href="https://ccapi.ai/register?aff=6dhz"
+                    target="_blank"
+                    rel="noopener noreferrer sponsored"
+                    className="transition-colors hover:text-gray-800/80 text-gray-600 dark:text-gray-300 dark:hover:text-gray-100"
+                  >
+                    AI API
+                  </a>
                   <Link href="/en/what-is-opencode" className="transition-colors hover:text-gray-800/80 text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
                     Docs
                   </Link>

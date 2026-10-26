@@ -28,6 +28,7 @@
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
 - [x] **OpenCode v2 Docs Sync Pipeline (TASK103, Completed 2026-10-26)**: Automated fetch→translate pipeline syncing `/zh/docs` with official v2 docs. 21 pages updated in place (metadata preserved), 14 legacy pages got migration banners, **45 new pages created** (zh docs 36→81), sidebar extended to 5 groups (incl. Console), ROUTE_MAP fully updated. SEO regression checks all green: zero deleted URLs, sitemap covers all 81 pages, canonical/hreflang intact, search index complete, build green at 142 pages. next upgraded 16.1.1→16.4.3 to fix the #87713 SWC CJK panic. Future updates: run `npm run docs:sync`. Optional backlog: Phase 5 CI weekly check. See TASK103.
+- [x] **Homepage API CTA**: Added a high-visibility external API registration CTA to the root homepage hero and shared top navigation while preserving the core documentation CTA ([TASK103]).
 - [x] **Chinese CLI Documentation Update (v2)**: Synchronized CLI reference with the latest `session` command logic, updated environment variables, and refactored UI for mobile parity ([TASK102]).
 - [x] **Chinese IDE Documentation Update (v2)**: Overhauled the IDE guide with VS Code, Cursor, and Windsurf support, including detailed shortcuts and troubleshooting ([TASK101]).
 - [x] **Troubleshooting Documentation Update (ZH)**: Overhauled the Chinese troubleshooting guide with detailed logs, storage, desktop app, and system-specific diagnostics ([TASK100]).
