@@ -1,13 +1,14 @@
 # Active Context
 
 ## Current Focus
-- **[TASK103] OpenCode v2 文档同步 (进行中, ~55%)**: Phase 0+1+2 已完成（21 个 update 页 + 14 个 legacy 迁移提示），**待提交**。**下一步：Phase 3**（45 个新增页 + 侧边栏 Console 组 + ROUTE_MAP），优先 `/zh/docs/cli/commands`（消解 /zh/docs/cli 变薄问题），随后 Phase 4（SEO 回归）。剩余 TODO 详见 `tasks/TASK103-docs-sync-pipeline-v2.md` 的 Subtasks 表。
+- **[TASK103] OpenCode v2 文档同步 (进行中, ~90%)**: Phase 0~3 已完成（21 update 页 + 14 legacy 提示 + **45 新增页**，中文文档 36→81 页；侧边栏 5 组含 Console；ROUTE_MAP 全量更新），**待提交**。**下一步：Phase 4 收尾**（sitemap/SEO 回归抽查、可选 Phase 5 CI）。详见 `tasks/TASK103-docs-sync-pipeline-v2.md`。
 - **Next.js 已升级 16.1.1→16.4.3**: 修复官方 #87713 SWC 多字节 panic（16.1.x 的 MDX 正文含 CJK 时生产构建必崩）；若回退该版本会复发。
 - **Skills Content Expansion**: Increasing the variety of available smart agent skills to provide more value to developers.
 - **Skills Architecture Upgrade**: Solidifying the "MDX as Database" pattern for the Skills section to enable community contributions.
 - Maintaining site stability while expanding the Chinese documentation suite.
 
 ## Recent Changes
+- **Phase 3 完成 ([TASK103], 2026-10-26)**: 45 个新页三批全部生成（CLI6+Docs主题9+Build10+Console20）；docsConfigZh 扩展 5 组；ROUTE_MAP 4.1~4.5 更新；firstParagraph 按标点截断；PlanTabs 降级重写（slot 内容保留为 Go/Go Plus 小节）。build 142 页全绿。批 C 曾因系统内存不足中断一次，恢复后幂等补齐。
 - **Phase 2 完成 ([TASK103], 2026-10-26)**:
     - 16 个 update 页全部同步（providers/network/models/skills/themes/commands/formatters/tools/mcp-servers/permissions/rules/cli-tui/acp/keybinds/build-plugins/build-sdk）；models/network 补齐 metadata。
     - 14 个 legacy 页注入迁移提示（`scripts/docs-sync/legacy.mjs`，MDX 注释标记 `{/* v2-legacy-banner */}`）。

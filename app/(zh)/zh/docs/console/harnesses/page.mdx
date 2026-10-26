@@ -1,0 +1,91 @@
+export const metadata = {
+  title: "Harnesses 概览 | OpenCode 中文文档",
+  description: "OpenCode Console 可与 OpenCode 以外的编码智能体配合使用。将 Harness 指向 Console 网关并配上 API 密钥后，其用量会像其他请求一样计入你的工作区账单",
+  alternates: {
+    canonical: "/zh/docs/console/harnesses",
+  },
+}
+
+OpenCode Console 可与 OpenCode 以外的编码智能体配合使用。将 Harness 指向 Console 网关并配上 API 密钥后，其用量会像其他请求一样计入你的工作区账单。
+
+| Harness                                       | 按量付费      | Go        | 模型                      | MCP |
+| --------------------------------------------- | ------------- | --------- | ------------------------- | --- |
+| [Claude Code](/zh/docs/console/harnesses/claude-code) | 是           | 是       | Anthropic Messages 模型 | 是 |
+| [Codex](/zh/docs/console/harnesses/codex)             | 是           | 是       | OpenAI Responses 模型   | 是 |
+| [Hermes](/zh/docs/console/harnesses/hermes)           | 内置      | 内置  | 付费与 Go 模型        | 是 |
+| [Pi](/zh/docs/console/harnesses/pi)                   | 内置      | 内置  | 付费与 Go 模型        | 是 |
+| [Raycast](/zh/docs/console/harnesses/raycast)         | 扩展     | 扩展 | 付费与 Go 模型        | 是 |
+
+免费层级的聊天模型仅可在 OpenCode 内部使用。其他 Harness 对这些模型的请求会收到 HTTP `403`，即使带有 Console API 密钥也一样。请改用付费模型或 Go 订阅。
+
+## 获取 API 密钥
+
+Harness 通过 Console API 密钥进行身份验证。最快捷的方式是使用[个人 API 密钥](/zh/docs/console/api#personal-api-keys)，它以你的身份调用模型。
+
+1. 在 [Console](https://opencode.ai/console) 中通过账户菜单打开**账户**。
+2. 在**个人 API 密钥**下，点击**添加 API 密钥**。
+3. 选择工作区，为密钥命名，然后点击**创建**。
+4. 复制密钥。该密钥仅显示一次。
+
+```text
+oc_sk_1a2b3c4d5e6f_...
+```
+
+用量计入你的[成员预算](/zh/docs/console/budgets#member-budgets)。按量付费请使用带有余额的工作区中的密钥；使用 Go 则请使用订阅了 [Go](/zh/docs/console/go) 的工作区中的密钥。
+
+对于共享机器或 CI，所有者和管理员可改为创建[服务账户](/zh/docs/console/api#service-accounts)密钥，使用量不与某一个人绑定。
+
+## 基础 URL
+
+按量付费与 Go 使用不同的基础 URL。请选择与你的套餐相匹配的那一个。
+
+| 套餐          | 基础 URL                           |
+| ------------- | ---------------------------------- |
+| 按量付费 | `https://opencode.ai/inference`    |
+| Go            | `https://opencode.ai/inference/go` |
+
+在基础 URL 后追加你的 Harness 所使用的 API 对应的路径。
+
+| API                     | 路径                                            |
+| ----------------------- | ----------------------------------------------- |
+| OpenAI Responses        | `/openai/v1/responses`                          |
+| OpenAI Chat Completions | `/openai/v1/chat/completions`                   |
+| Anthropic Messages      | `/anthropic/v1/messages`                        |
+| Gemini                  | `/google/v1beta/models/<model>:generateContent` |
+
+```text
+https://opencode.ai/inference/go/openai/v1/chat/completions
+```
+
+## 选择 API
+
+Harness 只能使用接受其所用 API 的模型。大多数模型只接受一种 API，部分模型接受多种。[Console](/zh/docs/console/models#endpoints) 与 [Go](/zh/docs/console/go#endpoints) 表格中的端点列每个模型只列出一种 API，完整列表请查看相应的 Harness 页面。
+
+Hermes、Pi 以及 Raycast 扩展会为每个付费或 Go 模型选择正确的 API。Claude Code 与 Codex 只使用单一 API，仅能覆盖部分模型目录。
+
+| Harness     | API                | 模型                                                           |
+| ----------- | ------------------ | ---------------------------------------------------------------- |
+| Claude Code | Anthropic Messages | Claude 与 Qwen 模型，以及 Go 上的 Kimi K3、DeepSeek V4 和 MiniMax M3 |
+| Codex       | OpenAI Responses   | GPT、Grok 与 Muse Spark，以及 Go 上的 DeepSeek V4                |
+
+<Callout>对所有 Harness 中所有模型的支持即将推出。</Callout>
+
+## 会话
+
+每个请求都发送稳定的会话 ID，以便 Console 一致地路由对话，并复用其提示缓存。Go [要求必须如此](/zh/docs/console/go#where-can-i-use-it)。
+
+```text
+x-opencode-session: ses_...
+```
+
+Console 还会识别 Claude Code、Codex、Hermes 和 Pi 发送的原生会话请求头，因此无需额外配置。
+
+## Console MCP
+
+支持 MCP 的 Harness 可以通过 Console MCP 服务器管理你的工作区。它使用带动态客户端注册的 OAuth，因此你从浏览器登录，而无需粘贴密钥。
+
+```text
+https://opencode.ai/console/mcp
+```
+
+每个 Harness 页面都会说明如何添加它。当你的工作区启用该服务器时，OpenCode 会自动以 `opencode_console` 为名添加它，并在首次使用时提示你从浏览器登录。

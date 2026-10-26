@@ -1,0 +1,144 @@
+export const metadata = {
+  title: "附件 | OpenCode 中文文档",
+  description: "附加一个本地文件，然后在提示词中让 OpenCode 使用它。在桌面端或 Web 客户端中，选择 **附加文件**、粘贴文件，或将文件拖入提示输入框。",
+  alternates: {
+    canonical: "/zh/docs/configure/attachments",
+  },
+}
+
+## 添加附件
+
+附加一个本地文件，然后在提示词中让 OpenCode 使用它。在桌面端或 Web 客户端中，选择 **附加文件**、粘贴文件，或将文件拖入提示输入框。
+
+```text
+Summarize the attached README.md and list the required setup steps.
+```
+
+桌面端文件选择器的所选内容总计最多 20 MiB。其他接口可能施加更低的客户端限制。
+
+<Callout type="warning">
+  在附加图片之前，请先选择支持图片输入的模型。OpenCode 可以将受支持的图片传递给提供商，但提供商与模型仍会执行各自的格式、尺寸、文件数量和大小限制。纯文本模型可能会拒绝该请求。
+</Callout>
+
+## 语法
+
+V2 提示词与命令输入通过 `uri` 以及可选的 `name` 与 `description` 来描述附件：
+
+```json
+{
+  "uri": "file:///home/me/project/src/server.ts",
+  "name": "server.ts",
+  "description": "HTTP server entrypoint"
+}
+```
+
+对于服务器可访问的文件或目录，请使用绝对 `file:` URL。对于文本文件，可用正数 `start` 与 `end` 参数选取从 1 开始的行。
+
+```text
+file:///home/me/project/src/server.ts?start=20&end=60
+```
+
+使用 `data:` URL 可内联发送内容：
+
+```json
+{
+  "uri": "data:text/plain;base64,SGVsbG8sIE9wZW5Db2RlIQ==",
+  "name": "greeting.txt"
+}
+```
+
+不支持 HTTP 与 HTTPS 附件 URL。有关以编程方式提交提示词，请参阅生成的 [API 参考](https://opencode.ai/v2/docs/api)。
+
+## 格式
+
+当前 V2 会话会将以下附件类型对模型可见：
+
+| 输入 | 模型接收内容 | 示例 |
+| ----------------------- | -------------------------------------------------------- | ------------------ |
+| UTF-8 文本文件 | 文件名与解码后的文本 | `README.md` |
+| 目录 | 直接子文件与子目录的非递归列表 | `file:///home/me/` |
+| PNG、JPEG、GIF 或 WebP | 图片媒体 | `diagram.png` |
+| PDF | 文档媒体 | `report.pdf` |
+
+PDF 需要支持 PDF 输入的模型。如果模型不支持某种附件的类型，OpenCode 会发送一条简短说明以代替该附件。
+
+SVG 按文本处理。AVIF、BMP、音频、视频及其他二进制提示词附件不会包含在模型请求中。请先将不受支持的二进制内容转换为文本或受支持的图片；例如，在附加 BMP 图片之前先将其转换为 PNG。
+
+OpenCode 会在接受提示词之前读取每个附件。它会拒绝无效 URL、不可读取的路径、既非文件也非目录的路径，以及解码后超过 20 MiB 的附件。媒体类型根据字节内容检测，因此更改文件名或 `data:` URL 的媒体类型，并不会让不受支持的二进制内容变得可见。
+
+## 图片
+
+在 `opencode.json` 或 `opencode.jsonc` 中配置图片归一化：
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "media": {
+    "image": {
+      "auto_resize": true,
+      "max_width": 2000,
+      "max_height": 2000,
+      "max_base64_bytes": 5242880,
+    },
+  },
+}
+```
+
+所有字段均为可选：
+
+| 字段 | 默认值 | 行为 |
+| ------------------ | --------- | ------------------------------------------------------------------------- |
+| `auto_resize` | `true` | 当图片超出配置的限制时进行缩放；设为 `false` 时则拒绝该图片。 |
+| `max_width` | `2000` | 最大宽度（像素）；必须为正整数。 |
+| `max_height` | `2000` | 最大高度（像素）；必须为正整数。 |
+| `max_base64_bytes` | `5242880` | Base64 编码后图片的最大字节数；必须为正整数。 |
+
+例如，以下配置会拒绝而非缩放宽度超过 1200 像素的图片：
+
+```jsonc title="opencode.jsonc"
+{
+  "media": {
+    "image": {
+      "auto_resize": false,
+      "max_width": 1200,
+    },
+  },
+}
+```
+
+这些设置既适用于附加到提示词中的受支持图片，也适用于内置 `read` 工具返回的图片。
+
+## 处理
+
+`read` 工具会根据内容识别 PNG、JPEG、GIF 与 WebP，并最多读取 20 MiB 的源图片数据。它会对照配置的图片限制检查宽度、高度与 Base64 长度。
+
+在 `auto_resize: true` 下，OpenCode 会保持宽高比并按尺寸限制缩小图片。随后它会依次尝试更小的 PNG 与 JPEG 编码，直到满足 Base64 限制，因此输出的媒体类型可能发生变化。
+
+```text
+Input:  4000 × 2000 WebP
+Limits: 2000 × 2000
+Output: 2000 × 1000 PNG or JPEG
+```
+
+如果没有任何编码能够满足限制，处理会失败。在 `auto_resize: false` 下，超出任一限制的图片会在未作修改的情况下失败；无法解码的图片同样会失败。
+
+```text
+Input:  2400 × 1600 JPEG
+Limit:  max_width = 2000, auto_resize = false
+Result: Image processing fails
+```
+
+如果图片缩放器不可用，OpenCode 会原样传递原始图片。因此，图片设置属于处理限制，而非上传或安全边界。
+
+## 限制
+
+| 限制 | 值或行为 | 示例 |
+| ----------------------------- | ------------------------------------------------------------- | -------------------------------------------- |
+| 直接附加 | 每项解码后 20 MiB；客户端可能施加更低的限制 | 两个 12 MiB 文件符合单项限制 |
+| 桌面端选择器所选内容 | 总计 20 MiB | 两个 12 MiB 文件超出选择限制 |
+| `max_base64_bytes` | 仅计算编码后的 Base64，不包括完整的 `data:` URL | `SGVsbG8=` 计为 8 字节 |
+| 提供商图片限制 | 在 OpenCode 处理之后应用 | 提供商可能拒绝已被接受的图片 |
+| 文本附件的模型支持 | 不需要多模态模型 | `notes.txt` 会作为提示词文本插入 |
+| `read` 文本限制 | 使用独立的分页与截断限制 | 分页读取大型日志 |
+
+客户端接受文件并不能保证其内容会到达模型。附件必须使用模型可见的格式，并同时满足 OpenCode 与提供商的限制。

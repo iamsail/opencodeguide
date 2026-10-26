@@ -1,0 +1,65 @@
+export const metadata = {
+  title: "成员 | OpenCode 中文文档",
+  description: "所有者和管理员可在 **Settings › Members** 中管理人员。打开某个成员即可查看其用量与预算策略",
+  alternates: {
+    canonical: "/zh/docs/console/members",
+  },
+}
+
+所有者和管理员可在 **Settings › Members** 中管理人员。打开某个成员即可查看其用量与预算策略。
+
+## 邀请成员
+
+1. 打开 **Settings › Members** 并点击 **Invite Members**。
+2. 添加一个或多个电子邮件地址。可用空格、逗号或分号分隔，也可直接粘贴列表。
+3. 点击 **Send invitations**。
+
+每个人都会收到一封标题为 **Join Acme Inc. on OpenCode** 的电子邮件，其中带有 **Join workspace** 按钮。
+
+邀请将在 7 天后过期。所有人加入时均为 **Member**；可在其加入后[更改角色](#change-a-role)。
+
+<Callout>
+  已订阅 [OpenCode Go](/zh/docs/console/go) 的工作区无法邀请成员。请为你的团队单独创建一个工作区。
+</Callout>
+
+成员也可以自动加入：
+
+- 当用户首次通过已验证的电子邮件域名登录时，[SSO](/zh/docs/console/sso#automatic-membership) 会将其加入工作区。
+- [目录同步](/zh/docs/console/scim) 会根据你在身份提供商中的分配自动添加和移除人员。
+
+## 接受邀请
+
+受邀者必须使用收到邀请的电子邮件地址登录。有两种接受方式：
+
+- 点击邀请邮件中的 **Join workspace**，然后登录或创建账户。
+- 登录 Console，打开工作区菜单，在 **Pending invitations** 下点击 **Join**。
+
+若其当前登录的是其他账户，Console 会提示他们点击 **Sign out and continue**，改用受邀邮箱继续。
+
+## 管理待处理邀请
+
+待处理的邀请会显示在成员表格中，形式为 **Pending · Expires** 加日期，或显示为 **Expired**。
+
+| 操作 | 方式 |
+| ---- | ---- |
+| 重新发送 | **⋯ › Resend invitation**。发送一个有效期为 7 天的新链接；旧链接将立即失效。 |
+| 撤销 | **⋯ › Remove...**。链接立即失效。 |
+
+## 更改角色
+
+打开该成员所在行的角色菜单，选择 **Member**、**Admin** 或 **Owner**。
+
+你只能授予不高于你自身角色的级别，且工作区始终至少保留一名所有者。参见[角色](/zh/docs/console/workspaces#roles)。
+
+## 移除成员
+
+1. 在该成员所在行点击 **⋯ › Remove...**。
+2. 点击 **Remove member** 确认。
+
+访问权限将立即撤销，之后仍可再次邀请。其历史用量会保留在工作区的报告中。
+
+移除成员同时会撤销其在该工作区创建的 API 密钥，包括服务账户密钥。服务账户本身会保留，其他人创建的密钥仍可继续使用。参见[撤销](/zh/docs/console/api#revocation)。
+
+## 成员详情
+
+点击某个成员，可查看其每月预算、所使用的模型和客户端、用量图表以及请求日志。在此可设置其[预算](/zh/docs/console/budgets#member-budgets)，并将其用量导出为 CSV。

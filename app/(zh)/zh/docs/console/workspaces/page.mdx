@@ -1,0 +1,88 @@
+export const metadata = {
+  title: "工作区 | OpenCode 中文文档",
+  description: "工作区包含 [Console](https://opencode.ai/console) 中的一切：成员、额度、预算、提供商、策略和服务账户。用量与账单按工作区跟踪",
+  alternates: {
+    canonical: "/zh/docs/console/workspaces",
+  },
+}
+
+工作区包含 [Console](https://opencode.ai/console) 中的一切：成员、额度、预算、提供商、策略和服务账户。用量与账单按工作区跟踪。
+
+工作区可以只有一名成员。你可以独自使用额度、[自有提供商](/zh/docs/console/providers)、预算和 [Go](/zh/docs/console/go)，只在需要时才[邀请成员](/zh/docs/console/members)。
+
+## 你的第一个工作区
+
+注册时，Console 会创建一个名为 **Personal** 的工作区，你是其所有者和唯一成员。若你通过邀请注册，则会加入发出邀请的工作区，不会创建 Personal 工作区。
+
+## 创建工作区
+
+1. 在顶部栏打开工作区菜单。
+2. 点击 **Create Workspace**。
+3. 输入 **Workspace name** 并点击 **Create**。
+
+你会成为新工作区的所有者。
+
+## 切换工作区
+
+从工作区菜单中选择另一个工作区。Console 会保持你停留在同一页面，因此从 `/acme/settings/members` 切换后会打开另一工作区的成员页面。
+
+待处理邀请会显示在同一菜单的顶部。参见[成员](/zh/docs/console/members#accept-an-invitation)。
+
+## 连接 OpenCode
+
+在 OpenCode 中运行 `/connect`，并在浏览器中选择工作区。随后 OpenCode 将使用该工作区的模型、策略和预算。
+
+```text
+/connect
+```
+
+再次运行 `/connect` 可将 OpenCode 切换到另一个工作区。工作区[策略](/zh/docs/configure/policies#console)会被替换为新工作区的策略，并在断开连接时清除。
+
+## 角色
+
+每位成员都只有一个角色。新成员始终以 **Member** 身份加入。
+
+| 角色 | 可执行的操作 |
+| ---- | ---- |
+| 成员 | 使用 OpenCode，查看自己的用量、日志和预算。 |
+| 管理员 | 成员可执行的一切，另外还可管理成员、账单、预算、提供商、策略、服务账户和设置。 |
+| 所有者 | 管理员可执行的一切，另外还可管理 SSO 与目录同步、授予 Owner 角色，以及删除工作区。 |
+
+成员可在 **Activity** 中查看自己的用量和日志，排行榜在对成员可见时也会一并显示。可从账户菜单打开 **Account**。
+
+### 角色规则
+
+- 工作区可以有多个所有者，且始终至少保留一名。
+- 你无法授予高于自身的角色，因此只有所有者才能将他人设为所有者。
+- 你不能更改自己的角色。
+
+### 转移所有权
+
+1. 以所有者身份打开 **Settings › Members**，将新所有者的角色设为 **Owner**。
+2. 请新所有者将你的角色改为 **Admin** 或 **Member**。
+
+## 删除工作区
+
+只有所有者可以删除工作区，且其必须至少还属于另一个工作区。
+
+1. 打开 **Settings › General** 并点击 **Delete workspace**。
+2. 勾选全部确认项。
+3. 点击 **Delete workspace** 确认。
+
+删除会立即生效且无法撤销：
+
+- 成员会立即失去访问权限。
+- 所有服务账户 API 密钥和待处理邀请都会被撤销。
+- 自动充值停止。
+- 进行中的 Go 订阅将结束。
+- 任何剩余的额度余额都将作废。
+
+<Callout type="warning">付款处理期间无法删除。请几分钟后重试。</Callout>
+
+## 退出工作区
+
+1. 从账户菜单打开 **Account**。
+2. 在 **Connected workspaces** 下，点击工作区旁的 **Leave**。
+3. 点击 **Leave workspace** 确认。
+
+最后一名所有者无法退出；请先将另一名成员设为所有者。在启用了 SSO 或目录同步的工作区中，成员身份由身份提供商管理，因此无法从 Console 退出。退出后若要重新加入，请索取新的邀请。
