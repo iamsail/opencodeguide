@@ -1,8 +1,9 @@
 # Active Context
 
 ## Current Focus
-- **[TASK103] OpenCode v2 文档同步 (进行中, ~90%)**: Phase 0~3 已完成（21 update 页 + 14 legacy 提示 + **45 新增页**，中文文档 36→81 页；侧边栏 5 组含 Console；ROUTE_MAP 全量更新），**待提交**。**下一步：Phase 4 收尾**（sitemap/SEO 回归抽查、可选 Phase 5 CI）。详见 `tasks/TASK103-docs-sync-pipeline-v2.md`。
+- **[TASK103 已完成 2026-10-26]**: OpenCode v2 文档同步 Phase 0~4 全部完成。中文文档 36→81 页，与官方 v2（opencode.ai/v2/docs）对齐；后续维护只需定期跑 `npm run docs:sync`。可选 backlog：Phase 5 GitHub Actions 周检（fetch/diff 开 issue）。详见 `tasks/TASK103-docs-sync-pipeline-v2.md`。
 - **Next.js 已升级 16.1.1→16.4.3**: 修复官方 #87713 SWC 多字节 panic（16.1.x 的 MDX 正文含 CJK 时生产构建必崩）；若回退该版本会复发。
+- **后续同步须知**: 上游新 slug 需先登记 `scripts/docs-sync/page-map.json`（未声明会报错）；翻译质量可调 `glossary.zh.json`（version +1 使缓存失效）。
 - **Skills Content Expansion**: Increasing the variety of available smart agent skills to provide more value to developers.
 - **Skills Architecture Upgrade**: Solidifying the "MDX as Database" pattern for the Skills section to enable community contributions.
 - Maintaining site stability while expanding the Chinese documentation suite.
