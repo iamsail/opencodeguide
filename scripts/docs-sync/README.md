@@ -13,6 +13,7 @@ npm run docs:sync -- --force      # 忽略上游 diff，全部重译
 npm run docs:sync -- --no-build   # 跳过 validate 的 npm run build
 npm run docs:sync -- --ref <branch|sha>
 npm run docs:validate             # 只跑校验（内链 + 裸 HTML table lint）
+node scripts/docs-sync/legacy.mjs             # v1 独有页注入迁移提示（幂等；--dry-run 预览）
 node scripts/docs-sync/sidebar-snippet.mjs --action create   # 生成侧边栏追加片段
 ```
 

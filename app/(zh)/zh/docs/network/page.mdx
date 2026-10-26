@@ -1,52 +1,97 @@
-# 网络 (Network)
+export const metadata = {
+  title: "网络配置 | OpenCode 中文文档",
+  description: "配置 OpenCode 的网络访问，包括代理环境变量与企业自定义证书",
+  alternates: {
+    canonical: "/zh/docs/network",
+  },
+}
 
-**配置代理和自定义证书**
-
-OpenCode 支持标准代理环境变量以及适用于企业网络环境的自定义证书。
-
-## 代理 (Proxy)
-
-OpenCode 遵循标准的代理环境变量。
-
-**终端窗口示例：**
+设置标准代理变量并排除回环地址。OpenCode 使用 CLI 与其后台服务之间的本地 HTTP 连接，因此在 CLI 环境中配置代理时必须排除回环地址。
 
 ```bash
-# HTTPS 代理（推荐）
-export HTTPS_PROXY=https://proxy.example.com:8080
-
-# HTTP 代理（如果 HTTPS 不可用）
 export HTTP_PROXY=http://proxy.example.com:8080
+export HTTPS_PROXY=http://proxy.example.com:8080
+export NO_PROXY=localhost,127.0.0.1,::1
 
-# 为本地服务器绕过代理（必填）
-export NO_PROXY=localhost,127.0.0.1
+opencode
 ```
 
-> **注意：**
-> TUI（终端用户界面）会与本地 HTTP 服务器进行通信。你必须为此连接绕过代理（NO_PROXY），以防止路由循环。你可以使用 CLI 标志来配置服务器的端口和主机名。
+`HTTP_PROXY` 处理 HTTP 目标，`HTTPS_PROXY` 处理 HTTPS 目标。代理 URL 本身对这两个变量都可以使用 `http://`。`NO_PROXY` 是以逗号分隔的主机名和地址列表，这些目标将直接连接。
 
-## 身份验证 (Authenticate)
+## 服务
 
-如果你的代理需要基本身份验证（Basic Authentication），请在 URL 中包含凭据。
-
-**终端窗口示例：**
+Shell 导出的环境变量仅在后台服务从该 shell 启动时才会生效。请将变量持久化到受管理的服务配置中，以便后续服务启动时使用相同的网络设置。
 
 ```bash
-export HTTPS_PROXY=http://username:password@proxy.example.com:8080
+opencode service set env HTTP_PROXY http://proxy.example.com:8080
+opencode service set env HTTPS_PROXY http://proxy.example.com:8080
+opencode service set env NO_PROXY localhost,127.0.0.1,::1
+opencode service start
 ```
 
-> **注意：**
-> 避免硬编码密码。建议使用环境变量或安全的凭据存储方式。
+更改受管理的环境变量会停止正在运行的服务。`service start` 会使用新环境重新启动它。当 CLI shell 设置了代理时，也请在该 shell 中保留 `NO_PROXY`，因为受管理的服务变量作用于服务器进程，而非 CLI 进程。
 
-对于需要 NTLM 或 Kerberos 等高级身份验证的代理，请考虑使用支持你身份验证方法的 LLM 网关（LLM Gateway）。
-
-## 自定义证书 (Custom certificates)
-
-如果你的企业在 HTTPS 连接中使用自定义 CA（证书颁发机构），请配置 OpenCode 信任它们。
-
-**终端窗口示例：**
+使用 `service unset env` 移除已持久化的变量：
 
 ```bash
-export NODE_EXTRA_CA_CERTS=/path/to/ca-cert.pem
+opencode service unset env HTTPS_PROXY
 ```
 
-此设置同时适用于代理连接和直接 API 访问。
+## 身份验证
+
+对于接受 URL 凭据的代理，请在每个需要身份验证的代理 URL 中包含用户名和密码。对任一凭据中的 `@`、`:` 和 `/` 等字符进行百分号编码。
+
+```bash
+export HTTPS_PROXY='http://user:p%40ssword@proxy.example.com:8080'
+```
+
+对于后台服务，请持久化完整 URL。该值存储在私有服务配置中，并会由 `opencode service get env` 显示，因此请勿分享该输出。
+
+```bash
+opencode service set env HTTPS_PROXY 'http://user:p%40ssword@proxy.example.com:8080'
+```
+
+## 证书
+
+当代理或目标使用由私有证书颁发机构签名的证书时，请将 `NODE_EXTRA_CA_CERTS` 设置为 PEM 文件。进程启动时，这些额外的颁发机构会被添加到运行时信任库。
+
+```bash
+export NODE_EXTRA_CA_CERTS=/etc/company/ca.pem
+opencode --standalone
+```
+
+为后台服务持久化该文件路径，然后重启服务：
+
+```bash
+opencode service set env NODE_EXTRA_CA_CERTS /etc/company/ca.pem
+opencode service start
+```
+
+## 前台
+
+`--standalone` 和 `serve` 使用其自身进程的环境。`opencode service set env` 不会配置这些进程。
+
+```bash
+HTTP_PROXY=http://proxy.example.com:8080 \
+HTTPS_PROXY=http://proxy.example.com:8080 \
+NO_PROXY=localhost,127.0.0.1,::1 \
+opencode --standalone
+```
+
+对前台服务器应用相同的模式：
+
+```bash
+HTTPS_PROXY=http://proxy.example.com:8080 \
+NO_PROXY=localhost,127.0.0.1,::1 \
+opencode serve
+```
+
+## 验证
+
+应用设置后，检查 CLI 能否访问后台服务：
+
+```bash
+opencode api get /api/info
+```
+
+成功的健康检查响应可验证本地客户端到服务的连接。发起一次正常的提供商请求，以验证服务的出站代理和证书路径。

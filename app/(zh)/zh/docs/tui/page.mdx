@@ -6,264 +6,88 @@ export const metadata = {
   },
 }
 
-# 终端界面 (TUI)
-
-使用 OpenCode 的终端用户界面（Terminal User Interface）。
-
-OpenCode 提供了一个交互式的终端界面（TUI），让你可以和 LLM 一起在项目中工作。
-
-运行 OpenCode 会为当前目录启动 TUI：
+在项目目录中运行 OpenCode，输入请求，然后按 **Enter**。
 
 ```bash
+cd ~/code/my-project
 opencode
 ```
 
-也可以为指定的工作目录启动：
-
-```bash
-opencode /path/to/project
+```text
+Explain how authentication works in this project
 ```
 
-进入 TUI 后，你可以直接输入提示消息：
+按 **Shift+Enter**、**Ctrl+Enter**、**Alt+Enter** 或 **Ctrl+J** 可换行。OpenCode 工作期间，按 **Enter** 可引导当前会话；按 **Ctrl+X** 再按 **Enter** 可将提示排队留待稍后执行。
 
-```bash
-Give me a quick summary of the codebase.
+## 上下文
+
+输入 `@` 可搜索文件，选中后即可将该文件附加到提示中。在 `@` 后继续输入可缩小结果范围。
+
+```text
+Review @src/auth.ts for error handling problems
 ```
 
-## 文件引用（File references）
+可以在路径后附加行号或行号范围。
 
-你可以在消息中使用 `@` 来引用文件，它会在当前工作目录进行模糊搜索：
-
-```bash
-How is auth handled in @packages/functions/src/api/index.ts ?
+```text
+Explain @src/auth.ts#20-45
 ```
 
-被引用的文件内容会自动加入到对话中。
+## Shell
 
-## Bash 命令
+在空白提示开头输入 `!` 可进入 shell 模式。输入命令后按 **Enter** 执行；按 **Esc** 可退出 shell 模式而不执行命令。
 
-在消息开头使用 `!` 来执行 shell 命令：
-
-```bash
-!ls -la
+```text
+!git status
 ```
 
-命令的输出会作为工具结果加入对话。
+shell 命令在会话的工作目录中运行，其输出会保留在会话中。
 
-## 命令（Commands）
+## 命令
 
-在 OpenCode TUI 中，输入 `/` 后跟命令名称可以快速执行操作，例如：
+输入 `/` 可列出斜杠命令。继续输入可筛选列表，然后按 **Enter** 运行所选命令。
 
-```bash
-/help
-```
-
-大多数命令也支持使用 `ctrl+x` 作为默认前缀键（leader key）。[了解更多按键绑定](/zh/docs/configure/keybinds)
-
-以下是所有可用的斜杠命令：
-
-### connect
-添加一个 AI 提供商，选择可用提供商并输入 API Key。
-
-```bash
-/connect
-```
-
-### compact
-压缩当前会话。（别名：`/summarize`）
-
-```bash
-/compact
-```
-
-**快捷键：** `ctrl+x c`
-
-### details
-切换工具执行细节的显示。
-
-```bash
-/details
-```
-
-**快捷键：** `ctrl+x d`
-
-### editor
-使用外部编辑器编写消息（使用环境变量 `EDITOR` 中设置的编辑器）。
-
-```bash
-/editor
-```
-
-**快捷键：** `ctrl+x e`
-
-### exit
-退出 OpenCode。（别名：`/quit`、`/q`）
-
-```bash
-/exit
-```
-
-**快捷键：** `ctrl+x q`
-
-### export
-将当前对话导出为 Markdown 并用默认编辑器打开（使用 `EDITOR` 变量）。
-
-```bash
-/export
-```
-
-**快捷键：** `ctrl+x x`
-
-### help
-显示帮助对话框。
-
-```bash
-/help
-```
-
-**快捷键：** `ctrl+x h`
-
-### init
-创建或更新 `AGENTS.md` 文件。[了解更多](/zh/docs/configure/rules)
-
-```bash
-/init
-```
-
-**快捷键：** `ctrl+x i`
-
-### models
-列出可用模型。
-
-```bash
+```text
 /models
 ```
 
-**快捷键：** `ctrl+x m`
+常用命令包括 `/new`、`/sessions`、`/models`、`/agents`、`/undo`、`/redo` 和 `/editor`。按 **Ctrl+P** 可打开命令面板，其中包含当前视图中所有可用的操作。
 
-### new
-开始一个新会话。（别名：`/clear`）
+更新后，OpenCode 会在主屏幕上一次性展示该版本的新特性。运行 `/highlights` 可再次查看；在 [`cli.json`](/zh/docs/cli/config#alerts) 中设置 `"highlights": false` 可阻止其自动打开。
+
+## 顺带提问
+
+运行 `/btw <question>` 可就当前对话提出一个快速问题。回答会使用会话的上下文与当前模型，但不会写入对话，因此不会影响后续提示。运行期间提示框底部会显示 `/btw` 指示器，回答在对话框中打开；按 **C** 可复制。
+
+```text
+/btw why did the test in step 2 fail?
+```
+
+## 模型
+
+按 **Ctrl+X** 再按 **M** 可选择模型，或运行 `/models`。按 **F2** 可在最近使用的模型之间循环切换。
+
+按 **Ctrl+X** 再按 **A** 可选择智能体，或运行 `/agents`。按 **Shift+Tab** 可循环切换智能体。
+
+## 会话
+
+按 **Ctrl+X** 再按 **N** 可开始新会话。按 **Ctrl+X** 再按 **L**，或运行 `/sessions`，可返回已有会话；**Ctrl+O** 可同时打开最近的会话与项目。
+
+标签页默认启用。使用 **Ctrl+Tab** 和 **Ctrl+Shift+Tab** 在标签页之间切换，按 **Ctrl+X** 再按 **W** 关闭当前标签页，按 **Ctrl+Shift+T** 重新打开最近关闭的标签页。
+
+## 历史
+
+按 **Ctrl+X** 再按 **U**，或运行 `/undo`，可撤销最近一条用户消息及其后续工作。被撤销的提示会回到输入框，供你编辑。
+
+按 **Ctrl+X** 再按 **R**，或运行 `/redo`，可恢复被撤销的工作。若改为发送新提示，则表示接受此次撤销，并从该位置继续。
+
+## 编辑器
+
+设置 `VISUAL` 或 `EDITOR` 后，按 **Ctrl+X** 再按 **E**，或运行 `/editor`，即可在该编辑器中编辑当前提示。保存并退出后文本会回到输入框，再按 **Enter** 发送。
 
 ```bash
-/new
+export EDITOR="nvim"
+opencode
 ```
 
-**快捷键：** `ctrl+x n`
-
-### redo
-重做上一次被撤销的消息（只有在用过 `/undo` 后可用）。
-
-内部使用 Git 管理文件变更，因此项目**必须**是一个 Git 仓库。
-
-```bash
-/redo
-```
-
-**快捷键：** `ctrl+x r`
-
-### sessions
-列出并切换会话。（别名：`/resume`、`/continue`）
-
-```bash
-/sessions
-```
-
-**快捷键：** `ctrl+x l`
-
-### share
-分享当前会话。[了解更多](/zh/docs/share)
-
-```bash
-/share
-```
-
-**快捷键：** `ctrl+x s`
-
-### themes
-列出可用主题。
-
-```bash
-/theme
-```
-
-**快捷键：** `ctrl+x t`
-
-### undo
-撤销对话中的最后一条消息（移除最近的用户消息、后续所有回复以及文件变更）。
-
-内部使用 Git 管理文件变更，因此项目**必须**是一个 Git 仓库。
-
-```bash
-/undo
-```
-
-**快捷键：** `ctrl+x u`
-
-### unshare
-取消分享当前会话。[了解更多](/zh/docs/share#un-sharing)
-
-```bash
-/unshare
-```
-
-## 编辑器设置（Editor setup）
-
-`/editor` 和 `/export` 命令会使用环境变量 `EDITOR` 中指定的编辑器。
-
-```bash
-# 示例：nano 或 vim
-export EDITOR=nano
-export EDITOR=vim
-
-# 对于 GUI 编辑器（如 VS Code、Cursor 等），建议加上 --wait
-export EDITOR="code --wait"
-```
-
-建议写入 shell 配置文件（`~/.bashrc`、`~/.zshrc` 等）使其永久生效。
-
-常用编辑器选项：
-
-- `code` — Visual Studio Code
-- `cursor` — Cursor
-- `windsurf` — Windsurf
-- `nvim` — Neovim
-- `vim` — Vim
-- `nano` — Nano
-- `notepad` — Windows Notepad
-- `subl` — Sublime Text
-
-部分编辑器需要 `--wait` 等参数才能阻塞式等待关闭。
-
-## 配置（Configure）
-
-你可以通过 OpenCode 配置文件自定义 TUI 行为。
-
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "tui": {
-    "scroll_speed": 3,
-    "scroll_acceleration": {
-      "enabled": true
-    }
-  }
-}
-```
-
-*文件名：opencode.json*
-
-### 可用选项
-
-- **scroll_acceleration**：启用 macOS 风格的滚动加速度（快速滚动时加速，慢速时精确）。启用后会覆盖 scroll_speed。
-- **scroll_speed**：控制滚动命令的速度（最小值 1）。Unix 默认 1，Windows 默认 3。**注意**：如果启用了 scroll_acceleration，此项会被忽略。
-
-## 自定义（Customization）
-
-你可以通过命令面板（`ctrl+x h` 或 `/help`）自定义 TUI 的多种显示设置，这些设置会跨重启保存。
-
-### 用户名显示
-
-切换聊天消息中是否显示你的用户名。
-
-- 通过命令面板搜索 “username” 或 “hide username”
-- 设置会自动持久化，在所有 TUI 会话中记住
+默认的前导键（leader key）是 **Ctrl+X**。参见[快捷键](/zh/docs/configure/keybinds)了解如何修改这些快捷键。

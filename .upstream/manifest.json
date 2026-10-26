@@ -1,8 +1,8 @@
 {
   "repo": "anomalyco/opencode",
   "ref": "dev",
-  "commitSha": "dev",
-  "fetchedAt": "2026-10-24T09:07:36.705Z",
+  "commitSha": "5b41e1f977db069603fe0c8f9c668a79e05b4013",
+  "fetchedAt": "2026-10-26T02:29:47.709Z",
   "files": {
     "agents": {
       "sha": "4da30f18a67384c162e993dd93f94bd8f84edf40",
@@ -95,9 +95,9 @@
       "bytes": 3232
     },
     "cli/keybinds": {
-      "sha": "a488c573855dddb2d5fd2642022cc9684f8cf6cb",
+      "sha": "107f0461f0e2645487e2d433ab9eeffc0d54d686",
       "path": "services/www/src/docs/content/cli/keybinds.mdx",
-      "bytes": 30654
+      "bytes": 30830
     },
     "cli/plugins": {
       "sha": "c1ecb0ff3587ec59ba9a18470b7043fb27c931d1",
@@ -145,9 +145,9 @@
       "bytes": 8190
     },
     "console/api/inference": {
-      "sha": "e6d394167efe48c118212aac5c08cae6ccdce748",
+      "sha": "19a0fde498381c02664b93654a3cdb8c23f9e0c9",
       "path": "services/www/src/docs/content/console/api/inference.mdx",
-      "bytes": 3276
+      "bytes": 5692
     },
     "console/api/providers": {
       "sha": "4d71021e94d044829303b6d725408c47a7513133",
@@ -165,9 +165,9 @@
       "bytes": 4210
     },
     "console/go": {
-      "sha": "8b45a170b771c48c95b5a835b9053c916dfdcd84",
+      "sha": "9564b88556f5ac62eaf7149e7fe48322516e8647",
       "path": "services/www/src/docs/content/console/go.mdx",
-      "bytes": 45307
+      "bytes": 42465
     },
     "console/harnesses/claude-code": {
       "sha": "1ffa4b0efd680d900d6caf28c496bd6aca884a6b",
@@ -185,9 +185,9 @@
       "bytes": 1800
     },
     "console/harnesses": {
-      "sha": "b4dc331efa8625e3984cf886de0310fa426e0e1e",
+      "sha": "c4fb109205306bf56c896942e4e512d49a243b77",
       "path": "services/www/src/docs/content/console/harnesses/index.mdx",
-      "bytes": 4592
+      "bytes": 4753
     },
     "console/harnesses/pi": {
       "sha": "dce88cffb7e5770e6fdb5b5d282398748719c5e3",
@@ -200,9 +200,9 @@
       "bytes": 1426
     },
     "console": {
-      "sha": "3780c3954145682fe9e8eff8393b6a71fc39fa59",
+      "sha": "77270a5d4c40de65601a722ee416b09b64d7a37f",
       "path": "services/www/src/docs/content/console/index.mdx",
-      "bytes": 1556
+      "bytes": 1676
     },
     "console/members": {
       "sha": "770878707f3b04a3e58d35b8c56d81e18317ea3d",
@@ -210,9 +210,9 @@
       "bytes": 3009
     },
     "console/models": {
-      "sha": "a5985b20c95688a6031e864ec34f0b56b508b819",
+      "sha": "b73d0f9d8a892f27fd664c9a0955985941b5ec88",
       "path": "services/www/src/docs/content/console/models.mdx",
-      "bytes": 38343
+      "bytes": 37900
     },
     "console/providers": {
       "sha": "ca0e4004aad5070fd8c6c5fdcb5a956504992652",
@@ -230,9 +230,9 @@
       "bytes": 4207
     },
     "console/websearch": {
-      "sha": "939760d88820b9fa999ca30b9c6b3989b47a9e68",
+      "sha": "9857874a154bd44d9515556a15c0567c564ee4aa",
       "path": "services/www/src/docs/content/console/websearch.mdx",
-      "bytes": 1785
+      "bytes": 1860
     },
     "console/workspaces": {
       "sha": "88c88a3251fd6146132f90c363c2fbebf8e1f115",
@@ -285,9 +285,9 @@
       "bytes": 4371
     },
     "policies": {
-      "sha": "ae4dee398c8180988fa2ff0111f981f8944495ba",
+      "sha": "3b49b35b165e0d85feb93bfd94215780281fb2c3",
       "path": "services/www/src/docs/content/policies.mdx",
-      "bytes": 9539
+      "bytes": 9698
     },
     "providers": {
       "sha": "77cfe97009057a7a7c74d9cf980b98fd59bf121e",
