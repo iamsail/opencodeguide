@@ -1,0 +1,473 @@
+export const metadata = {
+  title: "OpenCode Go | OpenCode 中文文档",
+  description: "OpenCode Go 为你提供对热门开放编码模型的可靠访问，并提供两种按月订阅方案",
+  alternates: {
+    canonical: "/zh/docs/console/go",
+  },
+}
+
+OpenCode Go 为你提供对热门开放编码模型的可靠访问，并提供两种按月订阅方案：
+
+| 方案        | 价格         | 包含用量                              |
+| ----------- | ------------ | ------------------------------------------- |
+| **Go**      | **$10/月** | 以更低成本访问下列模型       |
+| **Go Plus** | **$40/月** | 下列模型均享更高用量上限 |
+
+Go 的工作方式与 OpenCode 中的其他提供商相同。订阅 OpenCode Go 后即可获得你的 API 密钥。该服务**完全可选**，不使用它也能正常使用 OpenCode。
+
+该服务主要面向国际用户，提供稳定的全球访问。
+
+## 工作方式
+
+1. 登录 [OpenCode Console](https://opencode.ai/console)，订阅 Go 或 Go Plus，添加账单信息，然后复制你的 API 密钥。
+2. 在 TUI 中运行 `/connect`，选择 **OpenCode Go**，然后粘贴你的 API 密钥。
+
+   ```text
+   /connect
+   ```
+
+3. 运行 `/models` 以选择可通过 Go 使用的模型。
+
+   ```text
+   /models
+   ```
+
+<Callout>
+  Go 与 Go Plus 适用于仅有单个成员的工作区，例如注册时创建的 **Personal** 工作区。使用 Go 订阅的工作区无法邀请成员。
+</Callout>
+
+当前模型列表包括：
+
+- **Grok 4.7**
+- **GLM-5.3-Flash**
+- **GLM-5.3**
+- **GLM-5.2**
+- **GPT 6 Luna**
+- **GPT 5.6 Luna**
+- **Claude Haiku 5.5**
+- **Gemini 4 Argon**
+- **Kimi K3.1 Pro**
+- **Kimi K3**
+- **Kimi K2.7 Code**
+- **LongCat-2.0**
+- **Step 5 Preview**
+- **Beam Free**（限时，部分区域可用）
+- **Iceman Contributor Free**（限时）
+- **MiMo-V2.6-Flash**
+- **MiMo-V2.6-Pro**
+- **MiMo-V2.5**
+- **MiMo-V2.5-Pro**
+- **MiniMax M3.1 Flash**
+- **MiniMax M3**
+- **Muse Spark 1.3 Contributor**（[部分区域可用](https://ai.developer.meta.com/legal/geographic-use-policy)）
+- **Muse Spark 1.2 Contributor**（[部分区域可用](https://ai.developer.meta.com/legal/geographic-use-policy)）
+- **Qwen3.8 Max**
+- **Qwen3.8 Flash**
+- **Qwen3.7 Plus**
+- **DeepSeek V4.1 Flash**
+- **DeepSeek V4 Pro**
+- **Hy4 preview**
+- **Hy3**
+
+模型列表可能会随着我们的测试与新增而变化。
+
+### 启用受限模型
+
+工作区隐私设置同样适用于 Go。默认情况下，会屏蔽使用请求数据进行训练的付费端点，允许的区域为 **Europe & United States**。未保存隐私设置的工作区还会对来自中国的请求开放 **Global**。
+
+在 **Settings › Privacy** 中，所有者或管理员可启用：
+
+- **DeepSeek V4.1 Flash 与 V4 Pro：** 在 **Regions** 下选择 **Global**。
+- **Muse Spark 1.3 Contributor 与 Muse Spark 1.2 Contributor：** 打开 **Allow paid endpoints that train on request data**。
+
+各模型的训练与数据保留条款详见[隐私](#privacy)。
+
+## 我可以在哪里使用它？
+
+OpenCode Go 面向 [OpenCode](https://opencode.ai) 及其他会产生类似类型请求的编码智能体（agent）而设计。我们会监控流量，防范会降低其他用户体验的滥用行为。
+
+你的客户端应当：
+
+1. 发送典型的编码智能体流量
+2. 使用自身的 user agent 标识自己，例如 `my-coding-agent/1.0`，而不是通用的 SDK 或 HTTP 库名称。
+3. 为每个对话在 `x-opencode-session` 中发送稳定的会话（session）ID，以便我们优化路由与提示缓存。
+
+参见 [Harness](/zh/docs/console/harnesses)，了解如何在 Claude Code、Codex、Hermes、Pi 与 Raycast 中配置 Go。
+
+### 已验证的客户端
+
+除 OpenCode 外，以下客户端已通过验证可与 OpenCode Go 正常协作，但我们不保证它们在未来仍能持续工作。
+
+| 客户端            | 会话支持                                                                                                                                                                                                                             |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Hermes**        | 更新至 **v0.21.6 或更高版本**，该版本会在主请求与辅助 OpenCode 请求上发送该请求头（[PR #101864](https://github.com/NousResearch/hermes-agent/pull/101864)）。                                                                    |
+| **Claude Code**   | Go 可识别其原生会话请求头，无需自定义请求头封装。                                                                                                                                                                |
+| **Codex**         | Go 可识别其原生会话请求头。部分版本与代理配置仍会遗漏该请求头；转发请求时请保留会话请求头。                                                                                                |
+| **ZCode**         | Go 可识别其原生会话请求头。我们关于 [`x-opencode-session`](https://github.com/zai-org/feedback/issues/492) 的请求仍处于开放状态，但已无需再发送该特定请求头。                                   |
+| **Pi**            | 当前版本构建会为 OpenCode 发送会话信息。请更新较旧的安装。                                                                                                                                                           |
+| **jcode**         | 更新至 **v0.81.6 或更高版本**，该版本包含[会话头修复](https://github.com/1jehuang/jcode/issues/1167)。                                                                                                                     |
+| **Kilo Code CLI** | 包含 [PR #13752](https://github.com/Kilo-Org/kilocode/pull/13752) 的构建会恢复 OpenCode 会话请求头。该修复仅覆盖 CLI，不包括 VS Code 扩展。参见 [issue #13723](https://github.com/Kilo-Org/kilocode/issues/13723)。 |
+
+### 已知存在问题的客户端
+
+在我们调查的版本中，这些客户端缺少会话支持或支持不完整。所链接的报告用于跟踪修复进展与变通方案。
+
+| 客户端                  | 状态与跟踪                                                                                                                                                                                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **DeepSeek Harness**    | 会话信息会在部分模型路径上送达，但在其他路径上缺失。我们可识别其原生请求头；剩余工作是在所有适配器上发送该请求头。[Discussion #5495](https://github.com/deepseek-ai/deepseek-harness/discussions/5495)。 |
+| **GitHub Copilot Chat** | 已通过 [VS Code issue #334186](https://github.com/microsoft/vscode/issues/334186) 请求支持自动会话请求头。                                                                                                                           |
+| **Kimi Code**           | [issue #3506](https://github.com/MoonshotAI/kimi-code/issues/3506) 中的会话头请求已按“非计划内”关闭。                                                                                                                            |
+| **MiMo Code**           | [Issue #2317](https://github.com/XiaomiMiMo/MiMo-Code/issues/2317) 已关闭，且 [PR #2327](https://github.com/XiaomiMiMo/MiMo-Code/pull/2327) 未合并即被关闭。                                                                            |
+
+## 用量限制
+
+用量限制以每月美元金额定义。下表列出了各方案的每月限额，以及各模型的 token 费用。Go 与 Go Plus 的 token 定价相同。
+
+各模型的用量限制如下：5 小时 — 每月限额的 20%；每周 — 50%；每月 — 100%。
+
+下表中各模型的每月限额决定了其用量如何计入上述额度。每个响应都会以 [`opencode.allowance`](/zh/docs/console/api/inference#cost) 报告该请求的计费量。
+
+Token 价格以每 1M tokens 计。
+
+**Go：**
+
+| 模型                            | 输入           | 输出            | 缓存读取     | 缓存写入 | 每月限额                                  |
+    | -------------------------------- | --------------- | ----------------- | --------------- | ------------ | ---------------------------------------------- |
+    | GLM-5.3-Flash                    | $0.15           | $0.50             | $0.03           | -            | **$60**                                        |
+    | GLM-5.3                          | $1.40           | $4.40             | $0.26           | -            | **$15**                                        |
+    | GLM-5.2                          | $1.40           | $4.40             | $0.26           | -            | **$60**                                        |
+    | Kimi K3.1 Pro                    | $2.00           | $10.00            | $0.20           | $2.00        | **$15**                                        |
+    | Kimi K3                          | $3.00           | $15.00            | $0.30           | $3.00        | **$15**                                        |
+    | Kimi K2.7 Code                   | $0.95           | $4.00             | $0.19           | -            | **$60**                                        |
+    | LongCat-2.0                      | $0.30           | $1.20             | $0.006          | -            | **$60**                                        |
+    | Step 5 Preview                   | $1.00           | $2.70             | $0.10           | -            | **$15**                                        |
+    | Beam Free                        | 免费            | 免费              | 免费            | -            | **无限制**<br /><small>限时</small> |
+    | Iceman Contributor Free          | 免费            | 免费              | 免费            | -            | **无限制**<br /><small>限时</small> |
+    | MiMo-V2.6-Flash                  | $0.14           | $0.28             | $0.0028         | -            | **$60**                                        |
+    | MiMo-V2.6-Pro                    | $0.435          | $0.87             | $0.003625       | -            | **$15**                                        |
+    | MiMo-V2.5                        | $0.14           | $0.28             | $0.0028         | -            | **$60**                                        |
+    | MiMo-V2.5-Pro                    | $0.435          | $0.87             | $0.003625       | -            | **$15**                                        |
+    | MiniMax M3.1 Flash               | $0.15           | $0.60             | $0.015          | -            | **$20**                                        |
+    | MiniMax M3                       | $0.30           | $1.20             | $0.06           | -            | **$60**                                        |
+    | Muse Spark 1.3 Contributor       | $0.10           | $0.20             | $0.002          | -            | **$60**                                        |
+    | Muse Spark 1.2 Contributor       | $0.10           | $0.20             | $0.002          | -            | **$60**                                        |
+    | Qwen3.8 Max                      | $2.00           | $6.00             | $0.25           | $2.50        | **$15**                                        |
+    | Qwen3.8 Flash                    | $0.15           | $0.47             | $0.016          | $0.20        | **$30**                                        |
+    | Qwen3.7 Plus (≤ 256K tokens)     | $0.40           | $1.60             | $0.04           | $0.50        | **$60**                                        |
+    | Qwen3.7 Plus (> 256K tokens)     | $1.20           | $4.80             | $0.12           | $1.50        | **$60**                                        |
+    | DeepSeek V4.1 Flash (Off-Peak)   | $0.15           | $0.60             | $0.003          | -            | **$80**                                        |
+    | DeepSeek V4.1 Flash (Peak)       | $0.30           | $1.20             | $0.006          | -            | **$80**                                        |
+    | DeepSeek V4 Pro (Off-Peak)       | $0.66           | $1.98             | $0.022          | -            | **$15**                                        |
+    | DeepSeek V4 Pro (Peak)           | $1.32           | $3.96             | $0.044          | -            | **$15**                                        |
+    | Hy4 preview                      | $0.834          | $2.501            | $0.042          | -            | **$30**                                        |
+    | Hy3                              | $0.14           | $0.58             | $0.035          | -            | **$60**                                        |
+    | Grok 4.7 (≤ 200K tokens)         | $2.00           | $6.00             | $0.50           | -            | **$15**                                        |
+    | Grok 4.7 (> 200K tokens)         | $4.00           | $12.00            | $1.00           | -            | **$15**                                        |
+    | GPT 6 Luna (≤ 272K tokens)       | $0.10           | $0.50             | $0.01           | $0.125       | **$15**                                        |
+    | GPT 6 Luna (> 272K tokens)       | $0.20           | $0.75             | $0.02           | $0.25        | **$15**                                        |
+    | GPT 5.6 Luna (≤ 272K tokens)     | $0.20           | $1.20             | $0.02           | $0.25        | **$15**                                        |
+    | GPT 5.6 Luna (> 272K tokens)     | $0.40           | $1.80             | $0.04           | $0.50        | **$15**                                        |
+    | Claude Haiku 5.5 (≤ 100K tokens) | $0.10           | $0.50             | $0.01           | $0.125       | **$15**                                        |
+    | Claude Haiku 5.5 (> 100K tokens) | $0.50           | $2.50             | $0.05           | $0.625       | **$15**                                        |
+    | Gemini 4 Argon (50% off)         | ~~$4.00~~ $2.00 | ~~$20.00~~ $10.00 | ~~$0.20~~ $0.10 | -            | **$30**                                        |
+
+**Go Plus：**
+
+| 模型                            | 输入           | 输出            | 缓存读取     | 缓存写入 | 每月限额                                  |
+    | -------------------------------- | --------------- | ----------------- | --------------- | ------------ | ---------------------------------------------- |
+    | GLM-5.3-Flash                    | $0.15           | $0.50             | $0.03           | -            | **$180**                                       |
+    | GLM-5.3                          | $1.40           | $4.40             | $0.26           | -            | **$120**                                       |
+    | GLM-5.2                          | $1.40           | $4.40             | $0.26           | -            | **$180**                                       |
+    | Kimi K3.1 Pro                    | $2.00           | $10.00            | $0.20           | $2.00        | **$60**                                        |
+    | Kimi K3                          | $3.00           | $15.00            | $0.30           | $3.00        | **$60**                                        |
+    | Kimi K2.7 Code                   | $0.95           | $4.00             | $0.19           | -            | **$180**                                       |
+    | LongCat-2.0                      | $0.30           | $1.20             | $0.006          | -            | **$240**                                       |
+    | Step 5 Preview                   | $1.00           | $2.70             | $0.10           | -            | **$60**                                        |
+    | Beam Free                        | 免费            | 免费              | 免费            | -            | **无限制**<br /><small>限时</small> |
+    | Iceman Contributor Free          | 免费            | 免费              | 免费            | -            | **无限制**<br /><small>限时</small> |
+    | MiMo-V2.6-Flash                  | $0.14           | $0.28             | $0.0028         | -            | **$120**                                       |
+    | MiMo-V2.6-Pro                    | $0.435          | $0.87             | $0.003625       | -            | **$60**                                        |
+    | MiMo-V2.5                        | $0.14           | $0.28             | $0.0028         | -            | **$120**                                       |
+    | MiMo-V2.5-Pro                    | $0.435          | $0.87             | $0.003625       | -            | **$60**                                        |
+    | MiniMax M3.1 Flash               | $0.15           | $0.60             | $0.015          | -            | **$80**                                        |
+    | MiniMax M3                       | $0.30           | $1.20             | $0.06           | -            | **$180**                                       |
+    | Muse Spark 1.3 Contributor       | $0.10           | $0.20             | $0.002          | -            | **$120**                                       |
+    | Muse Spark 1.2 Contributor       | $0.10           | $0.20             | $0.002          | -            | **$120**                                       |
+    | Qwen3.8 Max                      | $2.00           | $6.00             | $0.25           | $2.50        | **$60**                                        |
+    | Qwen3.8 Flash                    | $0.15           | $0.47             | $0.016          | $0.20        | **$90**                                        |
+    | Qwen3.7 Plus (≤ 256K tokens)     | $0.40           | $1.60             | $0.04           | $0.50        | **$180**                                       |
+    | Qwen3.7 Plus (> 256K tokens)     | $1.20           | $4.80             | $0.12           | $1.50        | **$180**                                       |
+    | DeepSeek V4.1 Flash (Off-Peak)   | $0.15           | $0.60             | $0.003          | -            | **$160**                                       |
+    | DeepSeek V4.1 Flash (Peak)       | $0.30           | $1.20             | $0.006          | -            | **$160**                                       |
+    | DeepSeek V4 Pro (Off-Peak)       | $0.66           | $1.98             | $0.022          | -            | **$60**                                        |
+    | DeepSeek V4 Pro (Peak)           | $1.32           | $3.96             | $0.044          | -            | **$60**                                        |
+    | Hy4 preview                      | $0.834          | $2.501            | $0.042          | -            | **$120**                                       |
+    | Hy3                              | $0.14           | $0.58             | $0.035          | -            | **$240**                                       |
+    | Grok 4.7 (≤ 200K tokens)         | $2.00           | $6.00             | $0.50           | -            | **$60**                                        |
+    | Grok 4.7 (> 200K tokens)         | $4.00           | $12.00            | $1.00           | -            | **$60**                                        |
+    | GPT 6 Luna (≤ 272K tokens)       | $0.10           | $0.50             | $0.01           | $0.125       | **$60**                                        |
+    | GPT 6 Luna (> 272K tokens)       | $0.20           | $0.75             | $0.02           | $0.25        | **$60**                                        |
+    | GPT 5.6 Luna (≤ 272K tokens)     | $0.20           | $1.20             | $0.02           | $0.25        | **$60**                                        |
+    | GPT 5.6 Luna (> 272K tokens)     | $0.40           | $1.80             | $0.04           | $0.50        | **$60**                                        |
+    | Claude Haiku 5.5 (≤ 100K tokens) | $0.10           | $0.50             | $0.01           | $0.125       | **$60**                                        |
+    | Claude Haiku 5.5 (> 100K tokens) | $0.50           | $2.50             | $0.05           | $0.625       | **$60**                                        |
+    | Gemini 4 Argon (50% off)         | ~~$4.00~~ $2.00 | ~~$20.00~~ $10.00 | ~~$0.20~~ $0.10 | -            | **$120**                                       |
+
+**Beam Free：** 限时免费。在安哥拉、白俄罗斯、柬埔寨、中国（包括香港和澳门）、古巴、刚果民主共和国、赤道几内亚、伊朗、伊拉克、老挝、利比亚、尼日利亚、朝鲜、俄罗斯、叙利亚、土库曼斯坦、乌兹别克斯坦、委内瑞拉，以及乌克兰的克里米亚、顿涅茨克和卢甘斯克地区不可用。
+
+**Iceman Contributor Free：** 限时免费。
+
+**Gemini 4 Argon：** 50% 折扣有效期至 2026 年 11 月 30 日。
+
+**DeepSeek V4.1 Flash / V4 Pro：** 高峰时段为周一至周五 UTC 时间 01:00-04:00 与 06:00-10:00；其余时间（包括周末）均为非高峰。[了解更多](https://api-docs.deepseek.com/quick_start/pricing/)。
+
+### 预估请求数
+
+下表基于典型的 Go 使用模式估算请求数量。Go Plus 的估算值随各模型更高的用量限额按比例扩大。
+
+**Go：**
+
+| 模型                      | 每 5 小时请求数 | 每周请求数 | 每月请求数 |
+    | -------------------------- | -------------------- | ----------------- | ------------------ |
+    | GLM-5.3-Flash              | 6,320                | 15,790            | 31,580             |
+    | GLM-5.3                    | 220                  | 540               | 1,080              |
+    | GLM-5.2                    | 880                  | 2,150             | 4,300              |
+    | Kimi K3.1 Pro              | 147                  | 368               | 735                |
+    | Kimi K3                    | 110                  | 250               | 490                |
+    | Kimi K2.7 Code             | 1,350                | 3,380             | 6,750              |
+    | LongCat-2.0                | 11,400               | 28,600            | 57,200             |
+    | Step 5 Preview             | 430                  | 1,070             | 2,130              |
+    | Beam Free                  | 无限制            | 无限制         | 无限制          |
+    | Iceman Contributor Free    | 无限制            | 无限制         | 无限制          |
+    | MiMo-V2.6-Flash            | 30,100               | 75,200            | 150,400            |
+    | MiMo-V2.6-Pro              | 3,250                | 8,150             | 16,300             |
+    | MiMo-V2.5                  | 30,100               | 75,200            | 150,400            |
+    | MiMo-V2.5-Pro              | 3,250                | 8,150             | 16,300             |
+    | MiniMax M3.1 Flash         | 3,880                | 9,690             | 19,380             |
+    | MiniMax M3                 | 3,200                | 8,000             | 16,000             |
+    | Muse Spark 1.3 Contributor | 45,300               | 113,300           | 226,600            |
+    | Muse Spark 1.2 Contributor | 45,300               | 113,300           | 226,600            |
+    | Qwen3.8 Max                | 160                  | 400               | 810                |
+    | Qwen3.8 Flash              | 5,400                | 13,500            | 27,000             |
+    | Qwen3.7 Plus               | 4,300                | 10,800            | 21,600             |
+    | DeepSeek V4.1 Flash        | 34,670               | 86,670            | 173,330            |
+    | DeepSeek V4 Pro            | 1,050                | 2,600             | 5,200              |
+    | Hy4 preview                | 1,350                | 3,380             | 6,770              |
+    | Hy3                        | 4,300                | 10,750            | 21,500             |
+    | Grok 4.7                   | 169                  | 423               | 845                |
+    | GPT 6 Luna                 | 4,230                | 10,560            | 21,130             |
+    | GPT 5.6 Luna               | 2,050                | 5,100             | 10,250             |
+    | Claude Haiku 5.5           | 3,850                | 9,620             | 19,230             |
+    | Gemini 4 Argon             | 440                  | 1,080             | 2,120              |
+
+**Go Plus：**
+
+| 模型                      | 每 5 小时请求数 | 每周请求数 | 每月请求数 |
+    | -------------------------- | -------------------- | ----------------- | ------------------ |
+    | GLM-5.3-Flash              | 18,960               | 47,370            | 94,740             |
+    | GLM-5.3                    | 1,760                | 4,320             | 8,640              |
+    | GLM-5.2                    | 2,640                | 6,450             | 12,900             |
+    | Kimi K3.1 Pro              | 588                  | 1,471             | 2,941              |
+    | Kimi K3                    | 440                  | 1,000             | 1,960              |
+    | Kimi K2.7 Code             | 4,050                | 10,140            | 20,250             |
+    | LongCat-2.0                | 45,600               | 114,400           | 228,800            |
+    | Step 5 Preview             | 1,720                | 4,280             | 8,520              |
+    | Beam Free                  | 无限制            | 无限制         | 无限制          |
+    | Iceman Contributor Free    | 无限制            | 无限制         | 无限制          |
+    | MiMo-V2.6-Flash            | 60,200               | 150,400           | 300,800            |
+    | MiMo-V2.6-Pro              | 13,000               | 32,600            | 65,200             |
+    | MiMo-V2.5                  | 60,200               | 150,400           | 300,800            |
+    | MiMo-V2.5-Pro              | 13,000               | 32,600            | 65,200             |
+    | MiniMax M3.1 Flash         | 15,500               | 38,760            | 77,520             |
+    | MiniMax M3                 | 9,600                | 24,000            | 48,000             |
+    | Muse Spark 1.3 Contributor | 90,600               | 226,600           | 453,200            |
+    | Muse Spark 1.2 Contributor | 90,600               | 226,600           | 453,200            |
+    | Qwen3.8 Max                | 640                  | 1,600             | 3,240              |
+    | Qwen3.8 Flash              | 16,200               | 40,500            | 81,000             |
+    | Qwen3.7 Plus               | 12,900               | 32,400            | 64,800             |
+    | DeepSeek V4.1 Flash        | 69,330               | 173,330           | 346,670            |
+    | DeepSeek V4 Pro            | 4,200                | 10,400            | 20,800             |
+    | Hy4 preview                | 5,400                | 13,520            | 27,080             |
+    | Hy3                        | 17,200               | 43,000            | 86,000             |
+    | Grok 4.7                   | 676                  | 1,692             | 3,380              |
+    | GPT 6 Luna                 | 16,920               | 42,240            | 84,520             |
+    | GPT 5.6 Luna               | 8,200                | 20,400            | 41,000             |
+    | Claude Haiku 5.5           | 15,380               | 38,460            | 76,920             |
+    | Gemini 4 Argon             | 1,760                | 4,320             | 8,480              |
+
+上述估算采用每次请求的下列 token 数量；实际用量会有所不同。
+
+- Grok 4.7 — 每次请求 390 输入、32,500 缓存、120 输出 tokens
+- GLM-5.3-Flash — 每次请求 1,000 输入、55,000 缓存、200 输出 tokens
+- GLM-5.3/5.2 — 每次请求 700 输入、52,000 缓存、150 输出 tokens
+- GPT 6 Luna — 每次请求 1,000 输入、50,000 缓存、220 输出 tokens
+- GPT 5.6 Luna — 每次请求 1,000 输入、50,000 缓存、220 输出 tokens
+- Claude Haiku 5.5 — 每次请求 1,100 输入、55,000 缓存、240 输出 tokens
+- Kimi K3.1 Pro — 每次请求 1,050 输入、76,500 缓存、300 输出 tokens
+- Kimi K3 — 每次请求 1,050 输入、76,500 缓存、300 输出 tokens
+- Kimi K2.7 Code — 每次请求 870 输入、55,000 缓存、200 输出 tokens
+- LongCat-2.0 — 每次请求 920 输入、88,900 缓存、200 输出 tokens
+- Step 5 Preview — 每次请求 1,000 输入、55,000 缓存、200 输出 tokens
+- DeepSeek V4.1 Flash — 每次请求 410 输入、71,300 缓存、310 输出 tokens
+- DeepSeek V4 Pro — 每次请求 750 输入、82,000 缓存、290 输出 tokens
+- MiniMax M3.1 Flash — 每次请求 500 输入、49,400 缓存、360 输出 tokens
+- MiniMax M3 — 每次请求 510 输入、56,000 缓存、190 输出 tokens
+- Muse Spark 1.3 Contributor — 每次请求 620 输入、71,400 缓存、300 输出 tokens
+- Muse Spark 1.2 Contributor — 每次请求 620 输入、71,400 缓存、300 输出 tokens
+- MiMo-V2.6-Flash — 每次请求 830 输入、71,500 缓存、295 输出 tokens
+- MiMo-V2.6-Pro — 每次请求 790 输入、86,000 缓存、305 输出 tokens
+- MiMo-V2.5 — 每次请求 830 输入、71,500 缓存、295 输出 tokens
+- MiMo-V2.5-Pro — 每次请求 790 输入、86,000 缓存、305 输出 tokens
+- Qwen3.8 Max — 每次请求 420 输入、66,000 缓存、200 输出 tokens
+- Qwen3.8 Flash — 每次请求 600 输入、58,000 缓存、200 输出 tokens
+- Qwen3.7 Plus — 每次请求 500 输入、57,000 缓存、190 输出 tokens
+- Hy4 preview — 每次请求 830 输入、71,500 缓存、295 输出 tokens
+- Hy3 — 每次请求 830 输入、71,500 缓存、295 输出 tokens
+
+你可以在[控制台](https://opencode.ai/console)中跟踪当前用量。
+
+<Callout type="tip">达到用量限制后，你仍可继续使用免费模型。</Callout>
+
+随着我们从早期使用与反馈中积累经验，用量限制可能会调整。
+
+---
+
+### 超出限制的用量
+
+如果你的 Console 余额中还有额度，可在 **Go** 页面开启 **Extra Usage**。开启后，当你达到用量限制时，Go 会回退到你的[按量付费余额](/zh/docs/console/models#pricing)，而不是阻止请求。
+
+### 为何部分模型的用量较低
+
+在 Go 中，包含的每月用量因模型而异。
+
+对大多数模型，我们通过批量折扣与预留 GPU 算力实现这一点，再将节省的成本以更高的每月用量让渡给你。
+
+对部分模型，我们尚无机会议定折扣或以更低成本部署它们——要么因为模型较新，要么因为其公开定价已经过折扣。
+
+对于这些模型，你获得的用量仍略多于直接向模型提供商付费；这就是它们包含的每月用量较低的原因。
+
+## 端点
+
+你也可以通过以下 API 端点访问 Go 模型。
+
+<div class="docs-table-scroll" role="region" aria-label="Go model endpoints" tabIndex={0}>
+
+| 模型                      | 模型 ID                   | 端点                                                               | AI SDK 包              |
+| -------------------------- | -------------------------- | ---------------------------------------------------------------------- | --------------------------- |
+| Grok 4.7                   | grok-4.7                   | `https://opencode.ai/inference/go/openai/v1/responses`                 | `@ai-sdk/openai`            |
+| GPT 6 Luna                 | gpt-6-luna                 | `https://opencode.ai/inference/go/openai/v1/responses`                 | `@ai-sdk/openai`            |
+| GPT 5.6 Luna               | gpt-5.6-luna               | `https://opencode.ai/inference/go/openai/v1/responses`                 | `@ai-sdk/openai`            |
+| Claude Haiku 5.5           | claude-haiku-5-5           | `https://opencode.ai/inference/go/anthropic/v1/messages`               | `@ai-sdk/anthropic`         |
+| Gemini 4 Argon             | gemini-4-argon             | `https://opencode.ai/inference/go/google/v1beta/models/gemini-4-argon` | `@ai-sdk/google`            |
+| GLM-5.3-Flash              | glm-5.3-flash              | `https://opencode.ai/inference/go/openai/v1/chat/completions`          | `@ai-sdk/openai-compatible` |
+| GLM-5.3                    | glm-5.3                    | `https://opencode.ai/inference/go/openai/v1/chat/completions`          | `@ai-sdk/openai-compatible` |
+| GLM-5.2                    | glm-5.2                    | `https://opencode.ai/inference/go/openai/v1/chat/completions`          | `@ai-sdk/openai-compatible` |
+| Kimi K3.1 Pro              | kimi-k3.1-pro              | `https://opencode.ai/inference/go/openai/v1/chat/completions`          | `@ai-sdk/openai-compatible` |
+| Kimi K3                    | kimi-k3                    | `https://opencode.ai/inference/go/openai/v1/chat/completions`          | `@ai-sdk/openai-compatible` |
+| Kimi K2.7 Code             | kimi-k2.7-code             | `https://opencode.ai/inference/go/openai/v1/chat/completions`          | `@ai-sdk/openai-compatible` |
+| LongCat-2.0                | longcat-2.0                | `https://opencode.ai/inference/go/openai/v1/chat/completions`          | `@ai-sdk/openai-compatible` |
+| DeepSeek V4.1 Flash        | deepseek-v4.1-flash        | `https://opencode.ai/inference/go/openai/v1/chat/completions`          | `@ai-sdk/openai-compatible` |
+| DeepSeek V4 Pro            | deepseek-v4-pro            | `https://opencode.ai/inference/go/openai/v1/chat/completions`          | `@ai-sdk/openai-compatible` |
+| MiMo-V2.6-Flash            | mimo-v2.6-flash            | `https://opencode.ai/inference/go/openai/v1/chat/completions`          | `@ai-sdk/openai-compatible` |
+| MiMo-V2.6-Pro              | mimo-v2.6-pro              | `https://opencode.ai/inference/go/openai/v1/chat/completions`          | `@ai-sdk/openai-compatible` |
+| MiMo-V2.5                  | mimo-v2.5                  | `https://opencode.ai/inference/go/openai/v1/chat/completions`          | `@ai-sdk/openai-compatible` |
+| MiMo-V2.5-Pro              | mimo-v2.5-pro              | `https://opencode.ai/inference/go/openai/v1/chat/completions`          | `@ai-sdk/openai-compatible` |
+| MiniMax M3.1 Flash         | minimax-m3.1-flash         | `https://opencode.ai/inference/go/openai/v1/chat/completions`          | `@ai-sdk/openai-compatible` |
+| MiniMax M3                 | minimax-m3                 | `https://opencode.ai/inference/go/anthropic/v1/messages`               | `@ai-sdk/anthropic`         |
+| Muse Spark 1.3 Contributor | muse-spark-1.3-contributor | `https://opencode.ai/inference/go/openai/v1/responses`                 | `@ai-sdk/openai`            |
+| Muse Spark 1.2 Contributor | muse-spark-1.2-contributor | `https://opencode.ai/inference/go/openai/v1/responses`                 | `@ai-sdk/openai`            |
+| Qwen3.8 Max                | qwen3.8-max                | `https://opencode.ai/inference/go/anthropic/v1/messages`               | `@ai-sdk/anthropic`         |
+| Qwen3.8 Flash              | qwen3.8-flash              | `https://opencode.ai/inference/go/anthropic/v1/messages`               | `@ai-sdk/anthropic`         |
+| Qwen3.7 Plus               | qwen3.7-plus               | `https://opencode.ai/inference/go/anthropic/v1/messages`               | `@ai-sdk/anthropic`         |
+| Hy4 preview                | hy4-preview                | `https://opencode.ai/inference/go/openai/v1/chat/completions`          | `@ai-sdk/openai-compatible` |
+| Hy3                        | hy3                        | `https://opencode.ai/inference/go/openai/v1/chat/completions`          | `@ai-sdk/openai-compatible` |
+| Step 5 Preview             | step-5-preview             | `https://opencode.ai/inference/go/openai/v1/chat/completions`          | `@ai-sdk/openai-compatible` |
+| Beam Free                  | beam-free                  | `https://opencode.ai/inference/go/openai/v1/chat/completions`          | `@ai-sdk/openai-compatible` |
+| Iceman Contributor Free    | iceman-contributor-free    | `https://opencode.ai/inference/go/openai/v1/chat/completions`          | `@ai-sdk/openai-compatible` |
+
+</div>
+
+这些 AI SDK 包适用于直接调用 Go 的应用。要在 OpenCode 中使用 Go，请通过 `/connect` 连接，并以 `opencode-go/<model-id>` 格式设置[模型](/zh/docs/configure/models)：
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "opencode-go/kimi-k3",
+}
+```
+
+### 模型
+
+从模型端点获取可用模型的完整列表及其元数据：
+
+```bash
+curl https://opencode.ai/inference/go/v1/models
+```
+
+## 隐私
+
+| 模型                      | 模型训练 | 数据保留 |
+| -------------------------- | -------------- | -------------- |
+| Grok 4.7                   | 未使用       | 30 天        |
+| GPT 6 Luna                 | 未使用       | 30 天        |
+| GPT 5.6 Luna               | 未使用       | 30 天        |
+| Claude Haiku 5.5           | 未使用       | 30 天        |
+| Gemini 4 Argon             | 未使用       | 0 天         |
+| GLM-5.3-Flash              | 未使用       | 0 天         |
+| GLM-5.3                    | 未使用       | 0 天         |
+| GLM-5.2                    | 未使用       | 0 天         |
+| Kimi K3.1 Pro              | 未使用       | 0 天         |
+| Kimi K3                    | 未使用       | 0 天         |
+| Kimi K2.7 Code             | 未使用       | 0 天         |
+| LongCat-2.0                | 未使用       | 0 天         |
+| MiMo-V2.6-Pro              | 未使用       | 0 天         |
+| MiMo-V2.6-Flash            | 未使用       | 0 天         |
+| MiMo-V2.5-Pro              | 未使用       | 0 天         |
+| MiMo-V2.5                  | 未使用       | 0 天         |
+| Qwen3.8 Max                | 未使用       | 0 天         |
+| Qwen3.8 Flash              | 未使用       | 0 天         |
+| Qwen3.7 Plus               | 未使用       | 0 天         |
+| MiniMax M3.1 Flash         | 未使用       | 0 天         |
+| MiniMax M3                 | 未使用       | 0 天         |
+| Muse Spark 1.3 Contributor | 是            | 非 ZDR        |
+| Muse Spark 1.2 Contributor | 是            | 非 ZDR        |
+| DeepSeek V4.1 Flash        | 未使用       | 0 天\*       |
+| DeepSeek V4 Pro            | 未使用       | 0 天\*       |
+| Hy4 preview                | 未使用       | 0 天         |
+| Hy3                        | 未使用       | 0 天         |
+| Step 5 Preview             | 未使用       | 0 天         |
+| Beam Free                  | 未使用       | 30 天        |
+| Iceman Contributor Free    | 是            | 非 ZDR        |
+
+- **Grok 4.7：** ZDR 会禁用依赖已存储数据的重要 API 功能，包括有状态的 Responses API、Files and Collections 以及 Batch API。[了解更多](https://docs.x.ai/developers/faq/security#what-is-zero-data-retention-zdr)。
+- **GPT 6 Luna / GPT 5.6 Luna：** 所有 API 功能使用都会生成滥用监控日志，最长保留 30 天。[了解更多](https://developers.openai.com/api/docs/guides/your-data#data-retention-controls-for-abuse-monitoring)。
+- **Claude Haiku 5.5：** 依据 [Anthropic 的数据政策](https://docs.anthropic.com/en/docs/claude-code/data-usage)，请求保留 30 天。
+- **Muse Spark 1.3 Contributor：** 以大幅折扣的 token 定价，换取使用你的提示与补全内容训练未来 Meta 模型的许可。可用范围仅限于 Meta [地理使用政策](https://ai.developer.meta.com/legal/geographic-use-policy)允许的区域。[了解更多](https://dev.meta.ai/docs/pricing-rate-limits#contributor-tier)。
+- **Muse Spark 1.2 Contributor：** 以大幅折扣的 token 定价，换取使用你的提示与补全内容训练未来 Meta 模型的许可。可用范围仅限于 Meta [地理使用政策](https://ai.developer.meta.com/legal/geographic-use-policy)允许的区域。[了解更多](https://dev.meta.ai/docs/pricing-rate-limits#contributor-tier)。
+- **Iceman Contributor Free：** 限时免费，换取使用你的提示与补全内容改进模型的许可。
+- **DeepSeek：** ZDR 协议按月续签。当前协议有效期至 2026 年 10 月 31 日。
+
+## 背景
+
+开放模型已经变得非常出色。在编码任务上，它们的性能现已接近专有模型。由于多家提供商可以竞争性地提供这些模型，它们通常便宜得多。
+
+然而，要获得可靠、低延迟的访问并不容易。各提供商在质量与可用性上参差不齐。
+
+<Callout type="tip">我们测试了一组与 OpenCode 协作良好的精选模型与提供商。</Callout>
+
+为解决这一问题，我们做了几件事：
+
+1. 我们测试了一组精选的开放模型，并与其团队沟通如何以最佳方式运行它们。
+2. 我们与若干提供商合作，确保这些模型被正确地提供服务。
+3. 我们对模型/提供商的组合进行了基准测试，并整理出一份我们愿意推荐的列表。
+
+Go 与 Go Plus 均提供对这些模型的访问；请选择与你的使用量相匹配的方案。
+
+## 目标
+
+我们创建 OpenCode Go 的目标是：
+
+1. 以低成本的订阅，让更多人**能够使用** AI 编码。
+2. **可靠**地提供对最佳开放编码模型的访问。
+3. 精选针对编码智能体使用场景**经过测试与基准评估**的模型。
+4. 通过允许你同时在 OpenCode 中使用任何其他提供商，做到**无锁定**。

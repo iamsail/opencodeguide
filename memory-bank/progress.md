@@ -27,7 +27,7 @@
 -   [x] Filled missing metadata for all core documentation skeletons.
 
 ### Phase 3: Content Enrichment & Engagement (In Progress)
-- [ ] **OpenCode v2 Docs Sync Pipeline (TASK103, In Progress)**: Automated fetch→translate→PR pipeline syncing `/zh/docs` with official v2 docs (https://opencode.ai/v2/docs). Phase 0 infrastructure + Phase 1 pilot (5 pages: intro/config/cli/troubleshooting/agents) done on 2026-10-24 (commit 7b755e4). Remaining: Phase 2 (16 update pages + 14 legacy banners) → Phase 3 (45 new pages + sidebar) → Phase 4 (SEO regression) → optional Phase 5 (CI weekly check). See TASK103 for the TODO table.
+- [ ] **OpenCode v2 Docs Sync Pipeline (TASK103, In Progress ~90%)**: Automated fetch→translate pipeline syncing `/zh/docs` with official v2 docs. Phases 0-3 complete as of 2026-10-26: 21 pages updated in place, 14 legacy pages got migration banners, **45 new pages created** (zh docs 36→81), sidebar extended to 5 groups (incl. Console), ROUTE_MAP fully updated, build green at 142 pages (next upgraded 16.1.1→16.4.3 for the #87713 SWC CJK panic). Remaining: commit, Phase 4 SEO spot-checks, optional Phase 5 CI. See TASK103.
 - [x] **Chinese CLI Documentation Update (v2)**: Synchronized CLI reference with the latest `session` command logic, updated environment variables, and refactored UI for mobile parity ([TASK102]).
 - [x] **Chinese IDE Documentation Update (v2)**: Overhauled the IDE guide with VS Code, Cursor, and Windsurf support, including detailed shortcuts and troubleshooting ([TASK101]).
 - [x] **Troubleshooting Documentation Update (ZH)**: Overhauled the Chinese troubleshooting guide with detailed logs, storage, desktop app, and system-specific diagnostics ([TASK100]).

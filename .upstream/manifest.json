@@ -1,8 +1,8 @@
 {
   "repo": "anomalyco/opencode",
   "ref": "dev",
-  "commitSha": "5b41e1f977db069603fe0c8f9c668a79e05b4013",
-  "fetchedAt": "2026-10-26T02:29:47.709Z",
+  "commitSha": "350dc1a3d0da110e83be3ac8006d5971b8ca804e",
+  "fetchedAt": "2026-10-26T04:30:13.368Z",
   "files": {
     "agents": {
       "sha": "4da30f18a67384c162e993dd93f94bd8f84edf40",
@@ -34,20 +34,10 @@
       "path": "services/www/src/docs/content/build/plugins/cli.mdx",
       "bytes": 21958
     },
-    "build/plugins/effect": {
-      "sha": "329f732a2166a77f72c7ce8f64393a28d7bef4ba",
-      "path": "services/www/src/docs/content/build/plugins/effect.mdx",
-      "bytes": 50709
-    },
     "build/plugins/effect/rpc": {
       "sha": "73cee5ce3011fd14bf652398e0a9eb4c8e58454a",
       "path": "services/www/src/docs/content/build/plugins/effect/rpc.mdx",
       "bytes": 3876
-    },
-    "build/plugins": {
-      "sha": "102b4a97448c4ffdd3598fd34c6080b4d8957d35",
-      "path": "services/www/src/docs/content/build/plugins/index.mdx",
-      "bytes": 60780
     },
     "build/plugins/migrate-v1": {
       "sha": "1cd6a5afee3765caf1a34ecf1de9f7bf51cc97c0",
@@ -319,11 +309,6 @@
       "path": "services/www/src/docs/content/tools.mdx",
       "bytes": 10268
     },
-    "troubleshooting": {
-      "sha": "23587497955e9f0d1bb9b128b699762b75dcc73e",
-      "path": "services/www/src/docs/content/troubleshooting.mdx",
-      "bytes": 7714
-    },
     "warming": {
       "sha": "bd281fa99f361cfc3a4bdb923bed1991073bc253",
       "path": "services/www/src/docs/content/warming.mdx",
@@ -333,6 +318,21 @@
       "sha": "8409cabfd2c5aeaa29ab44985b88cf203fef285c",
       "path": "services/www/src/docs/content/websearch.mdx",
       "bytes": 2518
+    },
+    "troubleshooting": {
+      "sha": "1f09117e11920a56d1df67b86c1eed4e2abe5702",
+      "path": "services/www/src/docs/content/troubleshooting.mdx",
+      "bytes": 8258
+    },
+    "build/plugins/effect": {
+      "sha": "98b4c48db207d20cd41dc8a20040185e353bf8b2",
+      "path": "services/www/src/docs/content/build/plugins/effect.mdx",
+      "bytes": 51573
+    },
+    "build/plugins": {
+      "sha": "4683395efb362f0a80e78cbc1dd89e6f15a9953d",
+      "path": "services/www/src/docs/content/build/plugins/index.mdx",
+      "bytes": 61764
     }
   }
 }

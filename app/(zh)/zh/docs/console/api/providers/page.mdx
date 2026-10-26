@@ -1,0 +1,106 @@
+export const metadata = {
+  title: "提供商 API | OpenCode 中文文档",
+  description: "连接到工作区的每个[提供商](/zh/docs/console/providers)都通过 Console 网关以各自独立的 URL 提供服务。OpenCode 在 `/connect` 之后会自动使用该 URL；你也可以直接调用它",
+  alternates: {
+    canonical: "/zh/docs/console/api/providers",
+  },
+}
+
+连接到工作区的每个[提供商](/zh/docs/console/providers)都通过 Console 网关以各自独立的 URL 提供服务。OpenCode 在 `/connect` 之后会自动使用该 URL；你也可以直接调用它，以便在自己的工具中使用相同的提供商。Console 在转发前会附加提供商凭据，因此提供商密钥永远不会离开工作区。
+
+```bash
+curl -X POST "https://opencode.ai/inference/custom/conn_.../chat/completions" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-v4.1-flash",
+    "messages": [{ "role": "user", "content": "Say hi" }]
+  }'
+```
+
+## 提供商 URL
+
+从 **提供商** 下的提供商页面复制 **Console API URL**。
+
+```text
+https://opencode.ai/inference/custom/<connection_id>
+```
+
+## 身份验证
+
+将 `<token>` 替换为在 Console 中创建的[服务账号密钥](/zh/docs/console/api#service-accounts)。Console 会在转发前将其换为该连接的凭据。
+
+```text
+Authorization: Bearer <token>
+```
+
+Console 还会从 `x-api-key`、`api-key` 或 `x-goog-api-key` 读取密钥，因此将提供商 SDK 指向 Console API URL 时也能正常工作。
+
+## 端点
+
+将提供商的 API 路径追加到 Console API URL。Console 会把请求转发到该连接的 base URL，并原样返回提供商的响应。
+
+| 格式               | 路径                              |
+| ------------------ | --------------------------------- |
+| 聊天补全           | `/chat/completions`               |
+| Responses API      | `/responses`                      |
+| Anthropic 兼容     | `/messages`                       |
+| Google 生成式 AI   | `/models/<model>:generateContent` |
+
+按提供商页面上显示的模型 ID 发送。若某模型在上游使用不同的 API ID，Console 会对其进行改写。对未在该连接上启用的模型的请求将被拒绝。
+
+### 聊天补全
+
+```bash
+curl -X POST "https://opencode.ai/inference/custom/conn_.../chat/completions" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-v4.1-flash",
+    "messages": [{ "role": "user", "content": "Say hi" }]
+  }'
+```
+
+### Responses API
+
+```bash
+curl -X POST "https://opencode.ai/inference/custom/conn_.../responses" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-6.1-sol",
+    "input": "Say hi"
+  }'
+```
+
+### Anthropic 兼容
+
+必须提供 `max_tokens`。
+
+```bash
+curl -X POST "https://opencode.ai/inference/custom/conn_.../messages" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-5-5",
+    "max_tokens": 1024,
+    "messages": [{ "role": "user", "content": "Say hi" }]
+  }'
+```
+
+### Google 生成式 AI
+
+模型和方法是路径的一部分。将 `:generateContent` 替换为 `:streamGenerateContent` 可对响应进行流式传输。
+
+```bash
+curl -X POST "https://opencode.ai/inference/custom/conn_.../models/gemini-4-argon:generateContent" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contents": [{ "parts": [{ "text": "Say hi" }] }]
+  }'
+```
+
+## 用量
+
+请求按各模型上设定的定价计入[预算](/zh/docs/console/budgets)。token 费用由提供商向你收取。

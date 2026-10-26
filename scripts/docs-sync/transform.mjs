@@ -77,13 +77,31 @@ export function convertCodeTabsToJsonAttr(body) {
   })
 }
 
-/** PlanTabs 降级（上游用量极少）：转成两个 Callout 提示 */
+/**
+ * PlanTabs 降级（上游仅 console/go 使用）：
+ * - 带子元素形式 <PlanTabs ...><div slot="...">...</div></PlanTabs>：
+ *   提取各 slot 内容转为加粗小节，保留数据（定价/请求表格），不丢内容。
+ * - 自闭合形式 <PlanTabs ... />：降级为 note Callout。
+ */
 export function degradePlanTabs(body) {
-  // <PlanTabs ... /> 或带子元素形式都做宽松处理：整块替换为 note callout
-  return body.replace(
+  let out = body.replace(/<PlanTabs[^>]*>([\s\S]*?)<\/PlanTabs>/g, (full, children) => {
+    const slots = []
+    const slotRe = /<div slot="([^"]+)">([\s\S]*?)<\/div>/g
+    let m
+    while ((m = slotRe.exec(children)) !== null) {
+      slots.push({ name: m[1], content: m[2].trim() })
+    }
+    if (!slots.length) {
+      return `<Callout type="note">\n  上游此处为 Plan/Build 切换内容，请参考官方文档的交互式演示。\n</Callout>`
+    }
+    const labelFor = (name) => (name === "go" ? "Go" : name === "go-plus" ? "Go Plus" : name)
+    return slots.map((s) => `**${labelFor(s.name)}：**\n\n${s.content}`).join("\n\n")
+  })
+  out = out.replace(
     /<PlanTabs[\s\S]*?\/>/g,
-    `<Callout type="note">\n  上游此处提供 Plan/Build 模式切换示例，请参考官方文档的交互式演示。\n</Callout>`
+    `<Callout type="note">\n  上游此处为 Plan/Build 切换内容，请参考官方文档的交互式演示。\n</Callout>`
   )
+  return out
 }
 
 export function transformSource(source, pageMap) {

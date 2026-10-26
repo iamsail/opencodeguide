@@ -36,7 +36,20 @@ function firstParagraph(text) {
     }
     buf.push(line.trim())
   }
-  return buf.join("").slice(0, 120)
+  const para = buf.join("")
+  if (para.length <= 120) return para
+  // 在标点边界截断，避免句子被拦腰切断
+  const cut = para.slice(0, 120)
+  const lastPunct = Math.max(
+    cut.lastIndexOf("。"),
+    cut.lastIndexOf("."),
+    cut.lastIndexOf("；"),
+    cut.lastIndexOf(";"),
+    cut.lastIndexOf("，"),
+    cut.lastIndexOf(",")
+  )
+  if (lastPunct > 60) return cut.slice(0, lastPunct + 1)
+  return `${cut}…`
 }
 
 function sanitizeDescription(desc) {

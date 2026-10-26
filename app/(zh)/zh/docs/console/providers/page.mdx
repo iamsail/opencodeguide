@@ -1,0 +1,113 @@
+export const metadata = {
+  title: "控制台提供商 | OpenCode 中文文档",
+  description: "连接你已有付费订阅的提供商账户（例如 Anthropic、OpenAI 或 AWS Bedrock），并将其模型共享给工作区中的所有人。Console 会存储凭据，并通过其网关为每个提供商提供服务，因此成员可以使用这些模型",
+  alternates: {
+    canonical: "/zh/docs/console/providers",
+  },
+}
+
+连接你已有付费订阅的提供商账户（例如 Anthropic、OpenAI 或 AWS Bedrock），并将其模型共享给工作区中的所有人。Console 会存储凭据，并通过其网关为每个提供商提供服务，因此成员可以使用这些模型，而无需看到提供商密钥。你自己的工具也可以通过[提供商 API](/zh/docs/console/api/providers) 使用同一网关。
+
+所有者和管理员在 **Providers** 标签页中管理提供商。成员运行 `/connect` 后，即可在 OpenCode 中使用已启用的模型。
+
+## 连接提供商
+
+1. 打开 **Providers** 并点击 **Connect Provider**。
+2. 从目录中选择提供商并输入其 API 密钥。
+3. 可选：点击 **Test connection**，然后点击 **Save**。
+
+目录包含 Anthropic、OpenAI、Google、xAI、DeepSeek、Mistral、Groq、OpenRouter 等众多提供商。目录中的提供商已预配置好其模型。
+
+### 云提供商
+
+云提供商需要额外填写几项信息。
+
+| 提供商              | 所需信息                             |
+| ------------------- | ------------------------------------ |
+| Azure               | 资源名称和 API 密钥                  |
+| AWS Bedrock         | 区域和 API 密钥                      |
+| Google Vertex AI    | 区域和服务账号 JSON                  |
+| Cloudflare AI Gateway | 账户 ID、网关 ID 和 API token      |
+| Databricks          | 工作区 URL 和 token                  |
+
+### 自定义提供商
+
+点击 **Add Custom Provider** 可连接任何其他端点，然后用 **Add Model** 添加其模型。
+
+| 字段       | 说明                                                                         |
+| ---------- | ---------------------------------------------------------------------------- |
+| Base URL   | Console 转发请求的目标地址，例如 `https://api.deepseek.com/v1`。               |
+| Format     | Chat Completions、Responses API、Anthropic Compatible 或 Google Generative AI。 |
+| Auth mode  | Bearer、API key header 或 Custom header。                                      |
+| Credential | Console 发送给提供商的密钥。                                                    |
+
+## 选择模型
+
+打开提供商即可查看其模型。只有已启用的模型对成员可用。
+
+- 使用 **Enabled** 开关开启或关闭模型。
+- 开启 **New models** 可自动启用该提供商未来新增的模型。
+
+## 编辑模型
+
+点击模型即可编辑。关闭面板时更改会被保存。
+
+| 区块         | 可修改内容                                                   |
+| ------------ | ------------------------------------------------------------ |
+| General      | 显示名称、API ID、工具支持、输入与输出类型                   |
+| Variants     | 带有各自请求头或请求体的变体                                 |
+| Configuration | 默认变体、请求头与请求体、token 限制                        |
+| Cost Tiers   | 每 1M token 的输入、输出、缓存读取与缓存写入价格             |
+
+### 自定义定价
+
+目录中的模型默认使用提供商的标价。若你拥有议价（例如 OpenAI 合同上的折扣），请在 **Cost Tiers** 中覆盖这些价格，使用量报告与[预算](/zh/docs/console/budgets)和你实际支付的费用一致。
+
+| 字段             | 标价     | 你的价格 |
+| ---------------- | -------- | -------- |
+| Input price      | $2.50    | $2.00    |
+| Output price     | $15.00   | $12.00   |
+| Cache read price | $0.25    | $0.20    |
+
+你更改过的价格会在提供商页面上高亮显示。对某个字段使用 **Restore default value**，或对模型使用 **⋯ › Restore...**，即可恢复为标价。
+
+当模型在超过某个上下文长度后收费更高时（例如提示超过 200K token），可添加 **Context** 层级。
+
+### 自定义模型
+
+点击 **Add Model** 可添加目录中未收录的模型，需填写其 **Display name** 与 **Model ID**。对已有模型使用 **⋯ › Duplicate...**，可基于其设置开始。
+
+## OpenCode 模型
+
+**Models** 标签页管理 Console 提供的[模型](/zh/docs/console/models)，这些模型使用工作区额度支付。其操作方式与提供商页面相同：
+
+- 单独开启或关闭各个模型。
+- 关闭 **Free models** 可为工作区屏蔽免费模型。
+- 开启 **New models** 可自动启用新增的 Console 模型。
+
+通过 **⋯ › Disable** 停用整个提供商，即可仅使用你自己的提供商。
+
+## 在 OpenCode 中使用
+
+成员运行 `/connect` 并选择工作区。每个已启用的提供商显示为工作区名称后接提供商名称，`/models` 会列出其已启用的模型。
+
+```text
+Acme Inc. / Anthropic
+```
+
+在 **Settings › General** 中开启 **Managed providers only**，可将所有人的 OpenCode 限制为仅使用工作区的提供商。
+
+## 停用或移除
+
+打开提供商的 **⋯** 菜单：
+
+- **Disable** 会对成员隐藏该提供商及其模型，但保留其设置。
+- **Remove...** 会删除该提供商及其模型。对话框会显示最近使用它的人，并提供 **Disable instead** 选项。
+
+若要轮换密钥，请点击提供商页面上的凭据并输入新密钥。
+
+## 账单
+
+token 费用由提供商向你收取；Console 不会为此扣除额度。Console 仍会按模型定价记录每个请求及其费用，因此用量报告与[预算](/zh/docs/console/budgets)会包含这部分。
+
+若要从你自己的工具（而非 OpenCode）调用提供商，请使用[提供商 API](/zh/docs/console/api/providers)。
