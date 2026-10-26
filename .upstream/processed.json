@@ -1,0 +1,398 @@
+{
+  "index": {
+    "upstreamSha": "af9134d00584cc8bf9d04ac451897244b687ff70",
+    "action": "update",
+    "localUrl": "/zh/docs/intro",
+    "processedAt": "2026-10-24T09:31:29.327Z"
+  },
+  "agents": {
+    "upstreamSha": "4da30f18a67384c162e993dd93f94bd8f84edf40",
+    "action": "update",
+    "localUrl": "/zh/docs/configure/agents",
+    "processedAt": "2026-10-24T09:34:52.157Z"
+  },
+  "cli": {
+    "upstreamSha": "b6c997d536ac477360010988c61f6b368e15ad19",
+    "action": "update",
+    "localUrl": "/zh/docs/cli",
+    "processedAt": "2026-10-24T09:35:43.739Z"
+  },
+  "troubleshooting": {
+    "upstreamSha": "23587497955e9f0d1bb9b128b699762b75dcc73e",
+    "action": "update",
+    "localUrl": "/zh/docs/troubleshooting",
+    "processedAt": "2026-10-24T09:41:44.922Z"
+  },
+  "config": {
+    "upstreamSha": "eafc23472168296a05b096c81421ff0768d69658",
+    "action": "update",
+    "localUrl": "/zh/docs/config",
+    "processedAt": "2026-10-24T09:45:43.377Z"
+  },
+  "build/plugins": {
+    "upstreamSha": "102b4a97448c4ffdd3598fd34c6080b4d8957d35",
+    "action": "update",
+    "localUrl": "/zh/docs/develop/plugins",
+    "processedAt": "2026-10-26T02:02:47.647Z"
+  },
+  "build/sdk": {
+    "upstreamSha": "c9618bd1a273f0512e5b8c2caa6163b63f2f16a9",
+    "action": "update",
+    "localUrl": "/zh/docs/develop/sdk",
+    "processedAt": "2026-10-26T02:04:09.663Z"
+  },
+  "cli/acp": {
+    "upstreamSha": "04d2c858c92cef4adb24650f25691342ac2275c1",
+    "action": "update",
+    "localUrl": "/zh/docs/configure/acp-support",
+    "processedAt": "2026-10-26T02:06:49.024Z"
+  },
+  "cli/keybinds": {
+    "upstreamSha": "107f0461f0e2645487e2d433ab9eeffc0d54d686",
+    "action": "update",
+    "localUrl": "/zh/docs/configure/keybinds",
+    "processedAt": "2026-10-26T02:10:14.361Z"
+  },
+  "cli/tui": {
+    "upstreamSha": "314e84eee3d2b1176899a9f204f572133ec2dd0c",
+    "action": "update",
+    "localUrl": "/zh/docs/tui",
+    "processedAt": "2026-10-26T02:11:13.434Z"
+  },
+  "commands": {
+    "upstreamSha": "1a513836567d7c9dc160bdf7c6c043b696413973",
+    "action": "update",
+    "localUrl": "/zh/docs/configure/commands",
+    "processedAt": "2026-10-26T02:12:18.205Z"
+  },
+  "formatters": {
+    "upstreamSha": "e78821e0f6e82699518b203cda5730283614b06c",
+    "action": "update",
+    "localUrl": "/zh/docs/configure/formatters",
+    "processedAt": "2026-10-26T02:12:45.927Z"
+  },
+  "instructions": {
+    "upstreamSha": "1161e4e7577d5a3755eab01830d75ff67e0c3c3f",
+    "action": "update",
+    "localUrl": "/zh/docs/configure/rules",
+    "processedAt": "2026-10-26T02:13:48.125Z"
+  },
+  "mcp-servers": {
+    "upstreamSha": "bfea1f69632340091baac52c4c4e48140cb51720",
+    "action": "update",
+    "localUrl": "/zh/docs/configure/mcp-servers",
+    "processedAt": "2026-10-26T02:15:49.474Z"
+  },
+  "permissions": {
+    "upstreamSha": "31d26e6dcf030b75e3f6d838f67caa95666db11f",
+    "action": "update",
+    "localUrl": "/zh/docs/configure/permissions",
+    "processedAt": "2026-10-26T02:20:29.945Z"
+  },
+  "providers": {
+    "upstreamSha": "77cfe97009057a7a7c74d9cf980b98fd59bf121e",
+    "action": "update",
+    "localUrl": "/zh/docs/providers",
+    "processedAt": "2026-10-26T02:22:50.319Z"
+  },
+  "skills": {
+    "upstreamSha": "4281110e0f15e6cde1af0868e73add8f441d82ee",
+    "action": "update",
+    "localUrl": "/zh/docs/configure/agent-skills",
+    "processedAt": "2026-10-26T02:24:07.022Z"
+  },
+  "themes": {
+    "upstreamSha": "eb360c5ae5997447a6dc5bc3c3744b0bcb47ebcb",
+    "action": "update",
+    "localUrl": "/zh/docs/configure/themes",
+    "processedAt": "2026-10-26T02:25:31.072Z"
+  },
+  "tools": {
+    "upstreamSha": "a42134a1f6d0021efb3e68caf70139651f6705a9",
+    "action": "update",
+    "localUrl": "/zh/docs/configure/tools",
+    "processedAt": "2026-10-26T02:28:57.400Z"
+  },
+  "models": {
+    "upstreamSha": "64cb618b97ddd2a8fb9410993e49254056ef82b4",
+    "action": "update",
+    "localUrl": "/zh/docs/configure/models",
+    "processedAt": "2026-10-26T02:29:47.717Z"
+  },
+  "network": {
+    "upstreamSha": "be70545b519970a09f7f24db10f64e198f903c6c",
+    "action": "update",
+    "localUrl": "/zh/docs/network",
+    "processedAt": "2026-10-26T02:29:47.720Z"
+  },
+  "attachments": {
+    "upstreamSha": "6a7342b7679abf25ec9a0597e6cba6639c32bb99",
+    "action": "create",
+    "localUrl": "/zh/docs/configure/attachments",
+    "processedAt": "2026-10-26T03:04:10.960Z"
+  },
+  "cli/commands": {
+    "upstreamSha": "db38dbd6dceb1857cd6e5947a8e925d11f491b7b",
+    "action": "create",
+    "localUrl": "/zh/docs/cli/commands",
+    "processedAt": "2026-10-26T03:08:23.319Z"
+  },
+  "cli/config": {
+    "upstreamSha": "c4812d778f094fdde1c2211c3182c0da8f11c9d9",
+    "action": "create",
+    "localUrl": "/zh/docs/cli/config",
+    "processedAt": "2026-10-26T03:11:07.578Z"
+  },
+  "cli/plugins": {
+    "upstreamSha": "c1ecb0ff3587ec59ba9a18470b7043fb27c931d1",
+    "action": "create",
+    "localUrl": "/zh/docs/cli/plugins",
+    "processedAt": "2026-10-26T03:11:18.778Z"
+  },
+  "cli/providers": {
+    "upstreamSha": "01884b530dc299e9f9c15d1112fbeffefecdedb3",
+    "action": "create",
+    "localUrl": "/zh/docs/cli/providers",
+    "processedAt": "2026-10-26T03:12:20.568Z"
+  },
+  "cli/theme": {
+    "upstreamSha": "2617f13700ad8e7f9bd7af1c6b7906d03b5ce057",
+    "action": "create",
+    "localUrl": "/zh/docs/cli/theme",
+    "processedAt": "2026-10-26T03:13:54.908Z"
+  },
+  "cli/web": {
+    "upstreamSha": "de349965d256277175b739241572d2a0e5a1da0e",
+    "action": "create",
+    "localUrl": "/zh/docs/cli/web",
+    "processedAt": "2026-10-26T03:14:51.716Z"
+  },
+  "compaction": {
+    "upstreamSha": "a2c1357a1db35a192dce3a5c6ed6ea7564aa5728",
+    "action": "create",
+    "localUrl": "/zh/docs/configure/compaction",
+    "processedAt": "2026-10-26T03:16:08.564Z"
+  },
+  "migrate-v1": {
+    "upstreamSha": "3f1f94ec5655010fc2ecc03fb96039b0416a3c9e",
+    "action": "create",
+    "localUrl": "/zh/docs/migrating-to-v2",
+    "processedAt": "2026-10-26T03:18:40.262Z"
+  },
+  "plugins": {
+    "upstreamSha": "9356cd1ca49bb362749831f523e3e1d87d669577",
+    "action": "create",
+    "localUrl": "/zh/docs/configure/plugins",
+    "processedAt": "2026-10-26T03:19:17.750Z"
+  },
+  "policies": {
+    "upstreamSha": "3b49b35b165e0d85feb93bfd94215780281fb2c3",
+    "action": "create",
+    "localUrl": "/zh/docs/configure/policies",
+    "processedAt": "2026-10-26T03:20:44.145Z"
+  },
+  "references": {
+    "upstreamSha": "947616ff775409cdf7659706bdd8049efdfc1ec4",
+    "action": "create",
+    "localUrl": "/zh/docs/configure/references",
+    "processedAt": "2026-10-26T03:21:51.617Z"
+  },
+  "snapshots": {
+    "upstreamSha": "88bca613bcb714f0a320806c94ea6c4b5e9407f1",
+    "action": "create",
+    "localUrl": "/zh/docs/configure/snapshots",
+    "processedAt": "2026-10-26T03:24:31.825Z"
+  },
+  "warming": {
+    "upstreamSha": "bd281fa99f361cfc3a4bdb923bed1991073bc253",
+    "action": "create",
+    "localUrl": "/zh/docs/configure/warming",
+    "processedAt": "2026-10-26T03:25:09.440Z"
+  },
+  "websearch": {
+    "upstreamSha": "8409cabfd2c5aeaa29ab44985b88cf203fef285c",
+    "action": "create",
+    "localUrl": "/zh/docs/configure/websearch",
+    "processedAt": "2026-10-26T03:25:24.011Z"
+  },
+  "build/client/effect": {
+    "upstreamSha": "9358c63e72a0cd301d52b4c4c689183b84e8abaa",
+    "action": "create",
+    "localUrl": "/zh/docs/develop/effect/client",
+    "processedAt": "2026-10-26T03:26:28.117Z"
+  },
+  "build/client": {
+    "upstreamSha": "5634a90868e8a469c7255eb84d774388f23c3aba",
+    "action": "create",
+    "localUrl": "/zh/docs/develop/client",
+    "processedAt": "2026-10-26T03:27:10.327Z"
+  },
+  "build": {
+    "upstreamSha": "3f71ce51ae2d77e10072ea9a1a282b48026c4ddf",
+    "action": "create",
+    "localUrl": "/zh/docs/develop",
+    "processedAt": "2026-10-26T03:27:46.454Z"
+  },
+  "build/plugins/cli": {
+    "upstreamSha": "4ebabf78f24d4b64d99c30bcd7c36f41b16a25ad",
+    "action": "create",
+    "localUrl": "/zh/docs/develop/plugins/cli",
+    "processedAt": "2026-10-26T03:28:48.485Z"
+  },
+  "build/plugins/effect": {
+    "upstreamSha": "329f732a2166a77f72c7ce8f64393a28d7bef4ba",
+    "action": "create",
+    "localUrl": "/zh/docs/develop/effect/plugins",
+    "processedAt": "2026-10-26T03:33:39.193Z"
+  },
+  "build/plugins/effect/rpc": {
+    "upstreamSha": "73cee5ce3011fd14bf652398e0a9eb4c8e58454a",
+    "action": "create",
+    "localUrl": "/zh/docs/develop/effect/rpc",
+    "processedAt": "2026-10-26T03:34:02.082Z"
+  },
+  "build/plugins/migrate-v1": {
+    "upstreamSha": "1cd6a5afee3765caf1a34ecf1de9f7bf51cc97c0",
+    "action": "create",
+    "localUrl": "/zh/docs/develop/plugins/migrate-v1",
+    "processedAt": "2026-10-26T03:35:43.686Z"
+  },
+  "build/plugins/rpc": {
+    "upstreamSha": "dba3e24f433ae0a2f7a8bc34f9aa265c8093d924",
+    "action": "create",
+    "localUrl": "/zh/docs/develop/plugins/rpc",
+    "processedAt": "2026-10-26T03:36:03.824Z"
+  },
+  "build/sdk/cloudflare": {
+    "upstreamSha": "94b203b9089c227282677697e5740f2d1ee01d69",
+    "action": "create",
+    "localUrl": "/zh/docs/develop/sdk/cloudflare",
+    "processedAt": "2026-10-26T03:36:35.523Z"
+  },
+  "build/sdk/effect": {
+    "upstreamSha": "a7ab85e3e842233885bf49c0489f7bd65ef3f35c",
+    "action": "create",
+    "localUrl": "/zh/docs/develop/effect/sdk",
+    "processedAt": "2026-10-26T03:37:21.221Z"
+  },
+  "console/api": {
+    "upstreamSha": "00826d2f10db4eff9a05556fef127e8e2e974986",
+    "action": "create",
+    "localUrl": "/zh/docs/console/api",
+    "processedAt": "2026-10-26T04:30:13.378Z"
+  },
+  "console/api/inference": {
+    "upstreamSha": "19a0fde498381c02664b93654a3cdb8c23f9e0c9",
+    "action": "create",
+    "localUrl": "/zh/docs/console/api/inference",
+    "processedAt": "2026-10-26T04:30:13.381Z"
+  },
+  "console/api/providers": {
+    "upstreamSha": "4d71021e94d044829303b6d725408c47a7513133",
+    "action": "create",
+    "localUrl": "/zh/docs/console/api/providers",
+    "processedAt": "2026-10-26T04:30:13.385Z"
+  },
+  "console/billing": {
+    "upstreamSha": "5d59c1a2888603151a3ac32b98b6002d592b2fec",
+    "action": "create",
+    "localUrl": "/zh/docs/console/billing",
+    "processedAt": "2026-10-26T04:30:13.388Z"
+  },
+  "console/budgets": {
+    "upstreamSha": "fe066e27ef979dc19c13ca694213c796e7a1f115",
+    "action": "create",
+    "localUrl": "/zh/docs/console/budgets",
+    "processedAt": "2026-10-26T04:30:13.391Z"
+  },
+  "console/go": {
+    "upstreamSha": "9564b88556f5ac62eaf7149e7fe48322516e8647",
+    "action": "create",
+    "localUrl": "/zh/docs/console/go",
+    "processedAt": "2026-10-26T06:27:36.963Z"
+  },
+  "console/harnesses/claude-code": {
+    "upstreamSha": "1ffa4b0efd680d900d6caf28c496bd6aca884a6b",
+    "action": "create",
+    "localUrl": "/zh/docs/console/harnesses/claude-code",
+    "processedAt": "2026-10-26T04:30:13.398Z"
+  },
+  "console/harnesses/codex": {
+    "upstreamSha": "5fc1466047b509529a9bfa8d5b5f014f52b0be90",
+    "action": "create",
+    "localUrl": "/zh/docs/console/harnesses/codex",
+    "processedAt": "2026-10-26T04:30:13.401Z"
+  },
+  "console/harnesses/hermes": {
+    "upstreamSha": "6d61ab132b046226724b4f315cbd6f79c7922f73",
+    "action": "create",
+    "localUrl": "/zh/docs/console/harnesses/hermes",
+    "processedAt": "2026-10-26T04:30:13.404Z"
+  },
+  "console/harnesses": {
+    "upstreamSha": "c4fb109205306bf56c896942e4e512d49a243b77",
+    "action": "create",
+    "localUrl": "/zh/docs/console/harnesses",
+    "processedAt": "2026-10-26T04:30:13.407Z"
+  },
+  "console/harnesses/pi": {
+    "upstreamSha": "dce88cffb7e5770e6fdb5b5d282398748719c5e3",
+    "action": "create",
+    "localUrl": "/zh/docs/console/harnesses/pi",
+    "processedAt": "2026-10-26T04:30:13.410Z"
+  },
+  "console/harnesses/raycast": {
+    "upstreamSha": "bc7f1c6332da1ae76a0019e7dab6d55d47a5734e",
+    "action": "create",
+    "localUrl": "/zh/docs/console/harnesses/raycast",
+    "processedAt": "2026-10-26T04:30:13.413Z"
+  },
+  "console": {
+    "upstreamSha": "77270a5d4c40de65601a722ee416b09b64d7a37f",
+    "action": "create",
+    "localUrl": "/zh/docs/console",
+    "processedAt": "2026-10-26T04:30:13.417Z"
+  },
+  "console/members": {
+    "upstreamSha": "770878707f3b04a3e58d35b8c56d81e18317ea3d",
+    "action": "create",
+    "localUrl": "/zh/docs/console/members",
+    "processedAt": "2026-10-26T04:30:13.420Z"
+  },
+  "console/models": {
+    "upstreamSha": "b73d0f9d8a892f27fd664c9a0955985941b5ec88",
+    "action": "create",
+    "localUrl": "/zh/docs/console/models",
+    "processedAt": "2026-10-26T06:10:31.000Z"
+  },
+  "console/providers": {
+    "upstreamSha": "ca0e4004aad5070fd8c6c5fdcb5a956504992652",
+    "action": "create",
+    "localUrl": "/zh/docs/console/providers",
+    "processedAt": "2026-10-26T06:13:22.408Z"
+  },
+  "console/scim": {
+    "upstreamSha": "7574b6d08c6329d3268b987576e2720842089de5",
+    "action": "create",
+    "localUrl": "/zh/docs/console/scim",
+    "processedAt": "2026-10-26T06:14:36.553Z"
+  },
+  "console/sso": {
+    "upstreamSha": "eb4f0225d28ebdc44616ee976a6700eec148ebcb",
+    "action": "create",
+    "localUrl": "/zh/docs/console/sso",
+    "processedAt": "2026-10-26T06:16:02.867Z"
+  },
+  "console/websearch": {
+    "upstreamSha": "9857874a154bd44d9515556a15c0567c564ee4aa",
+    "action": "create",
+    "localUrl": "/zh/docs/console/websearch",
+    "processedAt": "2026-10-26T06:16:38.410Z"
+  },
+  "console/workspaces": {
+    "upstreamSha": "88c88a3251fd6146132f90c363c2fbebf8e1f115",
+    "action": "create",
+    "localUrl": "/zh/docs/console/workspaces",
+    "processedAt": "2026-10-26T06:18:49.785Z"
+  }
+}

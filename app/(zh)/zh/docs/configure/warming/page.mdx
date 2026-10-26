@@ -1,0 +1,124 @@
+export const metadata = {
+  title: "预热 | OpenCode 中文文档",
+  description: "会话预热会定期发送模型请求，以在你两次输入之间的停顿期间保留提供商侧的提示词缓存或其他短暂状态。该功能默认禁用。",
+  alternates: {
+    canonical: "/zh/docs/configure/warming",
+  },
+}
+
+会话预热会定期发送模型请求，以在你两次输入之间的停顿期间保留提供商侧的提示词缓存或其他短暂状态。该功能默认禁用。
+
+在任意 [OpenCode 配置文件](/zh/docs/config) 中启用预热：
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "warming": true,
+}
+```
+
+使用此配置后，当最近活跃的会话在 4 分钟内没有模型请求时，OpenCode 会对其进行预热。此后每 4 分钟继续一次，直到距离最近一次非预热请求过去 30 分钟为止。
+
+## 选项
+
+使用对象形式可更改预热提示词、空闲间隔或活跃窗口：
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "warming": {
+    "prompt": "Do not perform any work. Reply with exactly: OK",
+    "interval": "5 minutes",
+    "duration": "1 hour",
+  },
+}
+```
+
+| 字段 | 默认值 | 用途 |
+| --- | --- | --- |
+| `prompt` | 保活指令 | 作为临时用户消息附加到每次预热请求。默认提示词要求模型不执行任何工作、不使用任何工具，并回复 `OK`。 |
+| `interval` | `"4 minutes"` | 触发下一次预热请求前的空闲时长。 |
+| `duration` | `"30 minutes"` | 从最近一次非预热模型请求起算的预热窗口时长。 |
+
+省略的对象字段保留其默认值。例如，以下配置仅更改间隔：
+
+```jsonc title="opencode.jsonc"
+{
+  "warming": {
+    "interval": "2 minutes",
+  },
+}
+```
+
+## 时长
+
+`interval` 和 `duration` 接受时长字符串。两者都必须解析为大于零的有限值；否则 OpenCode 会跳过预热并记录一条警告。
+
+```jsonc title="opencode.jsonc"
+{
+  "warming": {
+    "interval": "30 seconds",
+    "duration": "1 hour",
+  },
+}
+```
+
+## 时序
+
+预热在一次非预热模型请求之后开始。预热请求完成后，下一个空闲间隔开始计时，但活跃窗口不会延长。
+
+```text
+00:00  normal model request
+00:04  warming request
+00:08  warming request
+00:30  warming stops
+```
+
+任何新的非预热模型活动都会重置两个计时器。如果 `interval` 等于或长于 `duration`，则在发送预热请求之前活跃窗口就会到期。
+
+```text
+00:00  normal model request
+00:20  normal model request; window restarts
+00:24  warming request
+00:50  warming stops
+```
+
+## 请求
+
+预热请求使用会话当前的模型、智能体、指令和对话上下文。OpenCode 临时附加所配置的提示词，发起一次模型调用，然后丢弃响应。
+
+```text
+[current session context]
+[transient user message: keep-alive prompt]
+→ one model response, discarded
+```
+
+该请求不接收输入、不向历史记录添加消息，也不改变持久的会话状态。OpenCode 不会派发本地工具调用，也不会继续工具循环；默认提示词还会告知模型不要使用工具。
+
+## 失败
+
+预热失败只会被记录，不会导致会话失败或发生变化。OpenCode 会等到下一个间隔再重试，而原有活跃窗口继续倒计时。
+
+```text
+00:04  warming request fails; session is unchanged
+00:08  next warming attempt
+```
+
+## 成本
+
+预热请求是真实的提供商请求。它们会消耗 token、产生费用、计入速率限制，并且可能像其他模型请求一样失败。
+
+- 更短的间隔会增加请求量。
+- 更长的 `duration` 允许发出更多预热请求。
+- 仅当其提供商侧收益值得增加的用量时，才启用预热。
+
+例如，在默认配置下，一次不间断的 30 分钟窗口内最多允许 7 次预热尝试：分别在第 4、8、12、16、20、24 和 28 分钟。
+
+## 禁用
+
+将 `warming` 设置为 `false` 可显式禁用该功能。省略该字段同样会保持预热禁用。
+
+```jsonc title="opencode.jsonc"
+{
+  "warming": false,
+}

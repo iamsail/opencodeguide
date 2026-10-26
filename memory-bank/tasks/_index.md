@@ -1,6 +1,10 @@
 # Tasks Index
 
+## In Progress
+- None.
+
 ## Completed
+- [TASK103] OpenCode v2 文档自动化同步流水线 - Phase 0~4 全部完成：流水线 + 21 update 页 + 14 legacy 提示 + 45 新增页（zh docs 36→81）+ 侧边栏/ROUTE_MAP + SEO 回归全绿；next 升级 16.4.3 修复 SWC CJK panic - Completed on 2026-10-26
 - [TASK103] Add Homepage API CTA - Added high-visibility API registration links to the homepage hero and shared header - Completed on 2026-04-26
 - [TASK102] 更新中文 CLI 文档 (v2) - 同步最新命令、环境变量及实验性选项 - Completed on 2026-02-04
 - [TASK101] 更新中文 IDE 文档 (v2) - 完善快捷键及多编辑器支持 - Completed on 2026-02-04

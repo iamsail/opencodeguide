@@ -1,0 +1,126 @@
+export const metadata = {
+  title: "推理 API | OpenCode 中文文档",
+  description: "OpenCode Console 的推理服务在 `https://opencode.ai/inference` 提供与 OpenAI、Anthropic 和 Gemini 兼容的 API",
+  alternates: {
+    canonical: "/zh/docs/console/api/inference",
+  },
+}
+
+OpenCode Console 的推理服务在 `https://opencode.ai/inference` 提供与 OpenAI、Anthropic 和 Gemini 兼容的 API。请向与模型所属 API 系列匹配的端点发送 JSON `POST` 请求。
+
+```bash
+curl -X POST "https://opencode.ai/inference/openai/v1/chat/completions" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "kimi-k3",
+    "messages": [{ "role": "user", "content": "Say hi" }]
+  }'
+```
+
+## 认证
+
+将 `<token>` 替换为在 [OpenCode Console](https://opencode.ai/console) 中创建的[个人 API 密钥](/zh/docs/console/api#personal-api-keys)或[服务账户密钥](/zh/docs/console/api#service-accounts)。付费模型需要该请求头。免费层级的聊天模型仅可在 OpenCode 内部使用；其他客户端即使带有 API 密钥也会收到 HTTP `403`。若要从其他客户端使用，请改用付费模型或 [Go](/zh/docs/console/go) 订阅。
+
+```text
+Authorization: Bearer <token>
+```
+
+## 端点
+
+| API             | 路径                                                      |
+| --------------- | --------------------------------------------------------- |
+| OpenAI 聊天补全 | `/inference/openai/v1/chat/completions`                   |
+| OpenAI 响应     | `/inference/openai/v1/responses`                          |
+| Anthropic 消息  | `/inference/anthropic/v1/messages`                        |
+| Gemini          | `/inference/google/v1beta/models/<model>:generateContent` |
+
+每个模型由一个 API 系列提供服务。参见[模型端点](/zh/docs/console/models#endpoints)表，或获取实时列表：
+
+```bash
+curl https://opencode.ai/inference/v1/models
+```
+
+### OpenAI 聊天补全
+
+`kimi-k3`、`glm-5.3`、`minimax-m3` 等开放模型以及免费模型使用聊天补全 API。
+
+```bash
+curl -X POST "https://opencode.ai/inference/openai/v1/chat/completions" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "glm-5.3",
+    "messages": [{ "role": "user", "content": "Say hi" }]
+  }'
+```
+
+### OpenAI 响应
+
+GPT 模型使用响应 API。
+
+```bash
+curl -X POST "https://opencode.ai/inference/openai/v1/responses" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-6.1-sol",
+    "input": "Say hi"
+  }'
+```
+
+### Anthropic 消息
+
+Claude 和 Qwen 模型使用消息 API。`max_tokens` 为必填。
+
+```bash
+curl -X POST "https://opencode.ai/inference/anthropic/v1/messages" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-5-5",
+    "max_tokens": 1024,
+    "messages": [{ "role": "user", "content": "Say hi" }]
+  }'
+```
+
+### Gemini
+
+Gemini 模型在路径中指定模型与方法。将 `:generateContent` 替换为 `:streamGenerateContent` 可对响应进行流式传输。
+
+```bash
+curl -X POST "https://opencode.ai/inference/google/v1beta/models/gemini-4-argon:generateContent" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contents": [{ "parts": [{ "text": "Say hi" }] }]
+  }'
+```
+
+## 费用
+
+每个响应都会在各 API 已返回的用量信息之外，报告本次请求的花费：OpenAI 和 Anthropic 位于 `usage` 中，Gemini 位于 `usageMetadata` 中。流式响应在携带最终用量的事件上报告该金额：启用了 `stream_options.include_usage` 的聊天补全为最终用量分块，响应 API 为 `response.completed`，消息 API 为 `message_delta`，Gemini 为最后一个分块。
+
+```json
+"usage": {
+  "prompt_tokens": 1200,
+  "completion_tokens": 300,
+  "cost": 0.00412,
+  "opencode": {
+    "billing_source": "balance",
+    "list_cost": 0.00412,
+    "tokens": { "input": 1200, "output": 300, "reasoning": 120, "cache_read": 8000, "cache_write_5m": 0, "cache_write_1h": 0 }
+  }
+}
+```
+
+| 字段                    | 含义                                                                                                                                                       |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cost`                  | 以美元从你的余额中扣除的费用。免费模型以及限额内的 [Go](/zh/docs/console/go) 用量为 `0`。使用你自己的提供商密钥时，为提供商收费的估算值（除非提供商自行上报）；模型无定价时该字段缺失。 |
+| `opencode.billing_source` | `free`、`balance`、`go`、`go-plus` 或 `byok`（你自己的提供商密钥）。                                                                                       |
+| `opencode.list_cost`    | 按模型标价计算的美元金额，含高峰时段与长上下文定价。                                                                                                       |
+| `opencode.estimated`    | 当 `cost` 是按模型标价估算而非 OpenCode 实际收取的金额时为 `true`。仅在使用你自己的提供商密钥时设置。                                                       |
+| `opencode.allowance`    | 仅限 Go：本次请求计入[用量限制](/zh/docs/console/go#usage-limits)的额度，以套餐月度限额的美元金额表示。                                                     |
+| `opencode.tokens`       | 计费所依据的 token 数。`input` 不含缓存读写；`output` 含 `reasoning`。                                                                                      |
+
+图像生成会在响应上报告相同的字段；在流式响应中，每个已完成的图像会附带截至当时的累计费用。费用在响应结束时即已确定，早于余额或 Go 用量的更新。若余额或 Go 限额在请求过程中耗尽，实际扣费可能低于报告金额，但绝不会更高。

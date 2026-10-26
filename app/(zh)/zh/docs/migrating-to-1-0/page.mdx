@@ -7,6 +7,11 @@ export const metadata = {
   },
 }
 
+{/* v2-legacy-banner */}
+<Callout type="note">
+  本页基于 OpenCode v1 文档编写，部分内容可能已过时。这是 v0→v1 的历史迁移指南。迁移到 v2 请见「从 v1 迁移到 v2」。请参阅 [相关页面](/zh/docs/migrating-to-v2) 获取最新信息。
+</Callout>
+
 # 迁移至 1.0 | OpenCode
 
 OpenCode 1.0 是对 TUI（终端用户界面）的一次完全重写。我们从基于 `go + bubbletea` 的 TUI（存在性能和功能局限）迁移到了内部开发的框架 **OpenTUI**，该框架采用 `zig + solidjs` 编写。新的 TUI 与旧版的操作逻辑一致，因为它连接的是同一个 OpenCode 服务器。

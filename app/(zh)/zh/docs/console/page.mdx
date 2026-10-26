@@ -1,0 +1,35 @@
+export const metadata = {
+  title: "控制台 | OpenCode 中文文档",
+  description: "[OpenCode Console](https://opencode.ai/console) 是一项可选服务，无论个人使用还是团队协作，都能为使用 OpenCode 带来额外优势",
+  alternates: {
+    canonical: "/zh/docs/console",
+  },
+}
+
+[OpenCode Console](https://opencode.ai/console) 是一项可选服务，无论个人使用还是团队协作，都能为使用 OpenCode 带来额外优势。
+
+- [工作区](/zh/docs/console/workspaces)：与你的[团队](/zh/docs/console/members)共享访问权限
+- [推理](/zh/docs/console/models)：同时支持专有模型与开源模型
+- [提供商](/zh/docs/console/providers)：通过 Console 网关连接你自己的提供商账户
+- 用量跟踪与[预算](/zh/docs/console/budgets)控制
+- 部署团队级策略以控制 OpenCode 行为
+- [网络搜索](/zh/docs/console/websearch)
+- [Harness](/zh/docs/console/harnesses)：从 Claude Code、Codex 及其他智能体使用 Console 模型
+- [OpenCode Go 与 Go Plus](/zh/docs/console/go)：每月 $10 和 $40 的订阅，用于访问开源模型
+
+## 开始使用
+
+使用 Console 无需团队。每个账户都以一个**个人**工作区起步，其中你是唯一成员。
+
+1. 登录 [Console](https://opencode.ai/console)。
+2. 订阅 [Go](/zh/docs/console/go)、添加[额度](/zh/docs/console/billing#add-credits)，或连接[提供商](/zh/docs/console/providers)。
+3. 在 OpenCode 中运行 `/connect` 并选择该工作区。
+4. 可选：[邀请](/zh/docs/console/members#invite-members)你的团队。
+
+```text
+/connect
+```
+
+## 策略
+
+策略页面中的提供商与工具规则适用于连接到该工作区的每一个 OpenCode 客户端。它们以[策略](/zh/docs/configure/policies#console)声明的形式下发，优先级高于成员的用户配置与项目配置，并在大约一分钟内生效。托管偏好设置与系统配置文件仍然优先于该工作区；参见[优先级](/zh/docs/configure/policies#precedence)。

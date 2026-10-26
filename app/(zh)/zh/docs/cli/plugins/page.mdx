@@ -1,0 +1,60 @@
+export const metadata = {
+  title: "CLI 插件 | OpenCode 中文文档",
+  description: "在 `opencode.json(c)` 中配置的、暴露 TUI 组件的插件，会由 CLI 自动加载。要了解如何构建插件，请参阅[构建插件](/zh/docs/develop/plugins)。你无需将同一软件包再添加到 `cli.",
+  alternates: {
+    canonical: "/zh/docs/cli/plugins",
+  },
+}
+
+在 `opencode.json(c)` 中配置的、暴露 TUI 组件的插件，会由 CLI 自动加载。要了解如何构建插件，请参阅[构建插件](/zh/docs/develop/plugins)。你无需将同一软件包再添加到 `cli.json`。CLI 从已连接的 OpenCode 服务器获取当前插件列表，因此当服务器为远程时同样适用。
+
+使用 `cli.json` 配置仅用于 CLI 的插件。这些插件在本地终端中运行，当 CLI 连接到远程服务器时仍保持激活：
+
+```json title="cli.json"
+{
+  "plugins": [
+    "opencode.example",
+    "opencode.example@1.0.0",
+    "@example/opencode-tui",
+    "@example/opencode-tui@1.0.0",
+    "./plugins/status",
+    "../plugins/status",
+    "/home/user/plugins/status",
+    "file:///home/user/plugins/status"
+  ]
+}
+```
+
+条目按顺序处理。在 ID 或通配符前加 `-` 可禁用匹配的插件：
+
+```json title="cli.json"
+{
+  "plugins": ["*", "-opencode.notifications", "-team.*"]
+}
+```
+
+使用对象形式传入插件选项：
+
+```json title="cli.json"
+{
+  "plugins": [
+    {
+      "package": "@example/opencode-tui",
+      "options": {
+        "compact": true
+      }
+    }
+  ]
+}
+```
+
+OpenCode 还会在全局配置目录和项目的 `.opencode` 目录下发现插件。每个插件采用与已发布软件包相同的目录结构，服务端与 TUI 入口文件放在一起。
+
+```text title="Plugin discovery paths"
+<global-config>/plugins/status/index.ts
+<global-config>/plugins/status/tui.ts
+<project>/.opencode/plugins/status/index.ts
+<project>/.opencode/plugins/status/tui.ts
+```
+
+发现的插件可直接导入 `@opencode/plugin/tui`；OpenCode 会在运行时解析该软件包。示例请参阅[构建 CLI 插件](/zh/docs/develop/plugins/cli)。

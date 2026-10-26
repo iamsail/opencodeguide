@@ -4,357 +4,344 @@ export const metadata = {
   alternates: {
     canonical: "/zh/docs/configure/agents",
   },
-};
-
-# OpenCode Agents 文档（简体中文）
-
-## 概述
-Agents 是可配置用于特定任务和工作流程的专用 AI 助手，支持通过自定义提示词、模型和工具访问权限，创建针对性工具。
-
-> **提示**：使用 Plan 代理可分析代码并查看建议，且不会对代码做出任何修改。
-> 会话期间可切换代理，或通过 `@` 提及方式调用代理。
-
-## 代理类型
-OpenCode 中的代理分为两类：主代理（Primary agents）和子代理（Subagents）。
-
-### 主代理（Primary agents）
-- 可直接交互的主要助手，支持通过 Tab 键或配置的 `switch_agent` 快捷键切换。
-- 负责处理主要对话，可访问所有已配置工具。
-- 内置主代理：
-  - **Build**：默认主代理，所有工具均启用，适用于需要完整文件操作和系统命令访问权限的标准开发工作。
-  - **Plan**：受限代理，专为规划和分析设计，通过权限系统避免意外修改。默认情况下，`文件编辑`（所有写入、补丁和编辑操作）和 `bash`（所有 bash 命令）的权限均设为 `ask`（需用户确认）。
-
-### 子代理（Subagents）
-- 主代理可调用的专用助手，也可通过在消息中 `@` 提及手动调用。
-- 内置子代理：
-  - **General**：通用代理，适用于研究复杂问题、搜索代码和执行多步骤任务，适合不确定能否快速找到匹配结果的关键词或文件搜索场景。
-  - **Explore**：快速代理，专注于代码库探索，适用于通过模式快速查找文件、搜索代码中的关键词或解答代码库相关问题。
-
-## 使用方法
-### 主代理
-- 会话期间通过 **Tab 键**循环切换，或使用配置的 `switch_agent` 快捷键。
-
-### 子代理
-- **自动调用**：主代理根据子代理描述，针对特定任务自动调用。
-- **手动调用**：在消息中 `@` 提及子代理名称，示例：`@general help me search for this function`（@general 帮我搜索这个函数）。
-
-### 会话导航（子代理子会话）
-当子代理创建独立子会话时，可通过以下方式在父会话与所有子会话间导航：
-- `Leader+Right`（或配置的 `session_child_cycle` 快捷键）：正向循环切换（父会话 → 子会话1 → 子会话2 → … → 父会话）。
-- `Leader+Left`（或配置的 `session_child_cycle_reverse` 快捷键）：反向循环切换（父会话 ← 子会话1 ← 子会话2 ← … → 父会话）。
-
-支持在主对话与专用子代理工作流间无缝切换。
-
-## 配置方式
-可通过两种方式自定义内置代理或创建新代理：JSON 配置文件、Markdown 文件。
-
-### 1. JSON 配置（opencode.json）
-在 `opencode.json` 配置文件中定义代理，示例：
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "agent": {
-    "build": {
-      "mode": "primary",
-      "model": "anthropic/claude-sonnet-4-20250514",
-      "prompt": "{file:./prompts/build.txt}",
-      "tools": {
-        "write": true,
-        "edit": true,
-        "bash": true
-      }
-    },
-    "plan": {
-      "mode": "primary",
-      "model": "anthropic/claude-haiku-4-20250514",
-      "tools": {
-        "write": false,
-        "edit": false,
-        "bash": false
-      }
-    },
-    "code-reviewer": {
-      "description": "审查代码的最佳实践和潜在问题",
-      "mode": "subagent",
-      "model": "anthropic/claude-sonnet-4-20250514",
-      "prompt": "你是代码审查员，重点关注安全性、性能和可维护性。",
-      "tools": {
-        "write": false,
-        "edit": false
-      }
-    }
-  }
 }
-```
 
-### 2. Markdown 配置文件
-将 Markdown 配置文件放置在指定目录，文件名即为代理名称：
-- 全局配置：`~/.config/opencode/agent/`
-- 项目级配置：`.opencode/agent/`
+创建 Markdown 文件即可添加可复用的智能体。以下示例添加一个只读的审查智能体，主智能体可将其启动用于代码审查：
 
-示例（review.md）：
-```markdown
+```md title=".opencode/agents/reviewer.md"
 ---
-description: 审查代码质量和最佳实践
+description: Reviews changes for correctness and regressions
 mode: subagent
-model: anthropic/claude-sonnet-4-20250514
-temperature: 0.1
-tools:
-  write: false
-  edit: false
-  bash: false
+model: anthropic/claude-sonnet-5-5#high
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: shell
+    resource: "*"
+    effect: deny
 ---
-你处于代码审查模式，重点关注：
-- 代码质量和最佳实践
-- 潜在漏洞和边界情况
-- 性能影响
-- 安全考量
 
-提供建设性反馈，不直接修改代码。
+Review the current changes. List findings in severity order with file and line references.
 ```
 
-## 配置选项详情
-### 1. 描述 (Description)
-必填项，简要说明代理功能及适用场景，示例：
-```json
-{
-  "agent": {
-    "review": {
-      "description": "审查代码的最佳实践和潜在问题"
-    }
-  }
-}
+请你的主智能体使用它：
+
+```text
+Use the reviewer subagent to review my current changes.
 ```
 
-### 2. 温度 (Temperature)
-控制 LLM 响应的随机性和创造性，取值范围 0.0-1.0：
-- 0.0-0.2：高度聚焦、确定性强，适用于代码分析和规划。
-- 0.3-0.5：平衡型，兼具一定创造性，适用于通用开发任务。
-- 0.6-1.0：高创造性、多样性强，适用于头脑风暴和探索。
+智能体将系统提示、模型偏好、权限与展示信息组合为一个具名的助手配置。
 
-> 说明：未指定时使用模型默认值（多数模型为 0，Qwen 模型为 0.55）。
+## 位置
 
-示例：
-```json
-{
-  "agent": {
-    "plan": { "temperature": 0.1 },
-    "creative": { "temperature": 0.8 }
-  }
-}
+可将 Markdown 智能体保存在全局位置（适用于所有项目），或保存在项目内部：
+
+```text
+~/.config/opencode/agents/<name>.md
+.opencode/agents/<name>.md
 ```
 
-### 3. 最大步骤 (Max steps)
-限制代理迭代次数，超出后仅返回文本总结及剩余任务建议，适用于成本控制，示例：
-```json
-{
-  "agent": {
-    "quick-thinker": {
-      "description": "有限迭代次数的快速推理",
-      "prompt": "你是快速思考者，用最少步骤解决问题。",
-      "maxSteps": 5
-    }
-  }
-}
+OpenCode 会从当前目录向上查找项目根目录中的 `.opencode` 目录。嵌套路径会成为智能体 ID 的一部分：
+
+```text
+.opencode/agents/team/reviewer.md  →  team/reviewer
 ```
 
-### 4. 禁用 (Disable)
-设置为 `true` 可禁用代理，示例：
-```json
-{
-  "agent": {
-    "review": { "disable": true }
-  }
-}
+## 格式
+
+### Markdown
+
+Frontmatter 接受与 `agents` 配置项相同的字段。Markdown 正文将作为智能体的 `system` 提示：
+
+```md title=".opencode/agents/explainer.md"
+---
+description: Explains code without changing it
+mode: subagent
+---
+
+Explain the relevant code with short examples. Do not edit files.
 ```
 
-### 5. 提示词 (Prompt)
-指定自定义系统提示词文件，路径相对于配置文件所在目录，示例：
-```json
-{
-  "agent": {
-    "review": { "prompt": "{file:./prompts/code-review.txt}" }
-  }
-}
-```
+V1 frontmatter 字段已弃用。仍使用这些字段的文件将如何被读取，请参阅[智能体文件](/zh/docs/migrating-to-v2#agent-files)。
 
-### 6. 模型 (Model)
-指定代理使用的模型，格式为 `提供商/模型ID`，示例：
-```json
-{
-  "agent": {
-    "plan": { "model": "anthropic/claude-haiku-4-20250514" }
-  }
-}
-```
+### JSONC
 
-> 说明：未指定时，主代理使用全局配置模型，子代理使用调用它的主代理模型。
+在任意 [OpenCode 配置文件](/zh/docs/config)的 `agents` 下定义智能体：
 
-### 7. 工具 (Tools)
-控制代理可访问的工具，支持 `true`（启用）/`false`（禁用），或通配符批量控制，示例：
-```json
+```jsonc title="opencode.jsonc"
 {
   "$schema": "https://opencode.ai/config.json",
-  "agent": {
-    "readonly": {
-      "tools": {
-        "mymcp_*": false, // 禁用所有 mymcp 相关工具
-        "write": false,
-        "edit": false
-      }
-    }
-  }
-}
-```
-
-> 说明：代理级配置会覆盖全局工具配置。
-
-### 8. 权限 (Permissions)
-配置工具操作权限，支持 `ask`（需批准）、`allow`（直接允许）、`deny`（禁用），可针对特定命令（如 bash）细化配置，示例：
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "agent": {
-    "build": {
-      "permission": {
-        "bash": {
-          "*": "ask", // 所有 bash 命令需批准
-          "git status": "allow" // 单独允许 git status 命令
-        }
-      }
-    }
-  }
-}
-```
-
-Markdown 配置示例：
-```markdown
----
-permission:
-  edit: deny
-  bash:
-    "*": ask
-    "git diff": allow
-    "git log*": allow
----
-```
-
-### 9. 模式 (Mode)
-指定代理类型，可选值：
-- `primary`：主代理
-- `subagent`：子代理
-- `all`：默认值（支持两种模式）
-
-示例：
-```json
-{
-  "agent": {
-    "review": { "mode": "subagent" }
-  }
-}
-```
-
-### 10. 隐藏 (Hidden)
-仅适用于子代理，设置为 `true` 可隐藏其在 `@` 自动补全菜单中，仅允许通过 Task 工具编程调用，示例：
-```json
-{
-  "agent": {
-    "internal-helper": {
+  "agents": {
+    "reviewer": {
+      "description": "Reviews current changes",
       "mode": "subagent",
-      "hidden": true
-    }
-  }
+      "system": "Report findings in severity order.",
+      "permissions": [
+        { "action": "edit", "resource": "*", "effect": "deny" },
+      ],
+    },
+  },
 }
 ```
 
-### 11. 任务权限 (Task permissions)
-控制代理可通过 Task 工具调用的子代理，支持通配符，示例：
-```json
+## 选择
+
+设置会话尚未选择智能体时所使用的主智能体：
+
+```jsonc title="opencode.jsonc"
 {
-  "agent": {
+  "$schema": "https://opencode.ai/config.json",
+  "default_agent": "writer",
+  "agents": {
+    "writer": { "mode": "primary" },
+  },
+}
+```
+
+所选的默认智能体必须存在、可见，并支持作为主智能体使用。否则 OpenCode 会依次使用 `build`，再退回第一个可见的、可担任主智能体的智能体。更改此设置不会替换已存储在现有会话上的智能体。
+
+## 模式
+
+根据智能体应当运行的位置设置 `mode`：
+
+```jsonc
+{
+  "agents": {
+    "reviewer": { "mode": "subagent" },
+  },
+}
+```
+
+| 模式 | 行为 |
+| --- | --- |
+| `primary` | 作为会话的主智能体运行。这是新建自定义智能体的默认值。 |
+| `subagent` | 仅在子会话中通过 `subagent` 工具运行。 |
+| `all` | 既可作为主智能体运行，也可作为子智能体运行。 |
+
+子智能体在前台或后台子会话中以全新上下文运行。父智能体的 `subagent` 权限控制其可启动哪些智能体；子智能体则使用其自身配置的权限。
+
+```jsonc
+{
+  "agents": {
     "orchestrator": {
-      "mode": "primary",
-      "permission": {
-        "task": {
-          "*": "deny", // 默认拒绝所有
-          "orchestrator-*": "allow", // 允许 orchestrator- 前缀子代理
-          "code-reviewer": "ask" // 调用 code-reviewer 需批准
-        }
-      }
-    }
-  }
+      "permissions": [
+        { "action": "subagent", "resource": "*", "effect": "deny" },
+        { "action": "subagent", "resource": "reviewer", "effect": "allow" },
+      ],
+    },
+  },
 }
 ```
 
-> 说明：用户仍可通过 `@` 手动调用被拒绝的子代理。
+## 内置智能体
 
-### 12. 额外参数 (Additional)
-支持传递模型/提供商特定的参数，示例：
-```json
+OpenCode 包含以下可见的智能体：
+
+| 智能体 | 模式 | 用途 |
+| --- | --- | --- |
+| **Build** (`build`) | `primary` | 默认的编码智能体。默认允许工作区之外的工具与访问；读取敏感环境文件时会请求批准。 |
+| **Plan** (`plan`) | `primary` | 在不编辑普通项目文件的前提下进行探索与规划。被要求时可写入 OpenCode plan 文件，shell 命令仍受权限控制。 |
+| **General** (`general`) | `subagent` | 以广泛的工具访问权限处理研究与多步骤工作，但不能启动更多子智能体。 |
+| **Explore** (`explore`) | `subagent` | 搜索并阅读代码或网络来源，不编辑文件。 |
+
+使用相同 ID 即可覆盖内置智能体：
+
+```jsonc
 {
-  "agent": {
-    "deep-thinker": {
-      "model": "openai/gpt-5",
-      "reasoningEffort": "high", // OpenAI 模型特定参数
-      "textVerbosity": "low"
-    }
-  }
+  "agents": {
+    "build": {
+      "permissions": [
+        { "action": "shell", "resource": "git push *", "effect": "ask" },
+      ],
+    },
+  },
 }
 ```
 
-> 提示：运行 `opencode models` 可查看可用模型列表。
+隐藏的 `compaction`、`title` 与 `summary` 智能体负责维护工作，无法被直接选择。V2 没有内置的 `scout` 智能体。
 
-## 创建代理
-通过以下命令交互式创建新代理：
-```bash
-opencode agent create
+## 合并
+
+智能体定义按配置顺序合并。较后的标量值会替换较早的值，request 映射按键合并，权限规则则追加：
+
+```jsonc
+{
+  "permissions": [
+    { "action": "shell", "resource": "*", "effect": "ask" },
+  ],
+  "agents": {
+    "build": {
+      "permissions": [
+        { "action": "shell", "resource": "git status", "effect": "allow" },
+      ],
+    },
+  },
+}
 ```
 
-命令流程：
-1. 选择保存位置（全局/项目级）
-2. 输入代理功能描述
-3. 生成系统提示词和标识符
-4. 选择工具访问权限
-5. 创建 Markdown 配置文件
+全局 `permissions` 先于智能体专属规则生效，因此后续的智能体规则可对其加以细化。
 
-## 常见用例
-| 代理类型 | 用途 |
-|----------|------|
-| Build 代理 | 启用所有工具的完整开发工作 |
-| Plan 代理 | 不修改代码的分析和规划 |
-| Review 代理 | 只读权限的代码审查（含文档工具） |
-| Debug 代理 | 启用 bash 和只读工具的问题排查 |
-| Docs 代理 | 文档编写（支持文件操作，禁用系统命令） |
+## 选项
 
-## 示例代理
-### 1. 文档编写代理
-```markdown
----
-description: 编写和维护项目文档
-mode: subagent
-tools:
-  bash: false
----
-你是技术文档撰写者，创建清晰、全面的文档，重点关注：
-- 解释清晰
-- 结构合理
-- 代码示例
-- 用户友好的语言
+### 描述
+
+`description` 说明智能体的用途。请为子智能体添加该字段，因为 OpenCode 会将其展示给负责选择要启动哪个智能体的模型：
+
+```yaml
+description: Reviews database migrations for safety
 ```
 
-### 2. 安全审计代理
-```markdown
----
-description: 执行安全审计并识别漏洞
-mode: subagent
-tools:
-  write: false
-  edit: false
----
-你是安全专家，重点识别潜在安全问题，包括：
-- 输入验证漏洞
-- 认证和授权缺陷
-- 数据泄露风险
-- 依赖项漏洞
-- 配置安全问题
+### 模式
+
+`mode` 接受 `primary`、`subagent` 或 `all`。新建自定义智能体若省略该字段，默认为 `primary`：
+
+```yaml
+mode: all
 ```
+
+### 模型
+
+`model` 使用 `provider/model` 格式，并可附带可选的 `#variant`：
+
+```yaml
+model: anthropic/claude-sonnet-5-5#high
+```
+
+JSON 配置也接受展开形式：
+
+```jsonc
+{
+  "agents": {
+    "reviewer": {
+      "model": {
+        "providerID": "anthropic",
+        "model": "claude-sonnet-5-5",
+        "variant": "high",
+      },
+    },
+  },
+}
+```
+
+- 子智能体使用其配置的模型；若未配置，则继承父会话的模型。
+- 会话单独存储其所选模型。按 ID 选择主智能体不会更改该模型。
+
+### 系统提示
+
+`system` 设置智能体的系统提示。非空值会替换提供商为该智能体提供的基础提示：
+
+```jsonc
+{
+  "agents": {
+    "reviewer": { "system": "Review only. Do not modify files." },
+  },
+}
+```
+
+项目指令、技能、引用及其他指令来源仍会被添加。在 Markdown 智能体中，请将此文本写在文档正文中，而不是 `system` frontmatter 字段里。
+
+### 权限
+
+`permissions` 是一个有序的匹配规则列表：
+
+```jsonc
+{
+  "agents": {
+    "reviewer": {
+      "permissions": [
+        { "action": "*", "resource": "*", "effect": "deny" },
+        { "action": "read", "resource": "src/**", "effect": "allow" },
+      ],
+    },
+  },
+}
+```
+
+| 字段 | 含义 |
+| --- | --- |
+| `action` | 工具或权限动作。支持通配符。 |
+| `resource` | 被该动作匹配的路径、命令、智能体 ID 或其他值。支持通配符。 |
+| `effect` | `allow`、`ask` 或 `deny`。 |
+
+最后一条匹配的规则生效，因此请将宽泛规则放在例外规则之前。常见动作包括：
+
+| 动作 | 覆盖范围 |
+| --- | --- |
+| `shell` | Shell 命令 |
+| `edit` | 编辑、写入与补丁工具 |
+| `subagent` | 子智能体 |
+| `read`、`glob`、`grep` | 本地发现工具 |
+| `webfetch`、`websearch` | 网络工具 |
+| `skill` | 技能加载 |
+
+对于 `read`、`edit` 与 `external_directory` 资源，OpenCode 会展开 `~` 与 `$HOME`：
+
+```jsonc
+{ "action": "read", "resource": "~/notes/**", "effect": "allow" }
+```
+
+Shell 资源保持原始命令文本，不会展开这些值。
+
+### 步骤
+
+`steps` 设置正整数形式的模型步骤上限：
+
+```yaml
+steps: 8
+```
+
+在最后一步，OpenCode 会移除工具，并要求模型以文本形式进行总结。新的用户输入会重置该额度。
+
+### 隐藏
+
+`hidden` 会将智能体从常规列表、交互式发现与子智能体目录中移除：
+
+```yaml
+hidden: true
+```
+
+这控制的是可见性，而非安全性。请使用权限来限制行为。
+
+### 颜色
+
+`color` 使用六位十六进制值设置智能体的 UI 颜色：
+
+```yaml
+color: "#ff6b6b"
+```
+
+### 禁用
+
+`disabled` 会在配置加载的相应位置移除内置或自定义智能体：
+
+```jsonc
+{
+  "agents": {
+    "plan": { "disabled": true },
+  },
+}
+```
+
+### 请求
+
+`request` 接受按智能体分别设置的请求头与 JSON 请求体覆盖项：
+
+```jsonc
+{
+  "agents": {
+    "reviewer": {
+      "request": {
+        "headers": { "x-agent": "reviewer" },
+        "body": { "temperature": 0.1 },
+      },
+    },
+  },
+}
+```
+
+<Callout type="warning">
+  V2 会话运行器会保留这些值，但尚未随模型请求一起发送。请改为在提供商、模型或模型变体上配置实际生效的请求设置。
+</Callout>
+
+在新的 V2 智能体配置中，请勿使用遗留的顶层字段，例如 `temperature`、`top_p`、`prompt`、`permission`、`tools`、`disable` 或 `maxSteps`。

@@ -1,0 +1,81 @@
+export const metadata = {
+  title: "SSO 单点登录 | OpenCode 中文文档",
+  description: "单点登录（SSO）会在工作区成员登录时将其引导至贵公司的身份提供商。所有者在 **Settings › Security** 中完成设置，每个工作区均包含此功能",
+  alternates: {
+    canonical: "/zh/docs/console/sso",
+  },
+}
+
+单点登录（SSO）会在工作区成员登录时将其引导至贵公司的身份提供商。所有者在 **Settings › Security** 中完成设置，每个工作区均包含此功能。
+
+| 协议           | 提供商                                                                                   |
+| -------------- | ---------------------------------------------------------------------------------------- |
+| OpenID Connect | Google Workspace、Microsoft Entra ID、Okta、Auth0、Ping Identity 或任意 OIDC 提供商       |
+| SAML 2.0       | Google Workspace、Microsoft Entra ID、Okta 或任意 SAML 提供商                             |
+
+每个工作区只能有一个 SSO 连接。
+
+## 设置 OIDC
+
+1. 打开 **Settings › Security**，点击 **Configure SSO**，选择 **OpenID Connect** 以及你的提供商。
+2. 按照所示步骤在提供商中创建应用，并授予 `openid`、`email` 和 `profile` 权限范围。
+3. 填写 **Issuer URL**（或你的租户或域名）、**Client ID**、**Client Secret** 和 **Display Name**，然后点击 **Save**。
+4. 将连接中的 **Callback URL** 复制到提供商允许的重定向 URI 中。
+
+```text
+https://opencode.ai/console/auth/sso/ssoconn_.../callback
+```
+
+保存时，Console 会检查签发者是否可达。连接保存后，SSO 即生效。
+
+## 设置 SAML
+
+1. 打开 **Settings › Security**，点击 **Configure SSO**，选择 **SAML 2.0** 以及你的提供商。
+2. 将 **ACS URL** 和 **SP Entity ID** 复制到提供商中。自定义提供商可改用 **SP Metadata URL**，或下载该 XML。
+3. 通过 URL、上传 XML 或粘贴内容添加提供商的元数据。你也可以手动填写 **IdP Entity ID**、**IdP SSO URL** 和 **IdP Certificate**。
+4. 确认详情无误后点击 **Activate SSO**。
+
+```text
+ACS URL:       https://opencode.ai/console/auth/sso/ssoconn_.../callback
+SP Entity ID:  https://opencode.ai/console/auth/sso/ssoconn_.../metadata
+```
+
+你的提供商必须对响应或断言进行签名，并以 `email` 属性或 NameID 的形式发送用户电子邮件。
+
+## 验证电子邮件域名
+
+使用已验证域名下的电子邮件登录 [Console](https://opencode.ai/console) 的用户会被引导至你的身份提供商。SSO 生效后，在 **Email domains** 下点击 **Add domain**，输入你的域名，并发布所示的 TXT 记录。
+
+```text
+Name:   _opencode-console-challenge.example.com
+Type:   TXT
+Value:  oc-verify=...
+```
+
+记录发布后点击 **Verify Domain**。DNS 变更的传播可能需要一段时间。每个域名只能属于一个工作区。
+
+## SSO 强制执行
+
+工作区配置 SSO 后，管理员和成员必须通过 SSO 登录才能打开该工作区，Console 会自动将其重定向。使用 `/connect` 连接 OpenCode 时同样遵循该规则。
+
+所有者也可以不通过 SSO 登录，以免提供商配置错误时无法进入工作区设置。
+
+## 自动加入成员
+
+已验证域名下的用户首次通过 SSO 登录时，会以 **Member** 身份加入工作区。以下情况不会自动加入：
+
+- 其有待处理的邀请。此时将改用该邀请。
+- 工作区使用[目录同步](/zh/docs/console/scim)，由其决定成员资格。
+- 工作区订阅了 [Go](/zh/docs/console/go)。
+
+对 SSO 工作区的邀请，在受邀者打开链接时会将其引导至你的身份提供商。
+
+## 已有账户
+
+如果某人已使用相同电子邮件拥有 Console 账户，其需在 SSO 流程中再次登录，并点击 **Link account** 确认。邀请不会跳过此确认步骤。已验证工作区域名下由 SCIM 预配置的账户仍可自动关联。
+
+## 编辑或删除
+
+在连接上点击 **Edit** 可修改其详情。密钥或证书留空表示保留当前值。若要在 OIDC 与 SAML 之间切换，请删除该连接并新建一个。
+
+通过 **⋯ › Delete...** 删除该连接。成员将恢复使用其他登录方式，目录同步会停止并撤销其令牌。电子邮件域名将保留。

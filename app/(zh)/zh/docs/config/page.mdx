@@ -1,479 +1,622 @@
-# Config
+export const metadata = {
+  title: "配置指南 | OpenCode 中文文档",
+  description: "使用 JSON/JSONC 配置文件配置 OpenCode，包括配置位置、优先级与常用配置项",
+  alternates: {
+    canonical: "/zh/docs/config",
+  },
+}
 
-使用 OpenCode 的 JSON 配置文件进行配置。
+在你的项目中创建 `opencode.jsonc` 来配置 OpenCode。添加 schema 以启用编辑器校验，然后只设置你需要的选项。
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "anthropic/claude-sonnet-5-5",
+}
+```
+
+你也可以让 OpenCode 代你更新此文件。
 
 ## 格式
 
-OpenCode 支持 JSON 和 JSONC（带注释的 JSON）两种格式。
+OpenCode 支持 JSON 和 JSONC。需要注释或尾随逗号时使用 JSONC。
 
-```json
+```jsonc title="opencode.jsonc"
 {
   "$schema": "https://opencode.ai/config.json",
-  // Theme configuration
-  "theme": "opencode",
-  "model": "anthropic/claude-sonnet-4-5",
-  "autoupdate": true
+  // Use this model by default.
+  "model": "anthropic/claude-sonnet-5-5",
 }
 ```
 
-文件名示例：`opencode.jsonc`
+## 配置位置
 
-## 配置位置与优先级
+将受管的、整机范围的设置放入系统配置目录：
 
-你可以将配置文件放在多个位置，不同位置有不同的优先级。
+| 平台 | 目录 |
+| -------- | --------------------------------------- |
+| macOS    | `/Library/Application Support/opencode` |
+| Linux    | `/etc/opencode`                         |
+| Windows  | `%ProgramData%\opencode`                |
 
-配置文件之间是合并关系，而不是完全替换。后面加载的配置会覆盖前面同名的键，不冲突的配置会全部保留。
+系统目录的工作方式与全局目录相同。除 `opencode.json(c)` 外，它还为机器上的每个用户加载 `agents/`、`commands/`、`skills/` 和 `plugins/`：
 
-示例：全局配置设置了 `theme: "opencode"` 和 `autoupdate: true`，项目配置设置了 `model: "anthropic/claude-sonnet-4-5"`，最终会同时拥有这三个配置项。
+```text
+/etc/opencode/
+├── opencode.json
+├── agents/review.md
+├── commands/release.md
+└── skills/deploy/SKILL.md
+```
 
-### 加载优先级顺序（从先到后，后者覆盖前者）
+在 macOS 上，OpenCode 还会读取 MDM 工具为 `ai.opencode.managed` 域部署的受管偏好设置。用户专属配置文件会取代整机范围的配置文件：
 
-1. **Remote config**（来自 `.well-known/opencode`） - 组织级默认配置
-2. **Global config**（`~/.config/opencode/opencode.json`） - 用户全局偏好
-3. **Custom config**（环境变量 `OPENCODE_CONFIG` 指定路径） - 自定义覆盖
-4. **Project config**（项目根目录下的 `opencode.json`） - 项目专用配置
-5. **.opencode 目录** - 存放 agents、commands、plugins 等
-6. **Inline config**（环境变量 `OPENCODE_CONFIG_CONTENT`） - 运行时直接传入覆盖
+```text
+/Library/Managed Preferences/<user>/ai.opencode.managed.plist
+/Library/Managed Preferences/ai.opencode.managed.plist
+```
 
-### Remote（远程组织默认配置）
+受管设置具有最高优先级，因此用户和项目无法覆盖其所设置的值，受管偏好设置会覆盖系统目录。仅靠设置无法阻止用户添加提供商、MCP 服务器、智能体或插件；要强制执行限制，请在受管配置中使用[策略](/zh/docs/configure/policies#precedence)。
 
-组织可以通过 `https://your-domain/.well-known/opencode` 提供默认配置，在认证时自动拉取，作为最底层配置。
+将适用于所有项目的用户设置放入全局配置：
 
-```json
+```text
+~/.config/opencode/opencode.json(c)
+```
+
+将项目设置放入以下任一文件：
+
+```text
+/home/user/projects/my-app/opencode.json(c)
+/home/user/projects/my-app/.opencode/opencode.json(c)
+```
+
+OpenCode 会从当前目录一直搜索到文件系统根目录。它首先按从最远目录到最近目录的顺序合并直接的 `opencode.json(c)` 文件，然后按相同顺序合并 `.opencode` 目录内的文件。这意味着每个被发现的 `.opencode` 配置都会覆盖所有直接配置。除非你需要这种行为，否则请在整个目录树中统一使用其中一种形式。
+
+例如，从 `/home/user/projects/acme/packages/web` 启动 OpenCode：
+
+```text
+/etc/opencode/opencode.json
+~/.config/opencode/opencode.json
+
+/home/user/projects/acme/
+├── opencode.json
+└── packages/
+    └── web/
+        ├── opencode.json
+        └── src/
+```
+
+OpenCode 按从最低到最高的优先级应用这些文件：
+
+1. `~/.config/opencode/opencode.json`
+2. `/home/user/projects/acme/opencode.json`
+3. `/home/user/projects/acme/packages/web/opencode.json`
+4. `/etc/opencode/opencode.json`
+
+包配置会覆盖仓库配置中的同名设置，仓库配置覆盖全局配置。系统配置覆盖以上所有配置。不冲突的设置会被保留。来自全局与项目文件的[策略](/zh/docs/configure/policies#precedence)按相反顺序求值，系统策略的优先级高于它们全部。
+
+## Schema
+
+完整的 OpenCode 配置 schema 位于 [opencode.ai/config.json](https://opencode.ai/config.json)。
+
+在配置文件中添加 `$schema` 字段，即可在支持 JSON Schema 的编辑器中启用校验与自动补全：
+
+```json title="opencode.json"
+{
+  "$schema": "https://opencode.ai/config.json"
+}
+```
+
+请以该 schema 作为可用字段、可接受值与嵌套配置结构的权威来源。
+
+### Shell
+
+设置终端与 shell 工具使用的 shell。
+
+```jsonc
+{
+  "shell": "/bin/zsh",
+}
+```
+
+### 模型
+
+以 `provider/model` 格式设置默认模型。根级默认值目前不会保留 `#variant`；智能体与命令中的模型引用则可以选择 variant。
+
+```jsonc
+{
+  "model": "anthropic/claude-sonnet-5-5",
+}
+```
+
+模型选择与本地模型详见[模型指南](/zh/docs/configure/models)。
+
+### 智能体
+
+选择会话未明确指定时所使用的主要智能体。
+
+```jsonc
+{
+  "default_agent": "build",
+}
+```
+
+内置与自定义智能体详见[智能体指南](/zh/docs/configure/agents)。
+
+### 更新
+
+在全局配置中控制更新检查。将 `update` 设为 `"disable"` 可跳过检查，设为 `"notify"` 可在安装前显示可用更新，设为 `"auto"` 可自动安装更新。省略时，`update` 默认为 `"notify"`。
+
+自动安装不会重启正在运行的服务器。请手动重启以激活已安装的更新。
+项目级的值会被忽略。
+
+```jsonc
+{
+  "update": "notify",
+}
+```
+
+### 用户名
+
+设置用户名。OpenCode 会接受该字段，但不会在对话中显示它。
+
+```jsonc
+{
+  "username": "alice",
+}
+```
+
+### 权限
+
+定义有序的规则，在智能体对匹配资源使用工具之前允许、拒绝或询问。
+
+```jsonc
+{
+  "permissions": [
+    {
+      "action": "shell",
+      "resource": "git push *",
+      "effect": "ask",
+    },
+  ],
+}
+```
+
+规则匹配与可用动作详见[权限指南](/zh/docs/configure/permissions)。
+
+### 策略
+
+通过有序声明来允许或拒绝使用某个提供商、硬性拒绝权限检查，或阻止 MCP 服务器、技能或插件；范围更大的配置可以覆盖这些声明。
+
+```jsonc
+{
+  "policies": [
+    { "action": "provider.use", "resource": "*", "effect": "deny" },
+    { "action": "provider.use", "resource": "anthropic", "effect": "allow" },
+    { "action": "tool.use", "resource": "shell:git push *", "effect": "deny" },
+  ],
+}
+```
+
+匹配规则、跨配置文件的优先级以及 Console 托管的策略详见[策略指南](/zh/docs/configure/policies)。
+
+### 智能体
+
+覆盖内置智能体，或定义拥有自己的模型、指令、模式和权限的专用智能体。
+
+```jsonc
+{
+  "agents": {
+    "reviewer": {
+      "description": "Review changes without editing files",
+      "mode": "subagent",
+      "system": "Focus on correctness, security, and missing tests.",
+      "permissions": [{ "action": "edit", "resource": "*", "effect": "deny" }],
+    },
+  },
+}
+```
+
+全部智能体选项与基于文件的智能体详见[智能体指南](/zh/docs/configure/agents)。
+
+### 快照
+
+启用或禁用撤销与还原行为所使用的文件系统快照。
+
+```jsonc
+{
+  "snapshots": false,
+}
+```
+
+撤销与重做行为详见[快照指南](/zh/docs/configure/snapshots)。
+
+### 文件监视
+
+忽略不应触发文件系统更新的文件和目录。
+
+```jsonc
+{
+  "watcher": {
+    "ignore": ["dist/**", "coverage/**"],
+  },
+}
+```
+
+### 格式化工具
+
+在 `write`、`edit` 或 `patch` 工具修改文件后对其进行格式化。将 `formatter` 设为 `true` 可启用可用的内置格式化工具。
+
+```jsonc
+{
+  "formatter": true,
+}
+```
+
+内置与自定义格式化工具详见[格式化工具指南](/zh/docs/configure/formatters)。
+
+### 媒体
+
+控制 `read` 工具加载的超大图片在发送给模型之前如何缩放或拒绝。
+
+```jsonc
+{
+  "media": {
+    "image": {
+      "auto_resize": true,
+      "max_width": 2000,
+      "max_height": 2000,
+      "max_base64_bytes": 5242880,
+    },
+  },
+}
+```
+
+图片处理与限制详见[附件指南](/zh/docs/configure/attachments)。
+
+### 输出
+
+设置从工具结果中保留的最大行数与字节数。
+
+```jsonc
+{
+  "tool_output": {
+    "max_lines": 2000,
+    "max_bytes": 51200,
+  },
+}
+```
+
+### 搜索
+
+选择 OpenCode 进行网络搜索的方式。使用 `"random"` 可自动选择可用的提供商。
+
+```jsonc
+{
+  "websearch": {
+    "provider": "random",
+  },
+}
+```
+
+提供商、凭据、选择方式、速率限制与禁用搜索详见[网络搜索指南](/zh/docs/configure/websearch)。
+
+### MCP
+
+配置本地和远程 Model Context Protocol 服务器。全局的 `mcp.timeout` 值适用于配置文件中定义的服务器；每个服务器的 `timeout` 会覆盖它们。
+
+```jsonc
 {
   "mcp": {
-    "jira": {
-      "type": "remote",
-      "url": "https://jira.example.com/mcp",
-      "enabled": false
-    }
-  }
-}
-```
-
-**远程配置示例**
-
-可在本地配置中将其开启：
-
-```json
-{
-  "mcp": {
-    "jira": {
-      "type": "remote",
-      "url": "https://jira.example.com/mcp",
-      "enabled": true
-    }
-  }
-}
-```
-
-### Global（全局配置）
-
-**路径：** `~/.config/opencode/opencode.json`
-
-用于设置用户级偏好（如主题、模型、快捷键等）。
-
-### Project（项目配置）
-
-在项目根目录创建 `opencode.json`，优先级最高（在标准配置文件中），可安全提交到 Git。
-
-OpenCode 会从当前目录开始向上查找，直到找到 git 根目录。
-
-### Custom path（自定义配置文件路径）
-
-通过环境变量：
-
-```bash
-export OPENCODE_CONFIG=/path/to/my/custom-config.json
-opencode run "Hello world"
-```
-
-### Custom directory（自定义配置目录）
-
-```bash
-export OPENCODE_CONFIG_DIR=/path/to/my/config-directory
-```
-
-可用于存放 agents、commands、modes、plugins 等，结构与 `.opencode` 相同，优先级高于默认 `.opencode` 目录。
-
-## Schema（配置结构定义）
-
-完整 schema 地址：[https://opencode.ai/config.json](https://opencode.ai/config.json)
-
-编辑器支持自动补全与校验。
-
-## TUI 配置
-
-```json
-{
-  "tui": {
-    "scroll_speed": 3,
-    "scroll_acceleration": {
-      "enabled": true
+    "servers": {
+      "playwright": {
+        "type": "local",
+        "command": ["bunx", "@playwright/mcp"],
+      },
     },
-    "diff_style": "auto"
-  }
+  },
 }
 ```
 
-**选项说明：**
+远程服务器、OAuth、环境变量与超时详见 [MCP 指南](/zh/docs/configure/mcp-servers)。
 
-- `scroll_acceleration.enabled` → 启用类 macOS 滚动加速（优先级高于 scroll_speed）
-- `scroll_speed` → 滚动速度倍率（默认1，最小1）
-- `diff_style` → diff 显示方式（"auto" 自动适配终端宽度 / "stacked" 强制单列）
+### 上下文压缩
 
-## Server 配置
+控制自动上下文压缩，以及它保留多少最近的上下文。
 
-用于 `opencode serve` / `opencode web`：
-
-```json
-{
-  "server": {
-    "port": 4096,
-    "hostname": "0.0.0.0",
-    "mdns": true,
-    "cors": ["http://localhost:5173"]
-  }
-}
-```
-
-## Tools（工具控制）
-
-```json
-{
-  "tools": {
-    "write": false,
-    "bash": false
-  }
-}
-```
-
-## Models（模型配置）
-
-```json
-{
-  "provider": {},
-  "model": "anthropic/claude-sonnet-4-5",
-  "small_model": "anthropic/claude-haiku-4-5"
-}
-```
-
-- `small_model` 用于轻量任务（如生成标题）
-- 可为特定 provider 设置 `timeout`、`setCacheKey` 等
-
-**Amazon Bedrock 特殊配置示例：**
-
-```json
-{
-  "provider": {
-    "amazon-bedrock": {
-      "options": {
-        "region": "us-east-1",
-        "profile": "my-aws-profile",
-        "endpoint": "https://..."
-      }
-    }
-  }
-}
-```
-
-## Themes（主题）
-
-```json
-{
-  "theme": "opencode"
-}
-```
-
-## Agents（自定义智能体）
-
-```json
-{
-  "agent": {
-    "code-reviewer": {
-      "description": "...",
-      "model": "anthropic/claude-sonnet-4-5",
-      "prompt": "...",
-      "tools": {
-        "write": false,
-        "edit": false
-      }
-    }
-  }
-}
-```
-
-## Default Agent（默认智能体）
-
-```json
-{
-  "default_agent": "plan"
-}
-```
-
-## Share（分享功能）
-
-```json
-{
-  "share": "manual"    // "manual" | "auto" | "disabled"
-}
-```
-
-## Commands（自定义命令）
-
-```json
-{
-  "command": {
-    "test": {
-      "template": "...",
-      "description": "...",
-      "agent": "build",
-      "model": "..."
-    }
-  }
-}
-```
-
-## Keybinds（快捷键）
-
-```json
-{
-  "keybinds": {
-    // 自定义按键绑定
-  }
-}
-```
-
-## Autoupdate（自动更新）
-
-```json
-{
-  "autoupdate": false     // boolean | "notify"
-}
-```
-
-## Formatters（代码格式化工具）
-
-```json
-{
-  "formatter": {
-    "prettier": {
-      "disabled": true
-    },
-    "custom-prettier": {
-      "command": ["npx", "prettier", "--write", "$FILE"],
-      "extensions": [".js", ".ts", ".jsx", ".tsx"]
-    }
-  }
-}
-```
-
-## Permissions（权限控制）
-
-默认全部允许，可改为：
-
-```json
-{
-  "edit": "ask",
-  "bash": "ask",
-  "write": "deny"
-}
-```
-
-支持通配符，如 `mymcp_* : "ask"`
-
-除了在 tools 里全局开关外，还可以对具体操作设置更细粒度的权限策略：
-
-```json
-{
-  "edit": "ask",
-  "bash": "ask",
-  "write": "deny",
-  "mcp_jira_*": "ask",
-  "mcp_linear_create_issue": "allow"
-}
-```
-
-**支持的值：**
-
-- `"allow"` - 直接执行（默认）
-- `"ask"` - 每次执行前询问用户确认
-- `"deny"` - 完全禁止
-
-支持通配符（`*`）匹配 MCP 操作或工具名称。
-
-## Compaction（上下文压缩）
-
-控制当上下文接近 token 限制时的自动压缩行为。
-
-```json
+```jsonc
 {
   "compaction": {
     "auto": true,
-    "prune": true
-  }
-}
-```
-
-- `auto`：当上下文快满时自动进行压缩（默认 true）
-- `prune`：在压缩时优先删除较旧的工具输出记录以节省 token（默认 true）
-
-## Watcher（文件监视器）
-
-配置在项目中被监视的文件/目录的排除规则。
-
-```json
-{
-  "watcher": {
-    "ignore": [
-      "node_modules/**",
-      "dist/**",
-      ".git/**",
-      "build/**",
-      "coverage/**"
-    ]
-  }
-}
-```
-
-使用 glob 模式，防止监视器对大量不必要的文件（如依赖、构建产物）产生性能影响。
-
-## MCP（Model Control Protocol 服务器配置）
-
-用于集成外部工具服务（如 Jira、线性、Notion 等）的远程/本地 MCP 服务器配置。
-
-```json
-{
-  "mcp": {
-    "jira": {
-      "type": "remote",
-      "url": "https://jira.your-company.com/mcp",
-      "enabled": true
+    "keep": {
+      "tokens": 15000,
     },
-    "linear": {
-      "type": "local",
-      "command": ["npx", "@linear/mcp-server", "--port", "8765"],
-      "enabled": true
-    }
-  }
+    "buffer": 20000,
+  },
 }
 ```
 
-- `type`: "remote" 或 "local"
-- 远程服务器通常由组织通过 `/.well-known/opencode` 统一提供，可在本地开启/关闭
-- 本地服务器可直接指定启动命令
+本地摘要仍是默认方式。对于自动与手动请求，可通过提供商或模型策略选择启用提供商原生的上下文压缩：
 
-## Plugins（插件）
-
-加载额外的 npm 包作为插件。
-
-```json
+```jsonc
 {
-  "plugin": [
-    "opencode-helicone-session",
-    "@company/opencode-analytics",
-    "local-plugin-debug"
-  ]
+  "providers": {
+    "openai": {
+      "settings": { "compaction": { "type": "native" } },
+      "models": {
+        "gpt-6.1-sol": { "settings": { "compaction": { "type": "summary" } } },
+      },
+    },
+  },
 }
 ```
 
-也可以把插件放在 `.opencode/plugin/` 或自定义配置目录的 `plugin` 子目录中。
+模型级设置会覆盖提供商设置。自动上下文压缩使用所选模型的可用输入预算。提供商检查点会在本地摘要用于保留尾部内容的同一 `compaction.keep.tokens` 预算内保留最近的用户消息。顶层的 `compaction.auto: false` 会禁用新的自动上下文压缩，而不会丢弃已安装的检查点。预算设定与溢出恢复详见[上下文压缩指南](/zh/docs/configure/compaction)。
 
-## Instructions（附加指令文件）
+### 预热
 
-自动把这些文件的内容作为系统提示附加给模型。
+通过周期性的瞬时请求保持最近活跃的模型会话处于预热状态。预热默认禁用；将其设为 `true` 可使用 4 分钟的空闲间隔和 30 分钟的活跃窗口。
 
-```json
+```jsonc
 {
-  "instructions": [
-    "CONTRIBUTING.md",
-    "docs/project-guidelines.md",
-    ".cursor/rules/**/*.md",
-    "./team-coding-standards.txt"
-  ]
+  "warming": {
+    "prompt": "Do not perform any work. Reply with exactly: OK",
+    "interval": "4 minutes",
+    "duration": "30 minutes",
+  },
 }
 ```
 
-支持相对路径、绝对路径和 glob 模式。
+请求行为、自定义方式与成本考量详见[预热指南](/zh/docs/configure/warming)。
 
-## Disabled / Enabled Providers（禁用/只启用特定模型提供商）
+### 智能体技能
 
-```json
+添加 OpenCode 应当用于搜索智能体技能的目录或 URL。
+
+```jsonc
 {
-  "disabled_providers": [
-    "openai",
-    "google-gemini",
-    "groq"
+  "skills": ["./team-skills", "https://example.com/.well-known/skills/"],
+}
+```
+
+技能结构与 `.opencode/skills/` 下的自动发现详见[技能指南](/zh/docs/configure/agent-skills)。
+
+### 命令
+
+将可复用的斜杠命令定义为具名的提示词模板。
+
+```jsonc
+{
+  "commands": {
+    "review": {
+      "description": "Review the current changes",
+      "template": "Review the current diff for correctness and missing tests.",
+    },
+  },
+}
+```
+
+参数、模型、智能体与基于文件的命令详见[命令指南](/zh/docs/configure/commands)。
+
+### 指令
+
+声明额外的指令文件、glob 或 HTTP(S) URL。OpenCode 会将它们与所发现的 `AGENTS.md` 文件一并加载。
+
+```jsonc
+{
+  "instructions": ["CONTRIBUTING.md", "docs/guidelines/*.md"],
+}
+```
+
+项目指令与 `AGENTS.md` 详见[指令指南](/zh/docs/configure/rules)。
+
+### 引用
+
+将本地目录或 Git 仓库作为具名的辅助上下文提供使用。
+
+```jsonc
+{
+  "references": {
+    "docs": {
+      "path": "../product-docs",
+      "description": "Product behavior and terminology",
+    },
+    "effect": {
+      "repository": "Effect-TS/effect",
+      "branch": "main",
+    },
+  },
+}
+```
+
+简写形式、可见性与路径解析详见[引用指南](/zh/docs/configure/references)。
+
+### 工作树
+
+设置新本地工作树的父目录。OpenCode 会附加所请求或生成的工作树名称。
+
+```jsonc
+{
+  "worktree": {
+    "directory": "../worktrees",
+  },
+}
+```
+
+相对路径基于项目保存的规范检出进行解析。这同样适用于全局与项目配置；绝对路径按原样使用，`~/` 则基于用户的主目录解析。
+
+例如，以下全局配置将新工作树放在各项目自己的 `.lane/trees/` 目录下：
+
+```jsonc
+{
+  "worktree": {
+    "directory": ".lane/trees",
+  },
+}
+```
+
+若无此设置，创建时将使用服务器数据目录下的 `worktree/<first-six-project-ID-characters>`。工作树的创建与刷新会从项目保存的规范检出加载配置，包括其他克隆共享其项目 ID 的情况。修改该设置不会移动已有工作树。
+
+Git 是内置默认值。注册了策略的[插件](/zh/docs/develop/plugins#worktrees)会自动成为该插件运行时中的默认值。项目操作使用规范检出的运行时。策略相关的选项属于该插件，而非 `worktree` 配置对象。
+
+### 插件
+
+从包或本地插件目录加载插件。当插件接受选项时，使用对象形式。
+
+```jsonc
+{
+  "plugins": [
+    "opencode-example-plugin",
+    {
+      "package": "./plugins/local",
+      "options": {
+        "enabled": true,
+      },
+    },
   ],
-  "enabled_providers": [
-    "anthropic",
-    "amazon-bedrock"
-  ]
 }
 ```
 
-- 如果同时设置了 enabled 和 disabled，disabled 优先
-- 常用于公司内网只允许特定厂商的情况
+插件加载与配置详见[插件指南](/zh/docs/configure/plugins)。
 
-## Experimental（实验性功能）
+### 提供商
 
-目前为空对象占位，未来会逐步加入实验特性开关。
+配置提供商，并添加或覆盖其模型、请求设置、请求头与模型变体。
 
-```json
+```jsonc
+{
+  "providers": {
+    "openai": {
+      "models": {
+        "gpt-6.1-sol-custom": {
+          "modelID": "gpt-6.1-sol",
+          "name": "GPT-6.1 Sol Custom",
+          "limit": {
+            "context": 200000,
+            "output": 32000,
+          },
+        },
+      },
+    },
+  },
+}
+```
+
+提供商的 `settings.transport: "websocket"` 会选择其会话 WebSocket。
+
+凭据、自定义端点、提供商包、WebSocket 传输与模型配置详见[提供商指南](/zh/docs/providers)。
+
+## 变量
+
+你可以在配置文件中使用变量替换来引用环境变量与文件内容。将引用放在 JSON 字符串内。
+
+### 环境变量
+
+使用 `{env:VARIABLE_NAME}` 替换环境变量：
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "{env:OPENCODE_MODEL}",
+  "providers": {
+    "anthropic": {
+      "settings": {
+        "apiKey": "{env:ANTHROPIC_API_KEY}",
+      },
+    },
+  },
+}
+```
+
+如果环境变量未设置，它将被替换为空字符串。
+
+### 文件
+
+使用 `{file:path/to/file}` 替换文件内容：
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "providers": {
+    "openai": {
+      "settings": {
+        "apiKey": "{file:~/.secrets/openai-key}",
+      },
+    },
+  },
+}
+```
+
+文件路径可以是：
+
+- 相对于配置文件所在目录
+- 绝对路径，或以 `~/` 开头表示你的主目录
+
+如果文件不存在，它将被替换为空字符串。
+
+这些适用于：
+
+- 将 API 密钥等敏感数据保存在单独的文件中。
+- 在多个配置文件之间共享通用配置片段。
+
+## 实验性
+
+<Callout type="warning">
+  实验性设置可能在任何版本中变更、损坏或被移除，且不另行通知。不要在稳定工作流中依赖它们。
+</Callout>
+
+所有实验性设置都位于 `experimental` 键下：
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "experimental": {
+    "todo": true,
+    "subagent_depth": 2,
+    "portable_shell_scanner": true,
+    "background_compaction": true,
+    "location_idle_timeout": "4 hours",
+  },
+}
+```
+
+### 待办事项
+
+将 `todo` 设为 `true` 可为智能体提供 `todowrite` 工具，用于跟踪多步骤工作。默认为 `false`。
+
+### 子智能体深度
+
+`subagent_depth` 设置子智能体可以启动自身子智能体的嵌套深度。默认为 `1`，即子智能体不能再启动另一个子智能体。
+
+### 可移植 shell 扫描器
+
+将 `portable_shell_scanner` 设为 `true` 可替换权限检查所使用的默认 tree-sitter shell 扫描器。默认为 `false`。其行为详见[权限](/zh/docs/configure/permissions#scanner)。
+
+### 后台上下文压缩
+
+将 `background_compaction` 设为 `true` 可在需要之前于后台写入上下文压缩摘要，从而使自动上下文压缩不会暂停会话。默认为 `false`。工作原理详见[上下文压缩](/zh/docs/configure/compaction#background-compaction)。
+
+```jsonc
 {
   "experimental": {
-    // 未来可能出现的开关，例如：
-    // "new-diff-viewer": true,
-    // "vision-in-terminal": false
-  }
-}
-```
-
-## Variables（变量替换）
-
-支持在配置文件中使用环境变量和文件内容替换，非常适合处理敏感信息。
-
-### 1. 环境变量替换
-
-```json
-{
-  "model": "{env:OPENCODE_PREFERRED_MODEL}",
-  "provider": {
-    "anthropic": {
-      "options": {
-        "apiKey": "{env:ANTHROPIC_API_KEY}"
-      }
-    }
-  }
-}
-```
-
-未设置的环境变量会被替换为空字符串。
-
-### 2. 文件内容替换
-
-```json
-{
-  "provider": {
-    "openai": {
-      "options": {
-        "apiKey": "{file:~/.secrets/openai.key}"
-      }
-    }
+    "background_compaction": true,
   },
-  "instructions": [
-    "{file:./team-rules.md}"
-  ]
 }
 ```
 
-**支持：**
+### 位置空闲超时
 
-- 相对于配置文件路径
-- 绝对路径（`/path/to/file`）
-- 用户目录（`~/...`）
+`location_idle_timeout` 控制项目位置在多长时间内没有会话活动后，OpenCode 会卸载其服务。它接受如 `"2 hours"` 这样的时长，默认为 `"60 minutes"`。正在运行的会话和后台任务会保持位置处于加载状态。将其设为 `false` 可永不卸载空闲位置。项目配置可覆盖全局值。
 
-**用途：**
-- 把 API Key 放在单独的加密文件
-- 把很长的提示词/规则放在单独 md 文件
-- 在多个配置文件间共享公共片段
+```jsonc
+{
+  "experimental": {
+    "location_idle_timeout": false,
+  },
+}
+```
+
+### 已弃用的策略
+
+`experimental.policies` 已弃用。请改用顶层的 [`policies`](/zh/docs/configure/policies)。旧键仍然有效，并会合并进 `policies`。

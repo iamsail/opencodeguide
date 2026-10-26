@@ -1,0 +1,85 @@
+export const metadata = {
+  title: "Cloudflare SDK | OpenCode 中文文档",
+  description: "在 Cloudflare Durable Object 中使用 `@opencode/sdk/workerd`。此配置使用对象的 SQLite 存储，持久化 durable 事件以便在被驱逐后恢复，并替换不可用的本地文件系统与进程服务",
+  alternates: {
+    canonical: "/zh/docs/develop/sdk/cloudflare",
+  },
+}
+
+在 Cloudflare Durable Object 中使用 `@opencode/sdk/workerd`。此配置使用对象的 SQLite 存储，持久化 durable 事件以便在被驱逐后恢复，并替换不可用的本地文件系统与进程服务。
+
+```sh
+bun add @opencode/sdk
+```
+
+在 Durable Object 实例的整个生命周期内只保留一个宿主（host），而不是为每个请求都创建一个。
+
+```ts
+import { OpenCodeWorkerd } from "@opencode/sdk/workerd"
+import myPlugin from "./my-plugin"
+
+export class OpenCodeDO {
+  private readonly opencode: Promise<OpenCodeWorkerd.Interface>
+
+  constructor(state: DurableObjectState) {
+    this.opencode = state.blockConcurrencyWhile(() =>
+      OpenCodeWorkerd.create({
+        storage: state.storage,
+        config: { default_agent: "build" },
+        plugins: [myPlugin],
+      }),
+    )
+  }
+
+  async fetch() {
+    const opencode = await this.opencode
+    return Response.json(await opencode.server.info())
+  }
+}
+```
+
+`blockConcurrencyWhile` 会将所有 Durable Object 事件挡在外部，直到宿主就绪；若初始化失败，则会重置该对象。保留的 Promise 使请求处理器在启动后可以直接访问同一个宿主。
+
+```ts
+constructor(state: DurableObjectState) {
+  this.opencode = state.blockConcurrencyWhile(() =>
+    OpenCodeWorkerd.create({ storage: state.storage }),
+  )
+}
+```
+
+Wrangler 通过 `workerd` 包条件（package condition）选择 opencode 的 Workerd 安全实现。Cloudflare 可能在不运行清理逻辑的情况下驱逐 Durable Object，因此正确性不依赖于 `close()` 被调用。
+
+```jsonc title="wrangler.jsonc"
+{
+  "compatibility_flags": ["nodejs_compat"]
+}
+```
+
+## 自定义
+
+通过注册与 Worker 一起打包的插件来定制你的 opencode 实例。将插件传给 `OpenCodeWorkerd.create()`，即可自定义智能体、模型、工具及其他行为：
+
+```ts
+import { Plugin } from "@opencode/plugin"
+import { OpenCodeWorkerd } from "@opencode/sdk/workerd"
+
+const plugin = Plugin.define({
+  id: "customize-agent",
+  async setup(ctx) {
+    await ctx.agent.transform((agents) => {
+      agents.update("build", (agent) => {
+        agent.description = "Builds features and fixes bugs for our team"
+      })
+    })
+  },
+})
+
+await OpenCodeWorkerd.create({
+  storage: state.storage,
+  config: { default_agent: "build" },
+  plugins: [plugin],
+})
+```
+
+参阅[完整插件文档](/zh/docs/develop/plugins)，了解插件钩子、转换、工具以及完整的插件上下文。

@@ -76,27 +76,34 @@
 | `/zh/docs/providers` | 模型提供商 (OpenAI, Claude, Ollama 等) |
 | `/zh/docs/network` | 网络与代理配置 |
 | `/zh/docs/enterprise` | 企业版功能 |
-| `/zh/docs/troubleshooting` | 说明 (Description) |
+| `/zh/docs/troubleshooting` | 故障排除指南 |
 | `/zh/docs/windows-wsl` | Windows (WSL) 运行指南 |
-| `/zh/docs/migrating-to-1-0` | 1.0 迁移指南 |
+| `/zh/docs/migrating-to-1-0` | 1.0 迁移指南（v1 时代遗留） |
+| `/zh/docs/migrating-to-v2` | 从 v1 迁移到 v2（v2 同步新增） |
 
 ### 4.2 使用 (Usage)
 | 路由 (Route) | 说明 (Description) |
 | :--- | :--- |
-| `/zh/docs/usage` | 多模式使用概览 |
+| `/zh/docs/usage` | 多模式使用概览（v1 遗留） |
 | `/zh/docs/tui` | 终端交互界面 (TUI) 指南 |
 | `/zh/docs/cli` | 命令行工具 (CLI) 指南 |
-| `/zh/docs/ide` | VS Code / Neovim 编辑器集成 |
-| `/zh/docs/zen` | OpenCode Zen 精选模型列表 |
-| `/zh/docs/share` | 会话分享功能 |
-| `/zh/docs/github` | GitHub 集成 |
-| `/zh/docs/gitlab` | GitLab 集成 |
+| `/zh/docs/cli/commands` | CLI 命令参考（v2 同步新增） |
+| `/zh/docs/cli/config` | CLI 设置（v2 同步新增） |
+| `/zh/docs/cli/providers` | `/connect` 连接提供商（v2 同步新增） |
+| `/zh/docs/cli/web` | Web 界面与配对（v2 同步新增） |
+| `/zh/docs/cli/theme` | CLI 主题命令（v2 同步新增） |
+| `/zh/docs/cli/plugins` | CLI 插件命令（v2 同步新增） |
+| `/zh/docs/ide` | VS Code / Neovim 编辑器集成（v1 遗留） |
+| `/zh/docs/zen` | OpenCode Zen 精选模型列表（v1 遗留） |
+| `/zh/docs/share` | 会话分享功能（v1 遗留） |
+| `/zh/docs/github` | GitHub 集成（v1 遗留） |
+| `/zh/docs/gitlab` | GitLab 集成（v1 遗留） |
 
 ### 4.3 配置 (Configure)
 | 路由 (Route) | 说明 (Description) |
 | :--- | :--- |
 | `/zh/docs/configure/tools` | 工具权限与配置 |
-| `/zh/docs/configure/rules` | 指令与规则文件 |
+| `/zh/docs/configure/rules` | 规则与指令（v2 instructions） |
 | `/zh/docs/configure/agents` | 自定义智能体 |
 | `/zh/docs/configure/models` | 详细模型参数配置 |
 | `/zh/docs/configure/themes` | 主题与 UI 自定义 |
@@ -104,19 +111,61 @@
 | `/zh/docs/configure/commands` | 自定义命令 |
 | `/zh/docs/configure/formatters` | 代码格式化器 |
 | `/zh/docs/configure/permissions` | 细粒度权限控制 |
-| `/zh/docs/configure/lsp-servers` | LSP 服务器集成 |
+| `/zh/docs/configure/lsp-servers` | LSP 服务器集成（v1 遗留） |
 | `/zh/docs/configure/mcp-servers` | MCP 服务器扩展 |
 | `/zh/docs/configure/acp-support` | ACP 协议支持 |
 | `/zh/docs/configure/agent-skills` | 智能体技能 (Skills) |
-| `/zh/docs/configure/custom-tools` | 自定义工具开发 |
+| `/zh/docs/configure/custom-tools` | 自定义工具开发（v1 遗留） |
+| `/zh/docs/configure/plugins` | 插件配置（v2 同步新增） |
+| `/zh/docs/configure/websearch` | 网络搜索（v2 同步新增） |
+| `/zh/docs/configure/snapshots` | 快照（v2 同步新增） |
+| `/zh/docs/configure/compaction` | 上下文压缩（v2 同步新增） |
+| `/zh/docs/configure/references` | 引用（v2 同步新增） |
+| `/zh/docs/configure/attachments` | 附件（v2 同步新增） |
+| `/zh/docs/configure/policies` | 策略（v2 同步新增） |
+| `/zh/docs/configure/warming` | 预热（v2 同步新增） |
 
 ### 4.4 开发 (Develop)
 | 路由 (Route) | 说明 (Description) |
 | :--- | :--- |
+| `/zh/docs/develop` | Build 区概览（v2 同步新增） |
 | `/zh/docs/develop/sdk` | OpenCode SDK 使用指南 |
-| `/zh/docs/develop/server` | 集成服务端配置 |
+| `/zh/docs/develop/sdk/cloudflare` | Cloudflare 部署 SDK（v2 同步新增） |
+| `/zh/docs/develop/client` | JavaScript 客户端（v2 同步新增） |
 | `/zh/docs/develop/plugins` | 插件系统开发 |
-| `/zh/docs/develop/ecosystem` | 社区生态与扩展 |
+| `/zh/docs/develop/plugins/rpc` | 插件 RPC（v2 同步新增） |
+| `/zh/docs/develop/plugins/cli` | 插件 CLI（v2 同步新增） |
+| `/zh/docs/develop/plugins/migrate-v1` | 插件 v1 迁移（v2 同步新增） |
+| `/zh/docs/develop/effect/plugins` | Effect 插件（v2 同步新增） |
+| `/zh/docs/develop/effect/rpc` | Effect RPC（v2 同步新增） |
+| `/zh/docs/develop/effect/client` | Effect 客户端（v2 同步新增） |
+| `/zh/docs/develop/effect/sdk` | Effect SDK（v2 同步新增） |
+| `/zh/docs/develop/server` | 集成服务端配置（v1 遗留） |
+| `/zh/docs/develop/ecosystem` | 社区生态与扩展（v1 遗留） |
+
+### 4.5 控制台 (Console)（v2 同步新增）
+| 路由 (Route) | 说明 (Description) |
+| :--- | :--- |
+| `/zh/docs/console` | OpenCode Console 介绍 |
+| `/zh/docs/console/models` | 控制台模型管理 |
+| `/zh/docs/console/providers` | 控制台提供商 |
+| `/zh/docs/console/websearch` | 控制台网络搜索 |
+| `/zh/docs/console/go` | OpenCode Go 订阅 |
+| `/zh/docs/console/workspaces` | 工作区基础 |
+| `/zh/docs/console/members` | 成员管理 |
+| `/zh/docs/console/sso` | SSO 单点登录 |
+| `/zh/docs/console/scim` | SCIM 配置同步 |
+| `/zh/docs/console/budgets` | 预算管理 |
+| `/zh/docs/console/billing` | 账单 |
+| `/zh/docs/console/api` | 控制台 API 概览 |
+| `/zh/docs/console/api/inference` | 推理 API |
+| `/zh/docs/console/api/providers` | 提供商 API |
+| `/zh/docs/console/harnesses` | Harnesses 概览 |
+| `/zh/docs/console/harnesses/claude-code` | Claude Code Harness |
+| `/zh/docs/console/harnesses/codex` | Codex Harness |
+| `/zh/docs/console/harnesses/hermes` | Hermes Harness |
+| `/zh/docs/console/harnesses/pi` | Pi Harness |
+| `/zh/docs/console/harnesses/raycast` | Raycast Harness |
 
 ## 5. 韩国语页面 (Korean Version)
 | 路由 (Route) | 说明 (Description) |

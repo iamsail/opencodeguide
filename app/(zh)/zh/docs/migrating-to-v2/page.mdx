@@ -1,0 +1,551 @@
+export const metadata = {
+  title: "从 v1 迁移到 v2 | OpenCode 中文文档",
+  description: "OpenCode 1 与 OpenCode 2 都使用 `opencode` 命令，默认情况下不再并行安装。安装 V2 之前，请移除由包管理器安装的 V1；V2 的 curl 安装器会替换 V1 二进制文件。",
+  alternates: {
+    canonical: "/zh/docs/migrating-to-v2",
+  },
+}
+
+OpenCode 1 与 OpenCode 2 都使用 `opencode` 命令，默认情况下不再并行安装。安装 V2 之前，请移除由包管理器安装的 V1；V2 的 curl 安装器会替换 V1 二进制文件。
+
+## 破坏性变更
+
+V2 有三项有意引入的破坏性变更：
+
+- [插件](/zh/docs/develop/plugins/migrate-v1)使用新的插件 API。
+- [服务器 API 与客户端](#server-api-and-clients)具有新的契约。
+- [终端客户端配置](/zh/docs/cli/config)从分层的 `tui.json(c)` 文件迁移为单个全局 `cli.json` 文件（自动迁移）。
+
+在这些范围之外的受支持 V1 功能，预期与 V1 保持兼容。V1 schema 接受的某些字段从未有过 V2 对应项，因此会被有意忽略；这些字段列于[已接受但不受支持的字段](#accepted-but-unsupported-fields)。
+
+现有受支持的服务器配置字段、智能体定义、命令定义、智能体技能以及 `.opencode/` 中的其他文件应无需修改即可继续工作。如果本指南中描述的受支持行为在 V2 中失效，请将其视为兼容性缺陷，而不是预期的迁移要求。
+
+<Callout type="tip">
+  如果受支持的 V1 功能在 V2 中无法工作，请按照[故障排除](/zh/docs/troubleshooting)中的问题反馈指引提交兼容性问题。
+</Callout>
+
+## 安装 V2
+
+请按照[终端启动指南](/zh/docs/cli)安装 V2 终端客户端。
+
+在启动 V2 之前无需重写所有内容。可行的迁移步骤如下：
+
+1. 保留现有配置和基于文件的定义。
+2. 启动 V2，并验证模型、凭据、智能体、权限和 MCP 服务器。
+3. 移植插件，因为 V1 的插件实现无法在 V2 中运行。
+4. 移植调用服务器 API 的集成。
+5. 准备就绪后，将配置转换为 V2 原生结构。此步骤为可选。
+
+验证迁移期间请保留 V1 配置的副本。V1 与 V2 使用相同的配置位置，因此在将文件转换为仅适用于 V2 的原生结构后，不要再让 V1 使用这些文件。
+
+## 配置
+
+本节同时涵盖 JSON/JSONC 配置与 `.opencode/` 下基于文件的定义。
+
+### 使用现有配置
+
+V2 从与 V1 相同的位置读取现有的系统、全局和项目配置：
+
+```text
+/Library/Application Support/opencode/opencode.json(c)
+/etc/opencode/opencode.json(c)
+%ProgramData%\opencode\opencode.json(c)
+/Library/Managed Preferences/<user>/ai.opencode.managed.plist
+/Library/Managed Preferences/ai.opencode.managed.plist
+~/.config/opencode/opencode.json(c)
+<project>/opencode.json(c)
+<project>/.opencode/opencode.json(c)
+```
+
+V2 会读取这些相同的位置。它在内存中规范化受支持的 V1 字段和 V2 原生字段，而不会重写源文件。现有受支持的 V1 配置预期可继续工作，因此无需为试用或采用 V2 而进行转换。
+
+与 V1 一样，系统配置和 macOS 托管偏好设置具有最高优先级，因此其设置会覆盖全局与项目文件。它们的[策略](/zh/docs/configure/policies#precedence)（包括迁移后的 `enabled_providers` 和 `disabled_providers`）也优先于全局与项目策略。覆盖某项设置并不能阻止用户添加提供商、MCP 服务器、智能体或插件，因此管理员强制的限制应通过 `policies` 表达，而不是使用 `permissions` 这类普通设置。
+
+### 让 OpenCode 代为迁移
+
+V1 配置格式仍受支持。V2 原生格式为可选，并使若干设置更明确、更易用。
+
+推荐的迁移方式是让 OpenCode 为你更新配置：
+
+```text
+Migrate my OpenCode configuration, including file-based definitions, from the V1 format to the native V2 format.
+Preserve its behavior and all unrelated settings.
+```
+
+OpenCode 可以检查完整文件、应用下述相关更改，并避免重写无需变更的设置。转换不必一次完成：受支持的 V1 字段与 V2 原生字段可以在顶层共存。当两种形式设置相同的规范值时，有效的 V2 原生值优先，与 JSON 键顺序无关。
+
+嵌套混合的范围经过有意限制。OpenCode 会识别 `mcp`、`compaction` 和 `experimental` 内混合的 V1 与 V2 成员，但不会在各个智能体、提供商、命令或模型内部递归推断格式。请让这些嵌套条目各自完全采用同一种格式。受支持的 V1 语法本身不会产生提示；格式错误的值、不受支持的旧字段以及冲突的 V1/V2 值会产生警告，同时其他有效设置仍会继续加载。
+
+### 权限与工具
+
+V1 按工具分组权限效果。V2 使用一个有序的 `permissions` 数组，使优先级和例外更加明确：
+
+```jsonc
+// V1
+{
+  "permission": {
+    "bash": {
+      "git push *": "ask"
+    },
+    "edit": "allow"
+  },
+  "tools": {
+    "websearch": false
+  }
+}
+
+// V2
+{
+  "permissions": [
+    { "action": "shell", "resource": "git push *", "effect": "ask" },
+    { "action": "edit", "resource": "*", "effect": "allow" },
+    { "action": "websearch", "resource": "*", "effect": "deny" }
+  ]
+}
+```
+
+权限动作也发生了变化：`bash` 现为 `shell`，`task` 现为 `subagent`，`write` 与 `patch` 现为 `edit`。有关有序的 V2 规则格式，请参阅[权限](/zh/docs/configure/permissions)。
+
+在 V2 中，待办事项默认关闭。要开启它们，请使用实验性标志。该标志可能在未来的发布中变更或移除；请参阅[实验性功能](/zh/docs/config#experimental)。
+
+```jsonc
+{
+  "experimental": {
+    "todo": true,
+  },
+}
+```
+
+<Callout type="warning">
+  V1 在访问项目外路径前会询问，V2 则不会：`external_directory` 默认允许。要保留 V1 行为，请向 `permissions` 添加 `{ "action": "external_directory", "resource": "*", "effect": "ask" }`。
+</Callout>
+
+### 智能体与模式
+
+单数的 `agent` 映射与已弃用的 `mode` 映射变为 `agents`。智能体字段与 V2 配置的其余部分更加一致：
+
+```jsonc
+// V1
+{
+  "agent": {
+    "reviewer": {
+      "prompt": "Review for correctness and missing tests.",
+      "model": "anthropic/claude-sonnet-5-5",
+      "variant": "high",
+      "disable": false,
+      "permission": {
+        "edit": "deny"
+      }
+    }
+  }
+}
+
+// V2
+{
+  "agents": {
+    "reviewer": {
+      "system": "Review for correctness and missing tests.",
+      "model": "anthropic/claude-sonnet-5-5#high",
+      "disabled": false,
+      "permissions": [
+        { "action": "edit", "resource": "*", "effect": "deny" }
+      ]
+    }
+  }
+}
+```
+
+`prompt` 变为 `system`，`disable` 变为 `disabled`，独立的 `variant` 以 `#` 拼接到模型引用之后。`maxSteps` 变为 `steps`。旧 `mode` 映射中的条目成为主智能体。
+
+智能体的 [`request.body`](/zh/docs/configure/agents#request) 会保留但不会发送给模型，因此 V1 的 `temperature`、`top_p` 和 `options` 在那里不生效。请改为在模型变体上设置它们。DeepSeek 仅在关闭思考时应用 `temperature`，因此该变体也会关闭思考：
+
+```jsonc title="opencode.jsonc"
+{
+  "providers": {
+    "opencode": {
+      "models": {
+        "deepseek-v4.1-flash": {
+          "variants": [{ "id": "review", "body": { "thinking": { "type": "disabled" }, "temperature": 0.2 } }],
+        },
+      },
+    },
+  },
+  "agents": {
+    "reviewer": { "model": "opencode/deepseek-v4.1-flash#review" },
+  },
+}
+```
+
+`body` 用于提供商 JSON 字段，`settings` 用于提供商包选项。请参阅[模型选项](/zh/docs/configure/models#options)。
+
+### 快照
+
+将单数的 `snapshot` 字段重命名为 `snapshots`。其布尔值不变：
+
+```jsonc
+// V1
+{ "snapshot": false }
+
+// V2
+{ "snapshots": false }
+```
+
+### 媒体
+
+将单数的 `attachment` 对象重命名为 `media`。嵌套的图像设置保持相同名称：
+
+```jsonc
+// V1
+{ "attachment": { "image": { "auto_resize": true } } }
+
+// V2
+{ "media": { "image": { "auto_resize": true } } }
+```
+
+### MCP 服务器
+
+V2 将服务器归组到 `mcp.servers` 下，用取反的 `disabled` 替代 `enabled`，并区分超时的用途：
+
+```jsonc
+// V1
+{
+  "mcp": {
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "@playwright/mcp"],
+      "enabled": true,
+      "timeout": 30000
+    }
+  }
+}
+
+// V2
+{
+  "mcp": {
+    "servers": {
+      "playwright": {
+        "type": "local",
+        "command": ["npx", "@playwright/mcp"],
+        "disabled": false,
+        "timeout": {
+          "catalog": 30000,
+          "execution": 30000
+        }
+      }
+    }
+  }
+}
+```
+
+远程 OAuth 字段使用 snake case：`clientId` 变为 `client_id`，`clientSecret` 变为 `client_secret`，`callbackPort` 变为 `callback_port`，`redirectUri` 变为 `redirect_uri`。V1 的 `experimental.mcp_timeout` 值也成为 `mcp.timeout.catalog` 与 `mcp.timeout.execution` 的默认值。请参阅 [MCP 服务器](/zh/docs/configure/mcp-servers)。
+
+### 上下文压缩
+
+V2 将保留的上下文 token 预算归组到 `keep` 下，并为预留部分使用了更清晰的名称：
+
+```jsonc
+// V1
+{
+  "compaction": {
+    "preserve_recent_tokens": 8000,
+    "reserved": 20000
+  }
+}
+
+// V2
+{
+  "compaction": {
+    "keep": {
+      "tokens": 8000
+    },
+    "buffer": 20000
+  }
+}
+```
+
+`auto` 保持原有名称。V2 没有原生的 `tail_turns` 或 `prune` 字段；这两个旧字段会被忽略并给出警告。近期上下文改为按 token 预算保留。请参阅[上下文压缩](/zh/docs/configure/compaction)。
+
+### 智能体技能
+
+V1 将额外的技能路径与 URL 分开配置。V2 将两者合并为一个有序数组：
+
+```jsonc
+// V1
+{
+  "skills": {
+    "paths": ["./team-skills"],
+    "urls": ["https://example.com/skills/"]
+  }
+}
+
+// V2
+{
+  "skills": ["./team-skills", "https://example.com/skills/"]
+}
+```
+
+现有技能文件与 `.opencode/skills/` 的自动发现保持不变。请参阅[智能体技能](/zh/docs/configure/agent-skills)。
+
+### 命令
+
+将单数的 `command` 映射重命名为 `commands`，将 `subtask` 重命名为 `subagent`。将独立的模型 `variant` 拼接到模型引用：
+
+```jsonc
+// V1
+{
+  "command": {
+    "review": {
+      "template": "Review the current changes.",
+      "model": "anthropic/claude-sonnet-5-5",
+      "variant": "high",
+      "subtask": true
+    }
+  }
+}
+
+// V2
+{
+  "commands": {
+    "review": {
+      "template": "Review the current changes.",
+      "model": "anthropic/claude-sonnet-5-5#high",
+      "subagent": true
+    }
+  }
+}
+```
+
+`template`、`description` 和 `agent` 保持原有名称。旧的 `subtask` 仍被接受；委托的命令现在会自动在后台运行，并将其结果报告给父会话。现有的 Markdown 命令定义仍受支持。请参阅[命令](/zh/docs/configure/commands)。
+
+### 引用
+
+将已弃用的单数 `reference` 映射重命名为 `references`：
+
+```jsonc
+// V1
+{ "reference": { "docs": "../docs" } }
+
+// V2
+{ "references": { "docs": "../docs" } }
+```
+
+V1 已接受 `references`，因此当文件使用该名称时无需更改。引用条目保持相同的结构。请参阅[引用](/zh/docs/configure/references)。
+
+### 提供商
+
+将单数的 `provider` 映射重命名为 `providers`。V2 将运行时包、端点与请求设置分开：
+
+```jsonc
+// V1
+{
+  "provider": {
+    "acme": {
+      "npm": "@ai-sdk/openai-compatible",
+      "api": "https://llm.example.com/v1",
+      "options": {
+        "apiKey": "{env:ACME_API_KEY}"
+      }
+    }
+  }
+}
+
+// V2
+{
+  "providers": {
+    "acme": {
+      "package": "aisdk:@ai-sdk/openai-compatible",
+      "settings": {
+        "baseURL": "https://llm.example.com/v1",
+        "apiKey": "{env:ACME_API_KEY}"
+      }
+    }
+  }
+}
+```
+
+V1 的 `npm` 变为 `package`，AI SDK 包会加上 `aisdk:` 前缀。`api` 变为 `settings.baseURL`。提供商的 `options` 根据其在请求中的作用被拆分为 `settings`、`headers` 和 `body`。`options.setCacheKey` 变为提供商上的 `compatibility.supportsPromptCacheKey`。请参阅[提供商](/zh/docs/providers)。
+
+V2 合并了两个旧的提供商命名空间：
+
+| V1 提供商 ID | 规范 V2 提供商 ID |
+| -------------------------- | ------------------------ |
+| `azure-cognitive-services` | `azure`                  |
+| `google-vertex-anthropic`  | `google-vertex`          |
+
+对于无歧义的 V1 提供商、智能体、命令和提供商过滤字段的迁移会使用这些规范 ID。共享的顶层 `model` 字段保留其精确的提供商 ID，因为相同语法在 V2 原生配置中同样有效；在迁移旧的内置提供商时，请将该字段更新为规范 ID。
+
+### 模型与变体
+
+模型仍嵌套在其提供商之下，但若干模型字段变得更加明确：
+
+- `id` 变为 `modelID`。
+- `tool_call` 和 `modalities` 变为 `capabilities.tools`、`capabilities.input` 和 `capabilities.output`。
+- `status` 为 `"deprecated"` 变为 `disabled: true`。
+- 缓存成本从 `cache_read` 和 `cache_write` 移至 `cache.read` 和 `cache.write`。
+- 提供商特有的 `options` 变为 `settings`。
+- V1 的 variants 对象变为 V2 数组，每个条目带有 `id`。
+
+```jsonc
+// V1
+{
+  "variants": {
+    "high": {
+      "reasoningEffort": "high"
+    }
+  }
+}
+
+// V2
+{
+  "variants": [
+    {
+      "id": "high",
+      "settings": {
+        "reasoningEffort": "high"
+      }
+    }
+  ]
+}
+```
+
+有关完整的原生模型结构，请参阅[模型](/zh/docs/configure/models)。
+
+### 没有直接原生对应项的受支持字段
+
+大多数保持相同结构的字段无需迁移，包括 `shell`、`model`、`default_agent`、`watcher`、`formatter`、`instructions`、`enterprise` 和 `tool_output`。
+
+V2 接受并保留 `lsp` 配置，但不会运行语言服务器、暴露 LSP 工具或生成 LSP 诊断。请改用项目的 lint、类型检查或编译命令替代依赖这些能力的工作流。
+
+V1 的提供商过滤器没有一一对应的 V2 原生配置字段，但其行为仍通过[策略](/zh/docs/configure/policies)保持支持：
+
+- `enabled_providers` 变为内部的默认拒绝提供商策略，并随后对所列提供商逐项允许。
+- `disabled_providers` 变为针对所列提供商的内部拒绝策略。
+- `autoupdate` 变为 `update`：`false` 映射为 `"disable"`，`"notify"` 映射为 `"notify"`，`true` 映射为 `"auto"`。
+- `small_model` 变为内置 `title` 智能体的 `model` 选择。V2 原生配置应改用 `agents.title.model`。
+
+你可以保留这些字段的 V1 语法。OpenCode 会在不产生警告的情况下规范化它们。
+
+### 已接受但不受支持的字段
+
+V1 schema 还接受了一些没有受支持 V2 行为的字段。V2 会忽略这些值并发出警告，以免被误认为是生效中的配置：
+
+- `logLevel`：启动 OpenCode 时改用 `OPENCODE_LOG_LEVEL`。
+- `server`：改用 V2 服务与显式服务器选项；服务器 API 是有意引入的破坏性变更。
+- 顶层 `subagent_depth`：改用 `experimental.subagent_depth`。
+- `compaction.tail_turns` 和 `compaction.prune`：V2 改用 `compaction.keep.tokens` 和基于检查点的上下文压缩。
+- V1 JSON 配置中的智能体 `name`。
+- 仅有 enabled、且没有 `type` 的 V1 MCP 条目。
+- V1 实验性字段 `batch_tool`、`openTelemetry`、`primary_tools` 和 `continue_loop_on_deny`。
+- V1 提供商字段 `id`、`whitelist` 和 `blacklist`。
+- V1 提供商-模型字段 `release_date`、`attachment`、`reasoning`、`temperature`、`experimental`、非 `deprecated` 的 `status` 以及布尔型 `interleaved`。
+
+忽略这些字段是有意为之，并非兼容性回退。如果 V2 未能保留本指南其他部分标记为受支持的行为，请按照[故障排除](/zh/docs/troubleshooting)中的问题反馈指引处理。
+
+### 智能体文件
+
+V1 智能体文件可以使用 `agent/`、`agents/`、`mode/` 或 `modes/`。V2 仍会发现这四个目录。V2 中的首选位置是：
+
+```text
+.opencode/agents/<name>.md
+```
+
+V1 `mode/` 或 `modes/` 目录下的文件表示主智能体。将其中某个文件移入 `agents/` 时，请在其 frontmatter 中添加 `mode: primary`。`agent/` 下的文件可以移入 `agents/`，其由路径推导的 ID 不会改变。
+
+将 frontmatter 转换为 V2 原生字段时：
+
+- 保留 Markdown 正文作为智能体的系统指令。
+- 当 `prompt` 出现在 JSON 配置中时，将其重命名为 `system`；文件正文不需要 `system` 字段。
+- 将 `disable` 重命名为 `disabled`，将 `permission` 重命名为 `permissions`。
+- 将 `model` 与 `variant` 合并为 `provider/model#variant`。
+- 如[上文](#agents-and-modes)所示，在模型变体上设置采样与提供商选项。
+
+V1 智能体 frontmatter 已弃用，但仍会被自动转换。每个文件只会按一种格式读取。使用了 `permissions`、`request`、`system` 或 `disabled` 中任一字段的文件会按 V2 读取，其中的 V1 字段（如 `name`、`tools`、`permission` 或 `temperature`）会被忽略并在日志中给出警告。其他使用 V1 字段的文件会按 V1 读取。请一次性转换文件的 frontmatter，而不要混合两种格式。请参阅[智能体](/zh/docs/configure/agents)。
+
+### 命令文件
+
+V1 命令文件可以使用 `command/` 或 `commands/`。V2 会发现这两个目录。首选位置是：
+
+```text
+.opencode/commands/<name>.md
+```
+
+请将文件从 `command/` 移至 `commands/` 下相同的相对路径，以保留命令名称。Markdown 正文仍是命令模板，`description` 和 `agent` frontmatter 保持相同名称。将 `subtask` 重命名为 `subagent`，以使用后台委托的原生名称。如果 frontmatter 中有独立的 `model` 和 `variant` 字段，请将 variant 追加到 model 并移除 `variant`：
+
+```yaml
+# V1
+model: anthropic/claude-sonnet-5-5
+variant: high
+subtask: true
+
+# V2
+model: anthropic/claude-sonnet-5-5#high
+subagent: true
+```
+
+请参阅[命令](/zh/docs/configure/commands)。
+
+### 技能文件
+
+V2 会从 `.opencode/skill/` 与 `.opencode/skills/` 发现技能。首选布局是：
+
+```text
+.opencode/skills/<skill-id>/SKILL.md
+```
+
+请移动完整的技能目录，而不仅是 `SKILL.md`，以便相对路径下的脚本、引用及其他配套文件仍然可用。保持目录名稳定，以保留技能 ID。现有技能的 frontmatter 与 Markdown 正文无需按 V2 重写。请参阅[智能体技能](/zh/docs/configure/agent-skills)。
+
+### 指令文件
+
+现有 `AGENTS.md` 文件保持原位。V2 会发现全局的 `~/.config/opencode/AGENTS.md`，以及从当前目录向上直到 home 目录的各级 `AGENTS.md` 文件。对于 home 之外的项目，发现范围在项目根目录停止。
+
+如果 V1 配置依赖 `CLAUDE.md` 回退，请将该指引移入适用的 `AGENTS.md`。V2 目前仅发现 `AGENTS.md`；由于非 API 的 V1 行为预期保持兼容，也请附上受影响项目的详情提交兼容性问题。请参阅[指令](/zh/docs/configure/rules)。
+
+## 终端客户端配置
+
+V2 以单个全局终端客户端配置文件取代分层的 V1 `tui.json(c)` 文件：
+
+```text
+~/.config/opencode/cli.json
+```
+
+终端客户端拥有该文件；后台服务不会加载它。当 `cli.json` 不存在时，V2 终端客户端首次启动会迁移受支持的全局 `tui.json` 设置和已保存的偏好，同时保持 V1 文件不变。项目本地的客户端配置不会被迁移，因为 V2 的客户端配置是全局的。有关当前客户端设置的参考，请参阅 [CLI 设置](/zh/docs/cli/config)。
+
+## 插件
+
+将 `plugin` 重命名为 `plugins`。用对象替代包名与选项组成的元组：
+
+```jsonc
+// V1
+{
+  "plugin": ["opencode-example-plugin", ["./plugin/local.ts", { "enabled": true }]]
+}
+
+// V2
+{
+  "plugins": [
+    "opencode-example-plugin",
+    {
+      "package": "./plugin/local",
+      "options": { "enabled": true }
+    }
+  ]
+}
+```
+
+V2 会从 `.opencode/plugin/` 与 `.opencode/plugins/` 发现本地插件；V2 文件请使用 `.opencode/plugins/`。配置中的本地路径必须是目录，因此请将移植后的插件移至 `./plugin/local/index.ts`。
+
+<Callout type="warning">
+  V1 的插件实现无法在 V2 中运行。仅移动文件或重命名配置条目是不够的。
+</Callout>
+
+有关入口点、钩子、工具、事件和包导出的移植，请参阅专门的[插件迁移指南](/zh/docs/develop/plugins/migrate-v1)。
+
+## 服务器 API 与客户端
+
+OpenCode 2 拥有经过修订、更易用的服务器 API 和一套新的客户端。调用 V1 服务器 API 的集成必须迁移到 V2 API。
+
+使用 `@opencode/client` 包访问已发布的 V2 API。有关其端点、请求类型和响应，请参阅生成的 [API 参考](https://opencode.ai/v2/docs/api)。
+
+## 验证你的配置
+
+在将 V2 用于日常工作之前，请在一个项目中验证模型、提供商凭据、智能体、权限、MCP 服务器和插件。在确认所需的 V2 行为之前，请保留 V1 配置，并且不要让 V1 使用已转换为 V2 原生结构的配置。
