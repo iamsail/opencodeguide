@@ -1,0 +1,87 @@
+export const metadata = {
+  title: "SCIM 配置同步 | OpenCode 中文文档",
+  description: "目录同步（SCIM 2.0）会在你在身份提供商中分配人员时将其添加到工作区，并在你取消分配时移除其访问权限。角色仍由 Console 管理",
+  alternates: {
+    canonical: "/zh/docs/console/scim",
+  },
+}
+
+目录同步（SCIM 2.0）会在你在身份提供商中分配人员时将其添加到工作区，并在你取消分配时移除其访问权限。角色仍由 Console 管理。
+
+```text
+https://opencode.ai/console/scim/v2
+```
+
+## 开始之前
+
+- 为工作区设置 [SSO](/zh/docs/console/sso)。
+- [验证](/zh/docs/console/sso#verify-email-domains)你的人员用于登录的每一个电子邮件域名。目录同步只会添加已验证域名下的人员；其他人员请从[成员](/zh/docs/console/members)邀请。
+
+## 创建令牌
+
+只有工作区所有者才能设置目录同步，或创建与撤销其令牌。
+
+1. 打开 **Settings › Security**，在 **Directory sync** 下点击 **Set up**。
+2. 复制 **SCIM base URL** 和令牌。令牌只显示一次，请将其存放在密钥管理器中。
+
+你的身份提供商会在每个请求中发送该令牌。
+
+```text
+Authorization: Bearer <token>
+```
+
+## 连接你的身份提供商
+
+### Okta
+
+1. 添加 **SCIM 2.0 Test App (Header Auth)** 应用。
+2. 设置 base URL，并在 **API Token** 中输入 `Bearer ` 加令牌。
+3. 启用 **Create Users**、**Update User Attributes** 和 **Deactivate Users**。保持 **Import Groups** 与密码同步为关闭。
+
+### Microsoft Entra ID
+
+1. 在企业应用中打开 **Provisioning**，将模式设为 **Automatic**。
+2. 将 base URL 填入 **Tenant URL**，令牌填入 **Secret Token**。
+3. 分配用户和组，然后开始预配。
+
+### 其他提供商
+
+使用支持标头令牌认证的 SCIM 2.0 应用，并指向该 base URL。Console 支持 `/Users` 与 `/Groups` 端点。
+
+请先分配一名测试人员。首次请求后，**Directory sync** 会显示 **Connected to your identity provider**。
+
+## 同步内容
+
+| 在你的身份提供商中 | 在 Console 中                                                               |
+| ------------------ | --------------------------------------------------------------------------- |
+| 分配人员           | 添加为 **Member**。已有成员保留其角色。                                     |
+| 更新姓名           | 资料已更新。                                                                |
+| 取消分配或停用     | 访问被暂停，并显示为 **Deactivated**。其创建的 API 密钥将被撤销。           |
+| 重新分配           | 访问恢复。已撤销的密钥保持撤销状态。                                        |
+| 删除               | 从工作区中移除。其账户与其他工作区不受影响。                                |
+
+- 角色和电子邮件地址不会被目录同步更改。
+- 最后一位所有者无法被停用或删除。
+- 拥有 [Go](/zh/docs/console/go) 订阅的工作区无法通过目录同步添加成员。
+
+## 组
+
+推送组可为其成员打标签，例如使用 Okta **Push Groups** 或 Entra 组分配。请先分配人员，再推送其组。
+
+```text
+Platform Admins  →  platform-admins
+```
+
+每个组会以组名作为标签名，为成员打上该标签。在 **Settings › Security › Group tags** 下，你可以重命名标签、将多个组指向同一标签，或停止为某个组打标签。离开某个组会移除其标签。
+
+## 轮换令牌
+
+1. 点击 **New token**，并将其安装到你的身份提供商中。
+2. 等待新令牌显示最近一次使用记录。
+3. 撤销旧令牌。
+
+撤销令牌会停止后续更新，但不会更改已有成员。删除 SSO 连接会撤销所有令牌。
+
+## SSO 与目录同步
+
+工作区一旦签发令牌，SSO 将不再[自动添加成员](/zh/docs/console/sso#automatic-membership)。由目录决定谁属于该工作区，即使该令牌之后被撤销也是如此。

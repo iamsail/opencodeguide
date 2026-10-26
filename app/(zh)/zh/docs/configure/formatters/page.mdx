@@ -6,79 +6,182 @@ export const metadata = {
   },
 }
 
-# 格式化工具 (Formatters)
+OpenCode 可以在其 `write`、`edit` 或 `patch` 工具修改文件后对其进行格式化。格式化工具默认处于禁用状态，因此需要在配置中启用：
 
-**使用特定语言的格式化程序自动美化代码**
-
-OpenCode 在写入或编辑文件后，会自动使用特定语言的格式化工具。这确保了生成的代码符合您项目的代码风格。
-
-## 工作原理 (How it works)
-
-当 OpenCode 写入或修改文件时，它会执行以下操作：
-
-1. 根据所有已启用的格式化工具检查文件的 **扩展名**
-2. 对该文件运行相应的 **格式化命令**
-3. 自动应用格式化更改
-
-## 内置格式化工具 (Built-in)
-
-OpenCode 为流行语言和框架预置了多种格式化工具。以下是内置列表及其要求：
-
-<div className="my-6 w-full overflow-y-auto"><table className="w-full border-collapse border-t border-gray-200 dark:border-gray-800 text-sm"><thead><tr className="border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50"><th className="border border-gray-200 dark:border-gray-800 px-4 py-2 text-left font-bold">格式化工具</th><th className="border border-gray-200 dark:border-gray-800 px-4 py-2 text-left font-bold">支持的扩展名</th><th className="border border-gray-200 dark:border-gray-800 px-4 py-2 text-left font-bold">运行要求</th></tr></thead><tbody><tr className="border-t border-gray-200 dark:border-gray-800 p-0"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2 font-bold italic">gofmt</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2 font-mono">.go</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">环境中需安装 `gofmt` 命令</td></tr><tr className="border-t border-gray-200 dark:border-gray-800 p-0 even:bg-gray-50 dark:even:bg-gray-900/50"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2 font-bold italic">mix</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2 font-mono">.ex, .exs, .eex, .heex, .leex 等</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">环境中需安装 `mix` 命令</td></tr><tr className="border-t border-gray-200 dark:border-gray-800 p-0"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2 font-bold italic">prettier</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2 font-mono">.js, .ts, .jsx, .tsx, .html, .css, .md, .json, .yaml 等</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`package.json` 中需包含 `prettier` 依赖</td></tr><tr className="border-t border-gray-200 dark:border-gray-800 p-0 even:bg-gray-50 dark:even:bg-gray-900/50"><td className="border border-gray-200 dark:border-gray-800 px-4 py-2 font-bold italic">biome</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2 font-mono">.js, .ts, .jsx, .tsx, .json, .jsonc</td><td className="border border-gray-200 dark:border-gray-800 px-4 py-2">`package.json` 中需包含 `@biomejs/biome` 依赖</td></tr></tbody></table></div>
-
-## 配置 (Configure)
-
-您可以通过 `opencode.json` 中的 `formatter` 字段自定义格式化行为。
-
-每个格式化配置支持以下属性：
-
-* **disabled**: (boolean) 设置为 `true` 可禁用该格式化工具。
-* **command**: (string[]) 要运行的格式化命令。
-* **environment**: (object) 运行命令时的环境变量。
-* **extensions**: (string[]) 该工具适用的文件扩展名列表。
-
-### 禁用格式化工具 (Disabling formatters)
-
-* **全局禁用：** 将 `formatter` 设置为 `false`。
-
-```json
+```jsonc title="opencode.jsonc"
 {
-  "formatter": false
+  "$schema": "https://opencode.ai/config.json",
+  "formatter": true,
 }
 ```
 
-* **禁用特定工具：**
+## 启用
 
-```json
+将 `formatter` 设为 `true` 可启用全部内置格式化工具。只有在相应可执行文件及项目特定要求均满足时，OpenCode 才会运行该内置工具。
+
+```jsonc title="opencode.jsonc"
 {
-  "formatter": {
-    "prettier": {
-      "disabled": true
-    }
-  }
+  "$schema": "https://opencode.ai/config.json",
+  "formatter": true,
 }
 ```
 
-## 自定义格式化工具 (Custom formatters)
+传入对象同样会启用内置工具，并允许你覆盖它们或添加自定义格式化工具。空对象会保留继承的格式化工具设置，而 `true` 则会将它们重置为内置默认值。
 
-您可以覆盖内置工具或添加全新的格式化程序。例如，自定义 `prettier` 的运行方式或添加不支持的语言：
-
-**opencode.json**
-
-```json
+```jsonc title="opencode.jsonc"
 {
+  "$schema": "https://opencode.ai/config.json",
+  "formatter": {},
+}
+```
+
+## 内置工具
+
+OpenCode 包含以下格式化工具定义。多数要求相应的命令可用；带有额外检测规则的定义已在下方列出。
+
+| 格式化工具 | 扩展名 | 运行要求 |
+| --- | --- | --- |
+| `gofmt` | `.go` | `gofmt` 命令 |
+| `mix` | `.ex`, `.exs`, `.eex`, `.heex`, `.leex`, `.neex`, `.sface` | `mix` 命令 |
+| `oxfmt` | `.js`, `.jsx`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.mts`, `.cts` | `package.json` 中的 `oxfmt` 依赖 |
+| `prettier` | `.js`, `.jsx`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.mts`, `.cts`, `.html`, `.htm`, `.css`, `.scss`, `.sass`, `.less`, `.vue`, `.svelte`, `.json`, `.jsonc`, `.yaml`, `.yml`, `.toml`, `.xml`, `.md`, `.mdx`, `.graphql`, `.gql` | `package.json` 中的 `prettier` 依赖 |
+| `biome` | 与上表 `prettier` 相同的扩展名 | `biome.json` 或 `biome.jsonc`，以及已安装的 `@biomejs/biome` 可执行文件 |
+| `zig` | `.zig`, `.zon` | `zig` 命令 |
+| `clang-format` | `.c`, `.cc`, `.cpp`, `.cxx`, `.c++`, `.h`, `.hh`, `.hpp`, `.hxx`, `.h++`, `.ino`, `.C`, `.H` | `clang-format` 命令和 `.clang-format` |
+| `ktlint` | `.kt`, `.kts` | `ktlint` 命令 |
+| `ruff` | `.py`, `.pyi` | `ruff` 命令，以及 Ruff 配置或依赖声明 |
+| `air` | `.R` | 自称 R 格式化工具的 `air` 命令 |
+| `uv` | `.py`, `.pyi` | 支持 `uv format` 的 `uv` 命令 |
+| `rubocop` | `.rb`, `.rake`, `.gemspec`, `.ru` | `rubocop` 命令 |
+| `standardrb` | `.rb`, `.rake`, `.gemspec`, `.ru` | `standardrb` 命令 |
+| `htmlbeautifier` | `.erb` | `htmlbeautifier` 命令 |
+| `dart` | `.dart` | `dart` 命令 |
+| `ocamlformat` | `.ml`, `.mli` | `ocamlformat` 命令和 `.ocamlformat` |
+| `terraform` | `.tf`, `.tfvars` | `terraform` 命令 |
+| `latexindent` | `.tex` | `latexindent` 命令 |
+| `gleam` | `.gleam` | `gleam` 命令 |
+| `shfmt` | `.sh`, `.bash` | `shfmt` 命令 |
+| `nixfmt` | `.nix` | `nixfmt` 命令 |
+| `rustfmt` | `.rs` | `rustfmt` 命令 |
+| `pint` | `.php` | `composer.json` 中的 `laravel/pint` |
+| `ormolu` | `.hs` | `ormolu` 命令 |
+| `cljfmt` | `.clj`, `.cljs`, `.cljc`, `.edn` | `cljfmt` 命令 |
+| `dfmt` | `.d` | `dfmt` 命令 |
+
+例如，启用内置工具后，OpenCode 可以发现并运行项目本地的 Prettier 依赖来处理匹配的文件：
+
+```jsonc title="opencode.jsonc"
+{
+  "formatter": true,
+}
+```
+
+## 自定义
+
+添加一个具名条目即可修改内置工具或定义自定义格式化工具。自定义格式化工具必须同时提供 `command` 和 `extensions` 才能运行。
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
   "formatter": {
     "prettier": {
-      "command": ["npx", "prettier", "--write", "$FILE"],
       "environment": {
-        "NODE_ENV": "development"
+        "NODE_ENV": "development",
       },
-      "extensions": [".js", ".ts", ".jsx", ".tsx"]
-    }
-  }
+      "extensions": [".js", ".ts"],
+    },
+    "deno-markdown": {
+      "command": ["deno", "fmt", "$FILE"],
+      "extensions": [".md"],
+    },
+  },
 }
 ```
 
-> [!TIP]
-> 在命令中使用 `$FILE` 占位符来代表当前正在被格式化的文件。
+| 字段 | 类型 | 行为 |
+| --- | --- | --- |
+| `disabled` | `boolean` | 为 `true` 时移除该具名格式化工具。 |
+| `command` | `string[]` | 替换内置命令或定义自定义命令。 |
+| `environment` | `Record<string, string>` | 添加环境变量，同时保留父级环境。 |
+| `extensions` | `string[]` | 替换内置扩展名列表或定义自定义列表。需包含前导点号。 |
 
+所有字段均为可选。内置条目会继承省略的值，而缺少 `command` 或 `extensions` 的新条目无法运行。
+
+```jsonc title="opencode.jsonc"
+{
+  "formatter": {
+    "prettier": {
+      "extensions": [".md", ".mdx"],
+    },
+  },
+}
+```
+
+## 命令
+
+`command` 是参数数组，而不是 shell 命令字符串。OpenCode 会将 `$FILE` 替换为文件的绝对路径，并在活动项目目录中运行该命令。
+
+```jsonc title="opencode.jsonc"
+{
+  "formatter": {
+    "custom": {
+      "command": ["custom-fmt", "--write", "$FILE"],
+      "extensions": [".custom"],
+    },
+  },
+}
+```
+
+## 匹配规则
+
+OpenCode 会将文件的最终扩展名与 `extensions` 进行比较。匹配区分大小写，且像 `.part.md` 这样的复合条目不会匹配 `notes.part.md`，因为后者的最终扩展名是 `.md`。
+
+```jsonc title="opencode.jsonc"
+{
+  "formatter": {
+    "markdown": {
+      "command": ["deno", "fmt", "$FILE"],
+      "extensions": [".md"],
+    },
+  },
+}
+```
+
+当有多个格式化工具匹配时，OpenCode 会按注册顺序依次尝试，并在首个命令成功后停止。内置工具保持其内置顺序；自定义条目则按对象顺序紧随其后。如果某个命令以失败退出，OpenCode 会记录该失败并尝试下一个匹配项。
+
+```jsonc title="opencode.jsonc"
+{
+  "formatter": {
+    "preferred": {
+      "command": ["preferred-fmt", "$FILE"],
+      "extensions": [".foo"],
+    },
+    "fallback": {
+      "command": ["fallback-fmt", "$FILE"],
+      "extensions": [".foo"],
+    },
+  },
+}
+```
+
+## 禁用
+
+当没有配置文件设置 `formatter` 时，格式化处于禁用状态。若要禁用被较低优先级文件启用的格式化功能，可将其设为 `false`。
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "formatter": false,
+}
+```
+
+若要在保持其他工具启用的同时禁用某个内置工具，可将其具名条目标记为已禁用。
+
+```jsonc title="opencode.jsonc"
+{
+  "formatter": {
+    "prettier": {
+      "disabled": true,
+    },
+  },
+}

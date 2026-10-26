@@ -1,0 +1,344 @@
+export const metadata = {
+  title: "插件 v1 迁移 | OpenCode 中文文档",
+  description: "插件配置可以自动规范化，但插件实现代码必须手动移植。V1 插件函数返回一个包含工具与钩子的单一对象。V2 插件默认导出一个带有 `id` 和 `setup(ctx)` 的定义；`setup` 通过上下文注册钩子、转换、工具和订阅",
+  alternates: {
+    canonical: "/zh/docs/develop/plugins/migrate-v1",
+  },
+}
+
+插件配置可以自动规范化，但插件实现代码必须手动移植。V1 插件函数返回一个包含工具与钩子的单一对象。V2 插件默认导出一个带有 `id` 和 `setup(ctx)` 的定义；`setup` 通过上下文注册钩子、转换、工具和订阅。
+
+<Callout type="warning">
+  V1 插件实现无法在 V2 中运行。仅移动文件或重命名其配置条目是不够的。
+</Callout>
+
+## 迁移插件配置
+
+将 `plugin` 重命名为 `plugins`。用对象替换包与选项的元组：
+
+```jsonc
+// V1
+{
+  "plugin": [
+    "opencode-example-plugin",
+    ["./plugin/local.ts", { "enabled": true }]
+  ]
+}
+
+// V2
+{
+  "plugins": [
+    "opencode-example-plugin",
+    {
+      "package": "./plugin/local",
+      "options": { "enabled": true }
+    }
+  ]
+}
+```
+
+V2 会从 `.opencode/plugin/` 与 `.opencode/plugins/` 两处发现本地插件；V2 文件请使用 `.opencode/plugins/`。
+配置的本地路径必须指向目录。以上例而言，请将移植后的实现移动到
+`./plugin/local/index.ts`；若配置为 `./plugin/local.ts` 文件，将被跳过并在日志中给出警告。
+移动插件时，请将辅助模块一并保留在插件旁边。本地插件与包插件使用相同的实现 API。
+
+## 替换入口点
+
+修改包的导入，用 `Plugin.define` 替换导出的插件函数，并将初始化逻辑移入 `setup`。
+
+```ts title="V1"
+import type { Plugin } from "@opencode-ai/plugin"
+
+export const ExamplePlugin: Plugin = async ({ directory, project, client }) => {
+  await client.app.log({
+    body: { service: "example", level: "info", message: `Loaded for ${project.id}` },
+  })
+
+  return {
+    // V1 tools and hooks
+  }
+}
+```
+
+```ts title="V2"
+import { Plugin } from "@opencode/plugin"
+
+export default Plugin.define({
+  id: "example",
+  async setup(ctx) {
+    await ctx.storage.set("last-project", ctx.location.project.id)
+    console.log(`Loaded for ${ctx.location.directory}`)
+  },
+})
+```
+
+每个 V2 插件都需要一个稳定的 `id`。插件存储以该 ID 为作用域，该 ID 同时用于在状态与诊断信息中标识插件。已发布的插件应依赖与其目标 OpenCode 发行版兼容的 `@opencode/plugin` 版本。
+
+## 迁移上下文
+
+V2 的上下文既是 OpenCode 客户端，也是插件扩展 API。大多数操作按领域归类，而不再挂在独立的 `client` 属性上。
+
+| V1 | V2 |
+| --------------------------------------- | ------------------------------------------------------------------- |
+| `directory` | `ctx.location.directory` |
+| `project` | `ctx.location.project` |
+| `client` | 领域方法，如 `ctx.session`、`ctx.permission`、`ctx.agent` |
+| 插件 options 参数 | `ctx.options` |
+| 返回的 `dispose()` 钩子 | `setup` 返回的清理函数 |
+| 返回的 `event` 钩子 | `ctx.event.subscribe()` |
+| 返回的 config、model 或 tool 变更 | 领域上的 `transform(...)` |
+| `$` Bun shell 辅助函数 | 导入并管理插件所使用的进程 API |
+
+`ctx.location` 描述的是该插件实例加载的位置，并非插件可能观察到的每个会话或事件的位置。当这一区别很重要时，请读取会话或事件数据。
+
+上下文暴露的领域远多于表中所列，包括目录、命令、集成、MCP 服务器、引用、技能、存储、VCS、工作树和网络搜索。参见[完整的插件上下文](/zh/docs/develop/plugins#api)。
+
+## 在 `setup` 中注册钩子
+
+V1 通过字符串键返回钩子。V2 将每个钩子注册到拥有该操作的领域上。回调接收单个可变事件对象，而非分离的 `input` 与 `output` 对象。
+
+```ts title="V1"
+import type { Plugin } from "@opencode-ai/plugin"
+
+export const GuardPlugin: Plugin = async () => ({
+  "tool.execute.before": async (input, output) => {
+    if (input.tool === "read" && output.args.filePath.includes(".env")) {
+      throw new Error("Do not read .env files")
+    }
+  },
+  "shell.env": async (_input, output) => {
+    output.env.COMPANY_ENV = "development"
+  },
+})
+```
+
+```ts title="V2"
+import { Plugin } from "@opencode/plugin"
+
+export default Plugin.define({
+  id: "company.guard",
+  async setup(ctx) {
+    await ctx.tool.hook("execute.before", (event) => {
+      const input = event.input as { filePath?: string }
+      if (event.tool === "read" && input.filePath?.includes(".env")) {
+        throw new Error("Do not read .env files")
+      }
+    })
+
+    await ctx.shell.hook("create.before", (event) => {
+      event.env.COMPANY_ENV = "development"
+    })
+  },
+})
+```
+
+注册在插件的整个生命周期内保持有效，并在插件卸载时被释放。仅当插件需要通过 `registration.dispose()` 提前移除某个特定钩子或转换时，才需要保留返回的注册句柄。
+
+使用下表查找每个 V1 钩子对应的最接近的 V2 API：
+
+| V1 扩展点 | V2 API |
+| -------------------------------------- | ------------------------------------------------------------ |
+| `event` | `ctx.event.subscribe()` |
+| `dispose` | `setup` 返回的清理函数 |
+| `config` | 受影响领域上的转换 |
+| `tool` 映射 | `ctx.tool.transform(...)` |
+| `auth` | `ctx.integration.transform(...)` 及集成 API |
+| `provider` | `ctx.provider.transform(...)` 与 `ctx.model.transform(...)` |
+| `chat.message` | `ctx.session.hook("prompt", ...)` |
+| `chat.params` | `ctx.session.hook("context", ...)` |
+| `chat.headers` | `ctx.session.hook("model.request", ...)` 或 `"http.request"` |
+| `permission.ask` | `ctx.permission.hook("evaluate", ...)` |
+| `command.execute.before` | 命令转换或 prompt 钩子，视意图而定 |
+| `tool.execute.before` | `ctx.tool.hook("execute.before", ...)` |
+| `tool.execute.after` | `ctx.tool.hook("execute.after", ...)` |
+| `shell.env` | `ctx.shell.hook("create.before", ...)` |
+| `tool.definition` | `ctx.tool.transform(...)` |
+| `experimental.chat.system.transform` | `ctx.session.hook("context", ...)` 并编辑 `event.system` |
+| `experimental.chat.messages.transform` | `ctx.session.hook("context", ...)` 并编辑 `event.messages` |
+| `experimental.session.compacting` | `ctx.session.hook("compaction", ...)` |
+
+这些是迁移目标，并不总是精确的重命名。特别是，V2 的 `prompt` 钩子在持久化的 prompt 准入之前运行，而 `context` 则在智能体模型请求之前立即运行。如果某个转换必须作用于每一类模型请求，请分别注册 `context`、`compaction`、`generate` 与 `title`。
+
+并非每个实验性 V1 钩子都有与之直接对应的 V2 钩子。对于使用 `experimental.compaction.autocontinue`、`experimental.provider.small_model` 或 `experimental.text.complete` 的插件，请依据 V2 的会话、提供商、模型与事件 API 重新评估，而不是沿用内部生命周期假设。
+
+`command.execute.before` 也没有一一对应的全局钩子。当插件拥有某个命令时，使用 `ctx.command.transform` 注册该命令。若实际意图是修改由命令及其他 prompt 来源提交的 prompt，请使用 prompt 钩子。
+
+## 迁移请求钩子
+
+V2 将 prompt 准入、模型可见的上下文、语义化模型选项与原生 HTTP 分离开来。请选择插件所需的最窄层级。
+
+```ts title="V1"
+import type { Plugin } from "@opencode-ai/plugin"
+
+export const RequestPlugin: Plugin = async () => ({
+  "chat.params": async (_input, output) => {
+    output.temperature = 0.2
+    output.maxOutputTokens = 8_000
+  },
+  "chat.headers": async (_input, output) => {
+    output.headers["x-plugin"] = "review"
+  },
+  "experimental.chat.system.transform": async (_input, output) => {
+    output.system.push("Focus on correctness.")
+  },
+})
+```
+
+```ts title="V2"
+import { Plugin } from "@opencode/plugin"
+
+export default Plugin.define({
+  id: "review-request",
+  async setup(ctx) {
+    await ctx.session.hook("context", (event) => {
+      event.system.push({ type: "text", text: "Focus on correctness." })
+      event.options.temperature = 0.2
+      event.options.maxTokens = 8_000
+    })
+
+    await ctx.session.hook("model.request", (event) => {
+      event.headers["x-plugin"] = "review"
+    })
+  },
+})
+```
+
+在 `event.options` 中使用语义化的提供商选项。对于模型请求头与原始请求设置，请使用 `model.request`；仅当插件需要原生提供商 HTTP 交换时，才使用 `http.request` 或 `http.response`。提供商相关的钩子可以将 `{ providerID: "..." }` 作为 `ctx.session.hook` 的第三个参数传入。
+
+## 迁移自定义工具
+
+V1 返回使用旧版 `tool()` 辅助函数构建的 `tool` 映射。V2 通过同步的 `ctx.tool.transform` 编辑器注册工具定义。工具 schema 使用 JSON Schema，执行返回结构化内容。
+
+```ts title="V1"
+import { tool } from "@opencode-ai/plugin"
+
+export const ToolsPlugin = async () => ({
+  tool: {
+    greeting: tool({
+      description: "Create a greeting",
+      args: { name: tool.schema.string() },
+      async execute(args) {
+        return `Hello ${args.name}!`
+      },
+    }),
+  },
+})
+```
+
+```ts title="V2"
+import { Plugin } from "@opencode/plugin"
+
+export default Plugin.define({
+  id: "greeting",
+  async setup(ctx) {
+    await ctx.tool.transform((editor) => {
+      editor.add({
+        name: "greeting",
+        description: "Create a greeting",
+        input: {
+          type: "object",
+          properties: { name: { type: "string" } },
+          required: ["name"],
+          additionalProperties: false,
+        },
+        async execute(input) {
+          return { content: `Hello ${(input as { name: string }).name}!` }
+        },
+      })
+    })
+  },
+})
+```
+
+转换是可重放的状态编辑。请保持其回调同步、轻量，且不含一次性副作用。在注册前加载外部数据，在回调中捕获该数据，并在数据变化时调用该领域的 `reload()` 方法。后续插件的转换可以看到先前的更改，并可以对其更新、替换或移除。
+
+同样的转换模式可以替换 V1 的 `config` 与 `provider` 钩子，但 V2 不再暴露单一的可变全局配置对象。请将更改注册到拥有它的领域：`ctx.agent`、`ctx.provider`、`ctx.model`、`ctx.command`、`ctx.integration`、`ctx.mcp`、`ctx.reference`、`ctx.skill`、`ctx.tool`、`ctx.vcs`、`ctx.websearch` 或 `ctx.worktree`。认证方式属于集成；提供商转换用于贡献来源定义与提供商设置，而模型转换则对完整的活跃提供商模型集合应用限制与覆盖。
+
+```ts
+await ctx.provider.transform((editor) => {
+  editor.update("anthropic", (provider) => {
+    provider.headers = { ...provider.headers, "x-company": "engineering" }
+  })
+})
+
+await ctx.model.transform((editor) => {
+  editor.list("anthropic").forEach((model) => {
+    if (!model.capabilities.tools) editor.remove(model.providerID, model.id)
+  })
+})
+```
+
+## 迁移事件与清理
+
+V1 的 `event` 回调变为对公共服务器事件流的异步订阅。请从 `setup` 返回的清理函数中中止该订阅。
+
+```ts title="V2"
+import { Plugin } from "@opencode/plugin"
+
+export default Plugin.define({
+  id: "notifications",
+  setup(ctx) {
+    const controller = new AbortController()
+
+    void (async () => {
+      for await (const event of ctx.event.subscribe({ signal: controller.signal })) {
+        if (event.type === "session.idle") console.log("Session completed")
+      }
+    })()
+
+    return () => controller.abort()
+  },
+})
+```
+
+请使用清理函数处理定时器、子进程、套接字以及插件所拥有的其他资源。钩子与转换的注册以插件为作用域，并会被自动清理。
+
+## 迁移选项与持久化状态
+
+从 `ctx.options` 读取选项。当状态属于某个插件时，请使用 `ctx.storage`，而不是自行引入全局文件；其 JSON 值是持久的，并以插件为作用域。
+
+```ts
+const strict = ctx.options.strict === true
+await ctx.storage.set("settings", { strict })
+const settings = await ctx.storage.get("settings")
+```
+
+## 在一个包中同时支持 V1 与 V2
+
+一个包可以暂时从同一个默认导出同时暴露两种实现。V1 调用 `server()`，V2 调用 `setup()`。两套 API 彼此独立；这种形式不会自动转换钩子。
+
+```ts title="src/index.ts"
+import { Plugin } from "@opencode/plugin"
+
+export default {
+  ...Plugin.define({
+    id: "example",
+    async setup(ctx) {
+      await ctx.tool.hook("execute.before", () => {
+        console.log("A tool is about to run")
+      })
+    },
+  }),
+  async server() {
+    return {
+      "tool.execute.before": async () => {
+        console.log("A tool is about to run")
+      },
+    }
+  },
+}
+```
+
+OpenCode `1.18.29` 及更高版本支持 V1 对象入口。如果你需要支持更早的 V1 发行版，请使用单独的包版本或入口，并对你声称支持的最旧版本进行测试。支持窗口结束后，请移除 V1 实现。
+
+## 验证移植后的插件
+
+对每个插件：
+
+1. 确认其 ID 与来源出现在活跃插件列表中。
+2. 逐一触发已注册的钩子、转换、工具、命令与事件订阅。
+3. 通过重新加载或移除插件来验证清理逻辑。
+4. 使用干净的项目测试插件选项与持久化状态。
+5. 对于已发布的包，请测试实际安装的包，而不仅仅是工作区链接的副本。
+
+完整的 Promise API 见[插件指南](/zh/docs/develop/plugins)，Effect 入口见 [Effect 插件](/zh/docs/develop/effect/plugins)，自定义方法与事件见[插件 RPC](/zh/docs/develop/plugins/rpc)，TUI 扩展见 [CLI 插件](/zh/docs/develop/plugins/cli)。

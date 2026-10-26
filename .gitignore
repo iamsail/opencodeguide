@@ -29,3 +29,7 @@ pnpm-debug.log*
 .vercel
 node_modules/
 .next/
+
+# docs-sync 翻译缓存与运行报告（.upstream/ 入库作为 diff 基线）
+.translation-cache/
+SYNC_REPORT.md

@@ -1,0 +1,89 @@
+export const metadata = {
+  title: "Claude Code Harness | OpenCode 中文文档",
+  description: "Claude Code 使用 Anthropic Messages API 进行通信。通过两个环境变量将其指向 Console，即可使用任何接受 Anthropic Messages 的模型",
+  alternates: {
+    canonical: "/zh/docs/console/harnesses/claude-code",
+  },
+}
+
+Claude Code 使用 Anthropic Messages API 进行通信。通过两个环境变量将其指向 Console，即可使用任何接受 Anthropic Messages 的模型。
+
+```bash
+export ANTHROPIC_BASE_URL="https://opencode.ai/inference/anthropic"
+export ANTHROPIC_AUTH_TOKEN="oc_sk_..."
+claude --model claude-sonnet-5-5
+```
+
+将 `oc_sk_...` 替换为[个人 API 密钥](/zh/docs/console/harnesses#get-an-api-key)。
+
+## 配置
+
+在 `~/.claude/settings.json` 中设置这些变量，即可在每个会话中使用 Console。将 `opus`、`sonnet` 和 `haiku` 别名映射到 Console 模型，以便 `/model` 和后台任务使用它们。
+
+```json title="~/.claude/settings.json"
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://opencode.ai/inference/anthropic",
+    "ANTHROPIC_AUTH_TOKEN": "oc_sk_...",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-5-5",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-5-5",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-haiku-5-5"
+  }
+}
+```
+
+Claude Code 会在基础 URL 后追加 `/v1/messages`，因此不要写上该路径。运行 `/status` 以确认基础 URL 和令牌已生效。
+
+<Callout>
+  请使用 `ANTHROPIC_AUTH_TOKEN`，而不是 `ANTHROPIC_API_KEY`。如果你已登录 Claude 账户，请先运行 `/logout`，以免 Claude Code 将该登录凭据发送到 Console。
+</Callout>
+
+## Go
+
+使用 Go 基础 URL，以及来自订阅了 [Go](/zh/docs/console/go) 的工作区的密钥。
+
+```json title="~/.claude/settings.json"
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://opencode.ai/inference/go/anthropic",
+    "ANTHROPIC_AUTH_TOKEN": "oc_sk_...",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "minimax-m3",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-haiku-5-5"
+  }
+}
+```
+
+## 模型
+
+Claude Code 只能使用接受 Anthropic Messages 的模型。
+
+| 套餐 | 模型 |
+| ------------- | ------------------------------------------------------------------- |
+| 按量付费 | Claude 模型及大多数 Qwen 模型 |
+| Go | Claude Haiku 5.5、Kimi K3、DeepSeek V4、MiniMax M3 及 Qwen 模型 |
+
+GPT、Gemini 以及大多数开放模型在 Claude Code 中尚不可用。在此之前，请使用 [Pi](/zh/docs/console/harnesses/pi) 或 [Hermes](/zh/docs/console/harnesses/hermes)。
+
+<Callout>对所有 Harness 中所有模型的支持即将推出。</Callout>
+
+### 非 Claude 模型
+
+Claude Code 会向每个模型发送 Claude 专用的请求选项。如果非 Claude 模型以 `400` 错误拒绝请求，请关闭实验性 beta 功能。
+
+```json title="~/.claude/settings.json"
+{
+  "env": {
+    "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1"
+  }
+}
+```
+
+## Console MCP
+
+为所有项目添加 [Console MCP](/zh/docs/console/harnesses#console-mcp) 服务器。
+
+```bash
+claude mcp add --transport http --scope user opencode-console https://opencode.ai/console/mcp
+```
+
+在 Claude Code 中运行 `/mcp`，选择 `opencode-console`，然后在浏览器中登录。

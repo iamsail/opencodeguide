@@ -9,117 +9,93 @@ export const metadata = {
   },
 }
 
-# OpenCode CLI 文档
+在项目目录中运行 CLI 以打开全屏终端界面：
 
-OpenCode CLI 是一款强大的命令行工具，默认情况下无参数运行时会启动 **终端用户界面 (TUI)**。同时支持通过命令行参数进行编程式交互，适用于自动化脚本、远程访问及集成开发环境。
-
-## 基础使用
-
-### 启动 TUI
-直接运行以下命令启动：
 ```bash
 opencode
 ```
-或指定项目路径：
-```bash
-opencode [项目名/路径]
-```
 
-### 非交互模式
-通过 `run` 命令直接传入提示词，快速获取结果而无需启动 TUI：
-```bash
-opencode run "解释 JavaScript 中的闭包工作原理"
-```
-
-## 核心选项 (Flags)
-
-<div className="my-6 w-full overflow-y-auto"><table className="w-full border-collapse"><thead><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">参数</th><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">简写</th><th className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">描述</th></tr></thead><tbody><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>--continue</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>-c</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">继续上一次会话</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>--session</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>-s</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">指定要继续的会话 ID</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>--prompt</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">-</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">自定义提示词</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>--model</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>-m</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">指定使用的模型（提供商/模型名）</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>--agent</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">-</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">指定要使用的智能体 (Agent)</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>--file</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>-f</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">附加本地文件到上下文</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>--format</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">-</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">输出格式 (default | json)</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>--title</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">-</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">设置会话标题</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>--port</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">-</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">监听端口</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>--hostname</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">-</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">监听主机名</td></tr></tbody></table></div>
-
-## 命令详解
-
-### agent - 管理智能体
-用于创建、列出和配置 OpenCode 智能体。
-
-<div className="my-6 w-full overflow-y-auto"><table className="w-full border-collapse"><thead><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">子命令</th><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">用法</th><th className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">描述</th></tr></thead><tbody><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">create</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>opencode agent create</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">引导创建自定义智能体（含系统提示词和工具配置）</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">list</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>opencode agent list</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">列出所有可用智能体</td></tr></tbody></table></div>
-
-### auth - 凭证与登录管理
-用于配置模型提供商 API 密钥。凭证默认存储于 `~/.local/share/opencode/auth.json`。
-
-<div className="my-6 w-full overflow-y-auto"><table className="w-full border-collapse"><thead><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">子命令</th><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">用法</th><th className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">描述</th></tr></thead><tbody><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">login</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>opencode auth login</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">交互式配置提供商 API 密钥</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">list/ls</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>opencode auth list</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">列出所有已认证的提供商</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">logout</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>opencode auth logout</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">退出并清除指定提供商的凭证</td></tr></tbody></table></div>
-
-### github - GitHub 自动化管理
-
-<div className="my-6 w-full overflow-y-auto"><table className="w-full border-collapse"><thead><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">子命令</th><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">用法</th><th className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">描述</th></tr></thead><tbody><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">install</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>opencode github install</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">在仓库中安装 GitHub 智能体（配置 CI/CD 工作流）</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">run</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>opencode github run</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">运行 GitHub 智能体（通常用于 GitHub Actions）</td></tr></tbody></table></div>
-
-### mcp - 管理模型上下文协议服务器
-
-<div className="my-6 w-full overflow-y-auto"><table className="w-full border-collapse"><thead><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">子命令</th><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">用法</th><th className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">描述</th></tr></thead><tbody><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">add</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>opencode mcp add</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">引导添加本地或远程 MCP 服务器</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">list/ls</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>opencode mcp list</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">列出已配置的 MCP 服务器及连接状态</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">auth</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>opencode mcp auth [名称]</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">向 OAuth 启用的 MCP 服务器认证</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">logout</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>opencode mcp logout [名称]</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">移除 MCP 服务器的 OAuth 凭证</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">debug</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>opencode mcp debug &lt;名称&gt;</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">调试 MCP 服务器连接问题</td></tr></tbody></table></div>
-
-### models - 列出可用模型
+传入目录路径即可在其他项目中工作：
 
 ```bash
-opencode models [提供商]
+opencode ~/code/my-project
 ```
 
-- `--refresh`：从 models.dev 刷新缓存。
-- `--verbose`：显示详细模型信息（含成本等元数据）。
+推荐终端：
 
-### run - 非交互式运行
-适用于脚本和自动化流程。
+- [Ghostty](https://ghostty.org)
+- [WezTerm](https://wezterm.org)
+- [Alacritty](https://alacritty.org)
+- [Kitty](https://sw.kovidgoyal.net/kitty/)
+
+真彩色支持能让主题呈现最准确的色彩；不支持的终端则使用可用调色板的近似值。
+
+## 自动化
+
+使用 `opencode run` 提交提示词，无需打开交互式界面。它专为脚本、CI 任务，以及其他需要直接在终端获取模型输出的工作流而设计。
 
 ```bash
-opencode run [提示词...]
+opencode run "Explain this repository"
 ```
 
-**示例：关联运行中的服务器**
-```bash
-# 关联已有服务器运行（避免冷启动）
-opencode run --attach http://localhost:4096 "解释 Go 的 Context"
-```
+## Mini
 
-### serve / web - 启动服务器
-- `serve`：启动无头 HTTP API 服务器。
-- `web`：启动带网页界面的服务器，并自动打开浏览器。
-
-支持参数：`--port`, `--hostname`, `--mdns`, `--cors`。
-
-### session - 管理会话
-OpenCode 最核心的会话管理功能，支持导出、导入及统计。
-
-<div className="my-6 w-full overflow-y-auto"><table className="w-full border-collapse"><thead><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">子命令</th><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">用法</th><th className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">描述</th></tr></thead><tbody><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">list</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>opencode session list</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">列出所有历史会话</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">stats</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>opencode session stats</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">显示令牌使用量和成本统计</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">export</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>opencode session export [ID]</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">导出会话数据为 JSON</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">import</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>opencode session import &lt;文件/URL&gt;</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">从文件或分享链接导入会话</td></tr></tbody></table></div>
-
-### acp - 快速提交
-快速 `git add`, `git commit -m "[消息]"`, `git push` 的组合命令。
+使用 `opencode mini` 启动 OpenCode 的极简交互界面，而非全屏 TUI。
 
 ```bash
-opencode acp "修复 bug"
+opencode mini
 ```
 
-### uninstall & upgrade
+运行 `opencode mini --help` 可查看其会话、模型、智能体、提示词与回放选项。
 
-- `opencode uninstall`  
-  卸载（可加 `--keep-config` `--keep-data` `--dry-run` `--force`）
+## 后台服务
 
-- `opencode upgrade [版本号]`  
-  升级（不带参数 → 最新版；可指定版本如 v0.1.48）
+默认情况下，OpenCode 会为你的用户账号发现或启动一个共享后台服务器。每个本地 OpenCode 客户端都会连接到该服务器；会话、配置、集成、权限与工具执行均由该服务器负责。
 
-  选项：`--method`（curl/npm/pnpm/bun/brew）
+使用 `--standalone` 以私有服务器运行，或使用 `--server` 连接到指定的服务器 URL：
 
-## 全局选项（任何命令都可用）
+```bash
+opencode --standalone
+opencode --server http://localhost:4096
+```
 
-- `--help` / `-h`
-- `--version` / `-v`
-- `--print-logs`
-- `--log-level` （DEBUG / INFO / WARN / ERROR）
+若希望 CLI 命令默认使用私有服务器而非启动共享服务，可将其禁用：
 
-## 环境变量
+```bash
+opencode service set disabled true
+opencode
+```
 
-OpenCode 可以通过环境变量进行配置。
+此操作会停止正在运行的后台服务。`--server` 仍可连接到明确指定的服务器；`opencode service start` 仍可显式启动共享服务。若要恢复自动使用服务，请运行 `opencode service unset disabled`。配对依赖共享服务，在其被禁用时不可用。
 
-<div className="my-6 w-full overflow-y-auto"><table className="w-full border-collapse"><thead><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">变量</th><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">类型</th><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th></tr></thead><tbody><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_AUTO_SHARE</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">boolean</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">自动分享会话</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_GIT_BASH_PATH</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">string</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">Windows 上 Git Bash 可执行文件的路径</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_CONFIG</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">string</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">配置文件路径</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_CONFIG_DIR</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">string</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">配置目录路径</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_CONFIG_CONTENT</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">string</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">内联 JSON 配置内容</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_DISABLE_AUTOUPDATE</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">boolean</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">禁用自动更新检查</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_DISABLE_PRUNE</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">boolean</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">禁用旧数据清理</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_DISABLE_TERMINAL_TITLE</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">boolean</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">禁用自动终端标题更新</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_PERMISSION</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">string</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">内联 JSON 权限配置</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_DISABLE_DEFAULT_PLUGINS</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">boolean</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">禁用默认插件</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_DISABLE_LSP_DOWNLOAD</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">boolean</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">禁用自动 LSP 服务器下载</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_ENABLE_EXPERIMENTAL_MODELS</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">boolean</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">启用实验性模型</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_DISABLE_AUTOCOMPACT</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">boolean</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">禁用自动上下文压缩</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_DISABLE_CLAUDE_CODE</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">boolean</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">禁用从 .claude 读取（提示词 + 技能）</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_DISABLE_CLAUDE_CODE_PROMPT</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">boolean</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">禁用读取 ~/.claude/CLAUDE.md</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_DISABLE_CLAUDE_CODE_SKILLS</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">boolean</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">禁用加载 .claude/skills</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_CLIENT</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">string</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">客户端标识符（默认为 cli）</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_ENABLE_EXA</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">boolean</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">启用 Exa 网络搜索工具</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_SERVER_PASSWORD</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">string</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">为 serve/web 启用基本身份验证</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_SERVER_USERNAME</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">string</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">覆盖基本身份验证用户名（默认为 opencode）</td></tr></tbody></table></div>
+有关共享服务的排查，请参阅[故障排除](/zh/docs/troubleshooting)；有关服务端端点，请参阅 [API 参考](https://opencode.ai/v2/docs/api)。
 
-### 实验性选项
+## 路径
 
-这些环境变量启用了可能会更改或删除的实验性功能。
+打印指定的本地路径，供其他工具使用：
 
-<div className="my-6 w-full overflow-y-auto"><table className="w-full border-collapse"><thead><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">变量</th><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">类型</th><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">描述</th></tr></thead><tbody><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_EXPERIMENTAL</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">boolean</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">启用所有实验性功能</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_EXPERIMENTAL_ICON_DISCOVERY</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">boolean</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">启用图标发现</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">boolean</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">在 TUI 中禁用选中即复制</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_EXPERIMENTAL_BASH_MAX_OUTPUT_LENGTH</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">number</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">Bash 命令的最大输出长度</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">number</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">Bash 命令的默认超时时间（毫秒）</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_EXPERIMENTAL_OUTPUT_TOKEN_MAX</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">number</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">LLM 响应的最大输出 Token 数</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_EXPERIMENTAL_FILEWATCHER</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">boolean</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">对整个目录启用文件监听 (File watcher)</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_EXPERIMENTAL_OXFMT</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">boolean</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">启用 oxfmt 格式化程序</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_EXPERIMENTAL_PLAN_MODE</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">boolean</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">启用实验性计划模式 (Plan mode)</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><code>OPENCODE_EXPERIMENTAL_LSP_TOOL</code></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">boolean</td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">启用实验性 LSP 工具</td></tr></tbody></table></div>
+```bash
+opencode debug paths db
+sqlite3 "$(opencode debug paths db)"
+```
+
+可选的选择器接受 `db`、`home`、`data`、`config`、`cache`、`state`、`tmp`、`bin`、`log` 或 `repos`，仅打印路径与一个换行符。数据库路径遵循发布渠道与 `OPENCODE_DB`；相对路径的数据库覆盖值会在数据目录下解析，而 `:memory:` 则按原样输出。该命令不会启动服务器，也不会打开数据库。
+
+省略选择器则显示带标签的全部路径：
+
+```bash
+opencode debug paths
+```
+
+## 卸载
+
+预览将被删除的文件与安装项：
+
+```bash
+opencode uninstall --dry-run
+```
+
+运行 `opencode uninstall` 以确认删除。OpenCode 会先停止已注册的后台服务与持久终端，然后再移除全局缓存目录；该目录由 OpenCode 的各版本与渠道共享。会话数据、配置与状态永远不会被删除。
+
+- `--force`（`-f`）跳过确认；用于非交互式删除。
+- 通过包管理器安装的，将使用检测到的包管理器。通过 curl 安装的，则会打印用于手动移除可执行文件的最终命令。

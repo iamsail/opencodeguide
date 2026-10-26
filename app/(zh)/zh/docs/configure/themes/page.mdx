@@ -6,112 +6,246 @@ export const metadata = {
   },
 }
 
-# 主题 (Themes)
+在终端界面中按 `Ctrl+P`，选择 **Open settings**，再打开 **Theme** 即可选择主题。也可以在全局 CLI 配置中直接设置：
 
-**选择内置主题或定义您自己的主题**
-
-通过 OpenCode，您可以从多个内置主题中进行选择，也可以使用能够根据您的终端主题自动适应的主题，或者定义您自己的自定义主题。默认情况下，OpenCode 使用官方的 `opencode` 主题。
-
-## 终端要求 (Terminal requirements)
-
-为了让主题以全色彩范围正确显示，您的终端必须支持 **真彩色 (Truecolor/24-bit color)**。大多数现代终端默认支持此功能，但您可能需要手动启用：
-
-* **检查支持情况：** 运行 `echo $COLORTERM`，输出应为 `truecolor` 或 `24bit`。
-* **启用真彩色：** 在 shell 配置文件中设置环境变量 `export COLORTERM=truecolor`。
-* **终端兼容性：** 确保您的终端仿真器支持 24 位颜色（如 iTerm2、Alacritty、Kitty、Windows Terminal 以及较新版本的 GNOME Terminal）。
-
-如果没有真彩色支持，主题颜色可能会出现偏差，或者回退到最接近的 256 色。
-
-## 内置主题 (Built-in themes)
-
-OpenCode 附带了多个内置主题：
-
-<div className="my-6 w-full overflow-y-auto"><table className="w-full border-collapse"><thead><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">名称</th><th className="border px-4 py-2 text-left font-bold border-gray-200 dark:border-gray-800">说明</th></tr></thead><tbody><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><strong>system</strong></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">自动适应终端的背景颜色</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><strong>tokyonight</strong></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">基于 Tokyonight 主题</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><strong>everforest</strong></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">基于 Everforest 主题</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><strong>ayu</strong></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">基于 Ayu 暗色主题</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><strong>catppuccin</strong></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">基于 Catppuccin 主题</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><strong>gruvbox</strong></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">基于 Gruvbox 主题</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><strong>nord</strong></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">基于 Nord 主题</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><strong>matrix</strong></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">黑底绿字的黑客风格主题</td></tr><tr className="m-0 border-t p-0 even:bg-muted border-gray-200 dark:border-gray-800"><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800"><strong>one-dark</strong></td><td className="border px-4 py-2 text-left border-gray-200 dark:border-gray-800">基于 Atom One Dark 主题</td></tr></tbody></table></div>
-
-*(系统正在不断添加更多新主题)*
-
-## 系统主题 (System theme)
-
-系统主题旨在自动适应您终端的配色方案。与使用固定颜色的传统主题不同，系统主题：
-
-* **生成灰度：** 根据您的终端背景颜色创建自定义灰度，确保最佳对比度。
-* **使用 ANSI 颜色：** 利用标准 ANSI 颜色 (0-15) 进行语法高亮和 UI 元素显示，遵循您的终端调色板。
-* **保留终端默认值：** 文本和背景颜色使用 `none`，以保持终端的原生外观。
-
-## 使用主题 (Using a theme)
-
-您可以通过以下方式选择主题：
-
-1. 在 TUI 中输入 `/theme` 命令调出主题选择菜单。
-2. 在配置文件 `opencode.json` 中指定：
-
-**opencode.json**
-
-```json
+```json title="~/.config/opencode/cli.json"
 {
-  "$schema": "https://opencode.ai/config.json",
-  "theme": "tokyonight"
+  "theme": {
+    "name": "tokyonight",
+    "mode": "system"
+  }
 }
 ```
 
-## 自定义主题 (Custom themes)
+主题属于终端客户端。请将主题选择写在 `cli.json` 中，而不是 `opencode.json`。配置位置及其他终端设置请参阅 [CLI 设置](/zh/docs/cli/config)。
 
-OpenCode 支持灵活的基于 JSON 的主题系统。
+## 模式
 
-### 优先级 (Hierarchy)
+使用 `system` 可跟随终端的外观，也可以将主题锁定为某一模式：
 
-主题按以下顺序从多个目录加载（后面的目录会覆盖前面的）：
-
-1. **内置主题：** 嵌入在二进制文件中。
-2. **用户配置目录：** `~/.config/opencode/themes/*.json`。
-3. **项目根目录：** `<project-root>/.opencode/themes/*.json`。
-4. **当前工作目录：** `./.opencode/themes/*.json`。
-
-### 创建主题
-
-在上述目录之一中创建 JSON 文件。例如，创建用户全局主题：
-
-```bash
-mkdir -p ~/.config/opencode/themes
-vim ~/.config/opencode/themes/my-theme.json
+```json title="~/.config/opencode/cli.json"
+{
+  "theme": {
+    "name": "opencode",
+    "mode": "dark"
+  }
+}
 ```
 
-### JSON 格式支持
+| 值 | 行为 |
+| -------- | --------------------------------------------- |
+| `system` | 跟随终端的浅色或深色模式。 |
+| `dark` | 始终使用深色主题。 |
+| `light` | 始终使用浅色主题。 |
 
-* **十六进制颜色：** `"#ffffff"`
-* **ANSI 颜色：** `3` (0-255)
-* **颜色引用：** `"primary"` 或自定义定义。
-* **深色/浅色变体：** `{"dark": "#000", "light": "#fff"}`
-* **无颜色：** `"none"`（使用终端默认色或透明）。
+如果自定义主题只提供一种模式，则当请求另一种模式时，OpenCode 会使用该模式。
 
-### 示例 (Example)
+## 内置主题
 
-以下是一个自定义主题文件的示例：
+按名称选择内置主题：
 
-**my-theme.json**
-
-```json
+```json title="~/.config/opencode/cli.json"
 {
-  "$schema": "https://opencode.ai/theme.json",
-  "defs": {
-    "nord0": "#2E3440",
-    "nord8": "#88C0D0"
-  },
   "theme": {
-    "primary": {
-      "dark": "nord8",
-      "light": "#5E81AC"
-    },
+    "name": "catppuccin"
+  }
+}
+```
+
+可用主题包括：
+
+- `aura`, `ayu`, `carbonfox`, `cobalt2`, `cursor`, `dracula`, `everforest`, `flexoki`
+- `catppuccin`, `catppuccin-frappe`, `catppuccin-macchiato`
+- `github`, `gruvbox`, `kanagawa`, `material`, `matrix`, `mercury`, `monokai`, `nightowl`, `nord`
+- `one-dark`, `opencode`, `orng`, `lucent-orng`, `osaka-jade`, `palenight`, `rosepine`
+- `solarized`, `synthwave84`, `tokyonight`, `vercel`, `vesper`, `zenburn`
+
+当 OpenCode 能够读取终端调色板时，`system` 主题可用。
+
+## 文件
+
+要创建名为 `ocean` 的全局主题，请使用主题工具在全局主题目录中生成完整文件。其相关结构如下：
+
+```json title="~/.config/opencode/themes/ocean.json (excerpt)"
+{
+  "base": {
     "text": {
-      "dark": "#D8DEE9",
-      "light": "nord0"
-    },
-    "background": {
-      "dark": "nord0",
-      "light": "#ECEFF4"
+      "base": "#d8f3ff"
+    }
+  },
+  "dark": {
+    "hue": {
+      "accent": "$hue.cyan"
     }
   }
 }
 ```
 
-*(注：完整的主题配置可以涵盖 UI、Diff 视图、Markdown 渲染及各种语法高亮颜色。)*
+然后在设置中选择 `ocean`，或在 `cli.json` 中将 `theme.name` 设为 `ocean`。去掉 `.json` 后的文件名即主题名。
+
+| 范围 | 目录 |
+| ------- | ------------------------------------------ |
+| 全局 | `~/.config/opencode/themes/` |
+| 项目 | 项目树中的 `.opencode/themes/` |
+
+OpenCode 只读取 `.json` 文件。更靠近当前目录的主题会替换同名的全局或父级主题。
+
+## 格式
+
+每个 V2 主题都会声明一棵完整的 `base` 令牌树，以及至少一个 `light` 或 `dark` 色相调色板。各模式仅继承该文件中的 base，不继承内置的 OpenCode 主题，也不互相继承。在自定义之前，请先使用主题工具生成完整的 base。
+
+下面的示例仅展示与各概念相关的部分，并非完整主题文件。
+
+```json title="themes/ocean.json"
+{
+  "base": {
+    "text": {
+      "base": "#16324f"
+    }
+  },
+  "light": {
+    "hue": {}
+  },
+  "dark": {
+    "hue": {},
+    "text": { "base": "#d8f3ff" }
+  }
+}
+```
+
+## 颜色
+
+使用十六进制颜色、`transparent`，或对其他主题颜色的引用：
+
+```json title="themes/ocean.json"
+{
+  "base": {
+    "text": {
+      "base": "#d8f3ff",
+      "muted": "$hue.neutral.400"
+    },
+    "background": {
+      "base": "transparent"
+    }
+  }
+}
+```
+
+十六进制值可使用 3、4、6 或 8 位数字。引用以 `$` 开头；色相引用采用 `$hue.<name>.<step>` 形式。
+
+## 色相
+
+覆写色相别名，可一次更改一族相关颜色：
+
+```json title="themes/ocean.json"
+{
+  "base": {
+    "categorical": ["accent", "purple", "green"]
+  },
+  "dark": {
+    "hue": {
+      "accent": "$hue.cyan",
+      "interactive": "$hue.blue"
+    }
+  }
+}
+```
+
+| 类型 | 值 |
+| ------- | -------------------------------------------------------------------- |
+| 基色 | `gray`, `red`, `orange`, `yellow`, `green`, `cyan`, `blue`, `purple` |
+| 别名 | `accent`, `interactive`, `neutral` |
+| 色阶 | `100`, `200`, `300`, `400`, `500`, `600`, `700`, `800`, `900` |
+
+色阶遵循该模式的对比度方向：浅色主题从 `100` 的深色过渡到 `900` 的浅色，而深色主题从 `100` 的浅色过渡到 `900` 的深色。
+
+`categorical` 设置用于区分智能体及其他重复项的有序色相。它必须至少包含一个基色或别名。
+
+## 状态
+
+使用状态键可更改交互颜色。未指定的状态会使用最接近的基值：
+
+```json title="themes/ocean.json"
+{
+  "base": {
+    "text": {
+      "action": {
+        "primary": {
+          "base": "$hue.interactive.400",
+          "$hovered": "$hue.interactive.300",
+          "$disabled": "$hue.neutral.600"
+        }
+      }
+    }
+  }
+}
+```
+
+| 分组 | 值 |
+| --------- | --------------------------------------------------------- |
+| 操作 | `primary`, `secondary`, `destructive` |
+| 状态 | `$hovered`, `$focused`, `$pressed`, `$selected`, `$disabled` |
+
+表单字段直接在 `text.formfield` 或 `background.formfield` 下使用相同的状态键。
+
+## 令牌
+
+完整的 `base` 包含所有令牌组。某个模式在提供其完整色相调色板后，可覆写其中的任意部分：
+
+```json title="themes/ocean.json"
+{
+  "base": {
+    "border": {
+      "base": "$hue.neutral.700"
+    },
+    "syntax": {
+      "comment": "$hue.neutral.500",
+      "keyword": "$hue.accent.400"
+    },
+    "diff": {
+      "text": {
+        "added": "$hue.green.400",
+        "removed": "$hue.red.400"
+      }
+    }
+  }
+}
+```
+
+| 组 | 用途 |
+| ------------ | ------------------------------------------------------------- |
+| `text` | 基础、弱化、微弱、操作、表单字段及反馈文本 |
+| `background` | 基础、表面、操作、表单字段及反馈填充 |
+| `border` | 边框 |
+| `scrollbar` | 滚动条 |
+| `diff` | 新增、删除、上下文、高亮及行号颜色 |
+| `syntax` | 源代码高亮 |
+| `markdown` | Markdown 元素 |
+
+语法键为 `comment`、`keyword`、`function`、`variable`、`string`、`number`、`type`、`operator` 和 `punctuation`。Markdown 键为 `text`、`heading`、`link`、`linkText`、`code`、`blockQuote`、`emphasis`、`strong`、`horizontalRule`、`listItem`、`listEnumeration`、`image`、`imageText` 和 `codeBlock`。
+
+## 抬升表面
+
+面板、对话框、菜单和 toast 会从 `background.raised` 中选择其深度。对话框还额外支持上下文相关的 `@dialog` 表面。TUI 在应用 `@dialog` 后会重新解析调色板，因此引用 `$background.base` 的令牌会跟随对话框背景：
+
+```json title="themes/ocean.json"
+{
+  "base": {
+    "background": {
+      "base": "#071521",
+      "raised": {
+        "base": "#0c1f2e",
+        "high": "#102a3c",
+        "max": "#16364b"
+      }
+    },
+    "@dialog": {
+      "background": {
+        "base": "$background.raised.base"
+      }
+    }
+  }
+}
+```
+
+`@dialog` 接受与 base 模式相同的令牌组。操作的上下文 `base` 也会成为其未指定状态的回退值；显式的状态覆写仍然优先。

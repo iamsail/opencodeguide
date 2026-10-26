@@ -1,9 +1,16 @@
 import type { MDXComponents } from 'mdx/types'
 import Link from 'next/link'
 import { CopyButton } from '@/components/copy-button'
+import { Callout } from '@/components/docs-mdx/callout'
+import { Card, CardGroup } from '@/components/docs-mdx/card'
+import { CodeTabs } from '@/components/docs-mdx/code-tabs'
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
+    Callout,
+    Card,
+    CardGroup,
+    CodeTabs,
     h1: ({ children }) => (
       <h1 className="mt-8 mb-4 scroll-m-20 text-4xl font-bold tracking-tight lg:text-5xl text-gray-900 dark:text-gray-50">
         {children}

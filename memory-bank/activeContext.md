@@ -1,11 +1,25 @@
 # Active Context
 
 ## Current Focus
+- **[TASK103 已完成 2026-10-26]**: OpenCode v2 文档同步 Phase 0~4 全部完成。中文文档 36→81 页，与官方 v2（opencode.ai/v2/docs）对齐；后续维护只需定期跑 `npm run docs:sync`。可选 backlog：Phase 5 GitHub Actions 周检（fetch/diff 开 issue）。详见 `tasks/TASK103-docs-sync-pipeline-v2.md`。
+- **Next.js 已升级 16.1.1→16.4.3**: 修复官方 #87713 SWC 多字节 panic（16.1.x 的 MDX 正文含 CJK 时生产构建必崩）；若回退该版本会复发。
+- **后续同步须知**: 上游新 slug 需先登记 `scripts/docs-sync/page-map.json`（未声明会报错）；翻译质量可调 `glossary.zh.json`（version +1 使缓存失效）。
 - **Skills Content Expansion**: Increasing the variety of available smart agent skills to provide more value to developers.
 - **Skills Architecture Upgrade**: Solidifying the "MDX as Database" pattern for the Skills section to enable community contributions.
 - Maintaining site stability while expanding the Chinese documentation suite.
 
 ## Recent Changes
+- **Phase 3 完成 ([TASK103], 2026-10-26)**: 45 个新页三批全部生成（CLI6+Docs主题9+Build10+Console20）；docsConfigZh 扩展 5 组；ROUTE_MAP 4.1~4.5 更新；firstParagraph 按标点截断；PlanTabs 降级重写（slot 内容保留为 Go/Go Plus 小节）。build 142 页全绿。批 C 曾因系统内存不足中断一次，恢复后幂等补齐。
+- **Phase 2 完成 ([TASK103], 2026-10-26)**:
+    - 16 个 update 页全部同步（providers/network/models/skills/themes/commands/formatters/tools/mcp-servers/permissions/rules/cli-tui/acp/keybinds/build-plugins/build-sdk）；models/network 补齐 metadata。
+    - 14 个 legacy 页注入迁移提示（`scripts/docs-sync/legacy.mjs`，MDX 注释标记 `{/* v2-legacy-banner */}`）。
+    - **next 升级 16.1.1→16.4.3**：修复 #87713 SWC 多字节 panic；build 97 页全绿。治标方案（英文 description/buffer/cpus:1）均已还原。
+- **v2 文档同步流水线与试点同步 ([TASK103], 2026-10-24)**:
+    - **流水线**: 新增 `scripts/docs-sync/`（fetch→diff→transform→translate→generate→validate→report）与命令 `npm run docs:sync`；数据文件 `page-map.json`（66 slug 映射）+ `glossary.zh.json`（术语表）；`.upstream/` 快照入库作 diff 基线，`.translation-cache/` gitignore。
+    - **组件**: `components/docs-mdx/` 新增 Callout/Card/CardGroup/CodeTabs 并注册；**CodeTabs 采用 JSON 字符串属性**（mdxjs-rs 会在对象字面量内部逗号处截断 JSX 属性表达式，数组对象语法无法编译）。
+    - **SEO 护栏**: update-in-place 强制保留 `export const metadata`；缺 metadata 拒绝覆盖（已为 `/zh/docs/config` 补齐）；内链经 linkRewrites 重写；零删页零重定向。
+    - **试点成果**: `/zh/docs/{intro,config,cli,troubleshooting}` + `/zh/docs/configure/agents` 已同步 v2 内容，build 全绿、幂等通过；已提交 `7b755e4`（95 files）。
+    - **注意**: `/zh/docs/cli` 在 Phase 3 创建 `/zh/docs/cli/commands` 前内容较薄（命令参考已迁移）。
 - **Homepage API CTA ([TASK103])**:
     - **Homepage Monetization**: Added a high-visibility external CTA to the root homepage hero linking to `https://ccapi.ai/register?aff=6dhz`.
     - **Placement Strategy**: Kept the existing `Get Started` documentation path while introducing `Get AI API Access` as a strong secondary action for maximum visibility.
