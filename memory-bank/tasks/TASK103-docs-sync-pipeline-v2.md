@@ -1,6 +1,6 @@
 # [TASK103] - OpenCode v2 文档自动化同步流水线
 
-**Status:** In Progress
+**Status:** Completed（Phase 5 CI 为可选项，未实施）
 **Added:** 2026-10-24
 **Updated:** 2026-10-26
 
@@ -21,12 +21,12 @@
 - [x] Phase 1：5 个试点页原地更新（intro/config/cli/troubleshooting/configure/agents），build 全绿，幂等性验证通过
 - [x] Phase 2：剩余 16 个 update 页 + 14 个 legacy 页迁移提示注入（2026-10-26 完成；期间升级 next16.1.1→16.4.3 修复 SWC 多字节 panic）
 - [x] Phase 3：45 个 create 页 + 侧边栏扩展（docsConfigZh 追加 + Console 新组）+ ROUTE_MAP.md 增补（2026-10-26 完成）
-- [ ] Phase 4：sitemap/SEO 回归验证、metadata 完整性抽查、memory-bank 收尾
+- [x] Phase 4：sitemap/SEO 回归验证、metadata 完整性抽查、memory-bank 收尾（2026-10-26 完成）
 - [ ] Phase 5（可选）：GitHub Actions 每周 fetch/diff 检测开 issue
 
 ## Progress Tracking
 
-**Overall Status:** In Progress - 90%（Phase 0~3 完成待提交；剩 Phase 4 收尾验证 + 可选 Phase 5 CI）
+**Overall Status:** Completed - 100%（Phase 0~4 全部完成；Phase 5 CI 检测为可选 backlog，未实施）
 
 ### Subtasks（后续 TODO）
 | ID | Description | Status | Updated | Notes |
@@ -41,7 +41,7 @@
 | 3.4 | Phase 3 create 批：Console 区 20 页（/zh/docs/console/**） | Completed | 2026-10-26 | 批 C 曾因系统内存不足中断，恢复后补齐 |
 | 3.5 | Phase 3 侧边栏扩展：docsConfigZh 追加各组条目 + 新 Console 组 | Completed | 2026-10-26 | rules 条目改名「规则与指令」 |
 | 3.6 | ROUTE_MAP.md 增补 | Completed | 2026-10-26 | 4.1~4.5 全量更新，标注 v2 新增/v1 遗留 |
-| 4.1 | Phase 4：sitemap 含全部新 URL、metadata/hreflang 抽查、现有 URL 存活对比 | Not Started | 2026-10-24 | |
+| 4.1 | Phase 4：sitemap 含全部新 URL、metadata/hreflang 抽查、现有 URL 存活对比 | Completed | 2026-10-26 | 顺带修复5处存量 metadata 缺口与3页孤立分号 |
 | 5.1 | Phase 5（可选）：.github/workflows/docs-sync-check.yml 每周检测 | Not Started | 2026-10-24 | 仅 fetch/diff 开 issue，翻译留本地 |
 
 ### 遗留注意事项
@@ -51,6 +51,12 @@
 - 提交 7b755e4 的后台安全审查未完成（API HTTP 400），push 时会自动再审。
 
 ## Progress Log
+### 2026-10-26（Phase 4 收尾）
+- SEO 回归全部通过：原始 36 条路由零删除；sitemap 128 URL 覆盖全部 81 个 zh docs 页；更新页 hreflang 保留（intro/cli 抽查）；新增页 canonical 全部自指；legacy 横幅 14/14。
+- 全站 metadata 完整性扫描：81 页全部具备 `export const metadata` + canonical。顺带修复5处存量缺口（`/zh/docs` 枢纽页与 zen 补 metadata；github/share/gitlab 补 canonical）并清除3页孤立分号字符。
+- 搜索索引（public/search.json）120 条含全部 81 个 zh docs 页。
+- build 复验：142 页全绿。**任务主体完成**；Phase 5（GitHub Actions 周检）作为可选 backlog 未实施。
+
 ### 2026-10-26（Phase 3）
 - 三批 create 全部完成，共 45 页：批 A（CLI6 + Docs 新主题9）、批 B（Build10）、批 C（Console20）。中文文档 36→81 页。
 - 批 C 首次运行因系统内存不足被中止（14/20），恢复后补齐剩余6页（processed 记录保证幂等跳过）。
