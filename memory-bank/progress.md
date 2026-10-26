@@ -145,5 +145,6 @@
 -   Screenshots are still text-based placeholders.
 -   Chinese documentation depth still needs to be expanded for Providers/Configuration sections.
 -   **[TASK103] `/zh/docs/cli` 暂时变薄**: v2 将 CLI 命令参考移至 `cli/commands`（Phase 3 才建页 `/zh/docs/cli/commands`），当前该页仅为新版 CLI 简介；Phase 3.2 建议优先补 `cli/commands`。
--   **[TASK103] `/zh/docs/configure/agent-skills` 存量多行 HTML table**: validate 报 MDX-RS 风险；该页在 Phase 2 update 名单内，同步时会被替换消解。
+-   **[TASK103] `/zh/docs/configure/agent-skills` 存量多行 HTML table**: validate 报 MDX-RS 风险；该页在 Phase 2 update 名单内，同步时会被替换消解。（2026-10-26 已随 Phase 2 同步消解）
 -   **[TASK103] GitHub API 匿名限流**: 60 次/小时；流水线已回退缓存树 + raw 下载兜底，设置 `GITHUB_TOKEN` 可恢复完整树枚举。
+-   ~~[TASK103] SWC 多字节 panic~~: 已解决——Next 16.1.x 回归（官方 issue #87713），2026-10-26 升级 next 16.1.1→16.4.3 后 build 全绿。

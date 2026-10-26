@@ -6,74 +6,272 @@ export const metadata = {
   },
 }
 
-# 权限 (Permissions)
+权限用于控制智能体是否可以对资源执行某项操作。
 
-**控制哪些操作需要运行许可**
+## 配置
 
-OpenCode 使用权限配置来决定给定的操作应当自动运行、向您提示、还是被阻止。
+常见配置是：运行 shell 命令前先询问，允许常规 Git 检查，并始终阻止推送。将以下有序规则添加到 `opencode.jsonc`：
 
-### 操作类型 (Actions)
-
-每个权限规则解析为以下结果之一：
-
-* `"allow"` — 无需批准即可运行。
-* `"ask"` — 运行前提示用户批准。
-* `"deny"` — 阻止该操作。
-
-### 配置方式 (Configuration)
-
-您可以全局设置权限（使用 `*`），并覆盖特定工具。
-
-*opencode.json*
-
-```json
+```jsonc
 {
   "$schema": "https://opencode.ai/config.json",
-  "permission": {
-    "*": "ask",
-    "bash": "allow",
-    "edit": "deny"
-  }
+  "permissions": [
+    { "action": "shell", "resource": "*", "effect": "ask" },
+    { "action": "shell", "resource": "git status *", "effect": "allow" },
+    { "action": "shell", "resource": "git diff *", "effect": "allow" },
+    { "action": "shell", "resource": "git push *", "effect": "deny" },
+  ],
 }
 ```
 
-### 细粒度规则 (对象语法)
+最后一条匹配的规则生效，因此具体例外规则应跟在宽泛规则之后。
 
-对于大多数权限，您可以使用对象语法根据工具输入应用不同的操作。
+<Callout type="warning">
+  V1 使用不同的字段名与操作名。在 V2 中，请使用 `permissions`、`shell` 和 `subagent`，而不是 `permission`、`bash` 和 `task`。
+</Callout>
 
-```json
+## 规则
+
+每条规则需要三个字符串字段：
+
+| 字段       | 含义                                                                              |
+| ---------- | --------------------------------------------------------------------------------- |
+| `action`   | 工具权限操作                                                                       |
+| `resource` | 使用的值，例如路径、命令、URL、查询、技能 ID 或智能体 ID                             |
+| `effect`   | `allow`、`deny` 或 `ask`                                                           |
+
+```jsonc
 {
-  "permission": {
-    "bash": {
-      "*": "ask",
-      "git *": "allow",
-      "rm *": "deny"
-    },
-    "edit": {
-      "*": "deny",
-      "packages/web/src/content/docs/*.mdx": "allow"
-    }
-  }
+  "permissions": [
+    { "action": "read", "resource": "*", "effect": "allow" },
+    { "action": "read", "resource": "*.env", "effect": "deny" },
+  ],
 }
 ```
 
-*注：规则按模式匹配评估，最后一个匹配的规则获胜。通常先放通配符 `*`，再放具体的规则。*
+| 效果     | 结果                       |
+| ------- | -------------------------- |
+| `allow` | 继续执行，无需提示          |
+| `deny`  | 阻止该操作                 |
+| `ask`   | 等待客户端做出决定          |
 
-### 可用权限项
+如果没有规则匹配，OpenCode 使用 `ask`。
 
-权限按工具名称分类，包括：
+## 匹配
 
-* `read`: 读取文件。
-* `edit`: 所有的文件修改操作（涵盖 edit, write, patch, multiedit）。
-* `bash`: 运行 shell 命令。
-* `task`: 启动子代理（Subagents）。
-* `lsp`: 运行 LSP 查询。
-* `webfetch`: 获取 URL 内容。
-* `external_directory`: 当工具触及项目工作目录外的路径时触发。
-* `doom_loop`: 当同一工具调用以完全相同的输入重复 3 次时触发。
+操作与资源使用简单的整值通配符：
 
-### 默认值 (Defaults)
+| 模式   | 匹配                             |
+| ------ | -------------------------------- |
+| `*`    | 零个或多个字符，包括 `/`          |
+| `?`    | 恰好一个字符                      |
+| 其他   | 该字面字符                        |
 
-* 大多数权限默认为 `"allow"`。
-* `doom_loop` 和 `external_directory` 默认为 `"ask"`。
-* `read` 默认允许，但 `.env` 相关文件默认被拒绝 (`deny`)。
+```jsonc
+{
+  "permissions": [
+    { "action": "edit", "resource": "packages/docs/*.mdx", "effect": "allow" },
+  ],
+}
+```
+
+该模式匹配整个规范化路径。反斜杠会被规范化为正斜杠，且在 Windows 上匹配不区分大小写。
+
+以 ` *` 结尾的 shell 模式也匹配不含参数的命令：
+
+```jsonc
+{ "action": "shell", "resource": "git status *", "effect": "allow" }
+```
+
+这会同时匹配 `git status` 和 `git status --short`。
+
+OpenCode 按顺序合并规则并使用最后一条匹配。优先级较低的配置先加载，接着追加全局规则，最后追加智能体规则。
+
+```jsonc
+{
+  "permissions": [
+    { "action": "read", "resource": "*", "effect": "allow" },
+    { "action": "read", "resource": "secrets/*", "effect": "deny" },
+  ],
+}
+```
+
+一次操作可能检查多个资源，例如涉及多个文件的补丁。只要存在任一 `deny`，该操作即被拒绝；否则若存在任一 `ask`，则询问；否则该操作被允许。
+
+## 操作
+
+V2 的操作名是字符串，因此插件可以定义更多操作。内置工具当前使用以下操作与资源：
+
+| 操作                    | 资源                                                                              |
+| ----------------------- | --------------------------------------------------------------------------------- |
+| `read`                  | 相对于 Location 的内部路径，或规范化的绝对外部路径                                   |
+| `edit`                  | `edit`、`write` 和 `patch` 的目标路径                                              |
+| `glob`                  | 请求的 glob 模式                                                                   |
+| `grep`                  | 请求的正则表达式，而非搜索路径                                                      |
+| `shell`                 | 扫描器生成的命令字符串；复合命令可能产生多条                                         |
+| `subagent`              | 目标智能体 ID                                                                      |
+| `skill`                 | 技能 ID                                                                            |
+| `question`              | `*`                                                                                |
+| `webfetch`              | 请求的 URL                                                                         |
+| `websearch`             | 搜索查询                                                                           |
+| `external_directory`    | 规范化的外部目录边界，通常以 `/*` 结尾                                              |
+| `<server>_<tool>`       | MCP 工具为 `*`；两个名称中不支持的字符会变为 `_`                                    |
+| `opencode_list_mcp_resources` | MCP 服务器名称                                                              |
+| `opencode_read_mcp_resource`  | `<server>:<uri>`                                                            |
+| `execute`               | `*`；一条 deny 会移除 Code Mode 以及仅能通过它访问的工具，而嵌套工具会执行各自的规则    |
+
+例如，允许某一个技能并拒绝所有其他技能：
+
+```jsonc
+{
+  "permissions": [
+    { "action": "skill", "resource": "*", "effect": "deny" },
+    { "action": "skill", "resource": "effect", "effect": "allow" },
+  ],
+}
+```
+
+`doom_loop` 和 `lsp` 不是当前 V2 Core 的权限操作。
+
+## 目录
+
+位于活动 Location 及其非根项目工作树之外的路径，在检查其 `read` 或 `edit` 规则之前，会先对照 `external_directory` 检查。默认策略允许 `external_directory`，因此除非你添加规则，外部路径不会触发提示。若要在访问项目之外的任何位置前收到询问：
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permissions": [
+    { "action": "external_directory", "resource": "*", "effect": "ask" },
+  ],
+}
+```
+
+之后更具体的规则可以允许或拒绝特定目录：
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permissions": [
+    { "action": "external_directory", "resource": "~/projects/reference/*", "effect": "allow" },
+    { "action": "read", "resource": "~/projects/reference/*", "effect": "allow" },
+    { "action": "edit", "resource": "~/projects/reference/*", "effect": "deny" },
+  ],
+}
+```
+
+这适用于 `read`、`edit`、`write` 和 `patch` 使用的外部路径。Shell 会先检查其外部工作目录以及由扫描器推断出的目录，然后才检查 `shell` 资源。
+
+对于 `external_directory`、`read` 和 `edit`，配置加载时会展开开头的 `~`、`~/`、`$HOME` 或 `$HOME/`：
+
+```jsonc
+{ "action": "read", "resource": "$HOME/reference/*", "effect": "allow" }
+```
+
+Shell 资源保持原始命令文本，不展开 home 路径。
+
+<Callout type="warning">
+  `shell` 以主机用户的文件系统、进程和网络权限运行。从命令文本推断目录仅为尽力而为，因此请优先使用较窄的 shell 允许列表，而不是试图识别所有危险命令的模式。
+</Callout>
+
+相对的变更路径可能离开活动 Location，但仍留在其项目工作树内。显式外部路径在匹配前会被规范化，因此请只授权可信的目录边界。
+
+## 扫描器
+
+通过以下设置启用实验性的可移植 shell 扫描器。与所有[实验性设置](/zh/docs/config#experimental)一样，它可能在未来版本中变更或被移除。
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "experimental": {
+    "portable_shell_scanner": true,
+  },
+}
+```
+
+可移植扫描器取代默认的 tree-sitter 扫描器；tree-sitter 不是回退方案，也不会提供第二意见。可移植扫描器无法分析的命令会返回扫描器错误，而不是权限拒绝。
+
+该标志仅改变解析器的选择。现有的权限规则、已保存的批准模式和尽力而为的目录推断仍然适用。不存在额外的批准模式，也不会对未知目录实施一刀切的限制。
+
+## 默认值
+
+每个智能体（包括自定义智能体）都以下面的有序基础策略作为起点：
+
+```jsonc
+[
+  { "action": "*", "resource": "*", "effect": "allow" },
+  { "action": "read", "resource": "*.env", "effect": "ask" },
+  { "action": "read", "resource": "*.env.*", "effect": "ask" },
+  { "action": "read", "resource": "*.env.example", "effect": "allow" },
+]
+```
+
+随附的智能体会追加以下策略：
+
+| 智能体      | 附加策略                                                                                     |
+| ----------- | -------------------------------------------------------------------------------------------- |
+| `build`     | 允许提问                                                                                     |
+| `plan`      | 允许提问；拒绝编辑，`~/.opencode/plan` 下的文件除外                                            |
+| `general`   | 拒绝提问和启动子智能体                                                                        |
+| `explore`   | 拒绝除 shell、读取、glob、grep、网页抓取、网络搜索和外部目录之外的一切操作；读取 `.env` 时询问   |
+| `title`     | 拒绝所有操作                                                                                  |
+| `summary`   | 拒绝所有操作                                                                                  |
+| `compaction` | 保留基础策略                                                                                  |
+
+由于没有默认规则对 `external_directory` 要求询问，Location 和工作树之外的读取与编辑会直接进行，不会提示。如[目录](#directories)所示，添加一条 `external_directory` 的 `ask` 或 `deny` 规则，即可恢复提示或阻止外部访问。后续的全局规则和智能体规则会覆盖这些默认值。
+
+## 智能体
+
+将共享规则放在顶层，更具体的规则放在 `agents.<id>.permissions` 下：
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permissions": [
+    { "action": "shell", "resource": "*", "effect": "ask" },
+    { "action": "shell", "resource": "git status *", "effect": "allow" },
+  ],
+  "agents": {
+    "reviewer": {
+      "description": "Review code without changing it",
+      "mode": "subagent",
+      "permissions": [
+        { "action": "edit", "resource": "*", "effect": "deny" },
+      ],
+    },
+  },
+}
+```
+
+智能体规则追加在全局规则之后；它们不会替换全局数组。自定义子智能体使用自身的权限，而不是其父级权限的子集。
+
+## 批准
+
+当规则解析为 `ask` 时，客户端可以回复：
+
+| 选项     | 回复       | 结果                                                                         |
+| ------- | ---------- | ---------------------------------------------------------------------------- |
+| 仅允许一次 | `once`   | 仅批准待处理的那一个请求                                                      |
+| 始终允许  | `always` | 批准它，并为该项目保存工具提议的模式                                           |
+| 拒绝     | `reject`  | 拒绝它，以及该会话中所有其他待处理的权限请求                                    |
+
+例如，对 `git status --short` 选择 **始终允许**，可能会保存一个 shell 前缀，从而覆盖之后的 `git status` 命令：
+
+```text
+shell: git status * → allow
+```
+
+已保存的批准是持久的、项目范围的 `allow` 规则。它们永远不会覆盖已配置的 `deny`。由工具选择提议保存的模式：某些工具提议 `*`，shell 提议命令前缀，技能和子智能体则提议它们的 ID。请审查范围过宽的批准，并移除不再需要的条目。
+
+客户端在拒绝时可以附带反馈。非交互式客户端必须自行决定如何处理批准请求；已配置的 `deny` 规则始终保持生效。
+
+## 策略
+
+在上述规则和已保存的批准执行完毕后，[策略](/zh/docs/configure/policies)可以对权限检查强制拒绝。它会将 `allow` 或 `ask` 转变为 `deny`，且永远不会授予访问权限。
+
+```jsonc
+{
+  "policies": [{ "action": "tool.use", "resource": "shell:sudo *", "effect": "deny" }],
+}
+```
+
+全局策略和 OpenCode Console 管理的策略会覆盖项目配置，组织借此可以阻止某个仓库原本会允许的命令。

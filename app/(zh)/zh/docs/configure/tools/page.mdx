@@ -4,146 +4,228 @@ export const metadata = {
   alternates: {
     canonical: "/zh/docs/configure/tools",
   },
-};
-
-# 工具 (Tools)
-
-**管理 LLM 可以使用的工具**
-
-工具允许 LLM 在您的代码库中执行操作。OpenCode 内置了一系列工具，您也可以通过自定义工具或 MCP 服务器进行扩展。
-
-默认情况下，所有工具都是启用的，并且不需要权限即可运行。您可以通过权限设置来控制工具的行为。
-
-## 配置 (Configure)
-
-使用 `permission` 字段来控制工具行为。您可以为每个工具设置允许（allow）、拒绝（deny）或需要批准（ask）。
-
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "permission": {
-    "edit": "deny",
-    "bash": "ask",
-    "webfetch": "allow"
-  }
 }
-```
-*opencode.json*
 
-您还可以使用通配符同时控制多个工具。例如，要求批准来自某个 MCP 服务器的所有工具：
-
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "permission": {
-    "mymcp_*": "ask"
-  }
-}
-```
-*opencode.json*
-
-[了解更多关于配置权限的信息。](/zh/docs/configure/permissions)
-
-## 内置工具 (Built-in)
-
-以下是 OpenCode 中提供的所有内置工具：
-
-### bash
-
-在您的项目环境中执行 Shell 命令。允许 LLM 运行终端命令，如 `npm install`、`git status` 或任何其他 Shell 命令。
-
-### edit
-
-使用精确的字符串替换来修改现有文件。这是 LLM 修改代码的主要方式。
-
-### write
-
-创建新文件或覆盖现有文件。
-
-> [!NOTE]
-> `write` 工具受 `edit` 权限控制，该权限涵盖了所有文件修改操作（`edit`、`write`、`patch`、`multiedit`）。
-
-### read
-
-从代码库中读取文件内容。支持大型文件的特定行范围读取。
-
-### grep
-
-使用正则表达式搜索文件内容。在代码库中进行快速内容搜索，支持完整的正则语法和文件模式过滤。
-
-### glob
-
-通过模式匹配查找文件。使用 Glob 模式（如 `**/*.js` 或 `src/**/*.ts`）搜索文件。返回按修改时间排序的匹配文件路径。
-
-### list
-
-列出给定路径下的文件和目录。支持使用 Glob 模式过滤结果。
-
-### lsp (实验性)
-
-与配置的 LSP 服务器交互，获取代码智能功能，如定义跳转、引用查找、悬停信息和调用层级。
-
-> [!IMPORTANT]
-> 仅当 `OPENCODE_EXPERIMENTAL_LSP_TOOL=true` 时可用。
-
-### patch
-
-将补丁应用于文件。适用于应用来自各种来源的 Diff 和补丁文件。
-
-> [!NOTE]
-> 受 `edit` 权限控制。
-
-### skill
-
-加载一个技能（`SKILL.md` 文件）并在对话中返回其内容。
-
-### todowrite
-
-在编码会话期间管理待办事项列表。用于跟踪复杂操作的进度。
-
-> [!TIP]
-> 默认情况下子代理（subagents）禁用此工具，但可以手动开启。
-
-### todoread
-
-读取现有的待办事项列表。供 LLM 跟踪待完成或已完成的任务。
-
-### webfetch
-
-获取网页内容。允许 LLM 获取并读取网页，适用于查阅文档或在线研究。
-
-### question
-
-在执行任务期间向用户提问。用于：
-
-* 收集用户偏好或需求。
-* 澄清模糊的指令。
-* 征求实现方案的选择决策。
-* 询问下一步的方向。
-
-## 自定义工具 (Custom tools)
-
-自定义工具允许您定义自己的函数供 LLM 调用。这些函数在配置文件中定义，可以执行任意代码。
-[了解更多关于创建自定义工具的信息。](/zh/docs/configure/custom-tools)
-
-## MCP 服务器 (MCP servers)
-
-MCP（模型上下文协议）服务器允许您集成外部工具和服务，包括数据库访问、API 集成和第三方服务。
-[了解更多关于配置 MCP 服务器的信息。](/zh/docs/configure/mcp-servers)
-
-## 内部机制 (Internals)
-
-在内部，`grep`、`glob` 和 `list` 等工具底层使用了 **ripgrep**。默认情况下，ripgrep 遵循 `.gitignore` 模式，这意味着 `.gitignore` 中列出的文件和目录将被排除在搜索和列表之外。
-
-### 忽略模式 (Ignore patterns)
-
-如果需要包含通常被忽略的文件，请在项目根目录创建一个 `.ignore` 文件来显式允许某些路径。
+提出你想要的结果。OpenCode 会选择可用的工具，在需要时请求批准，并返回结果。
 
 ```text
-!node_modules/
-!dist/
-!build/
+Find where request timeouts are configured, change the default to 30 seconds,
+and run the relevant existing tests.
 ```
-*.ignore*
 
-例如，上面的文件允许 ripgrep 搜索这些目录，即使它们在 `.gitignore` 中。
+此任务通常会用到 `grep` 或 `glob`、`read`、某个编辑工具以及 `shell`。
+如果你希望采用特定方式，也可以直接指定某个工具。
+
+```text
+Use grep to find every reference to DEFAULT_TIMEOUT, then read the matching files.
+```
+
+## 文件
+
+### 读取
+
+`read` 返回一个文件，或返回非递归的目录列表。传入 `path`；
+用 `offset` 和 `limit` 分页读取较大的结果。
+
+```text
+Read src/server.ts starting at line 120 and return at most 80 lines.
+```
+
+文本读取结果带有行号，每页最多 2,000 行、50 KiB。
+单行超过 2,000 个字符后会被截断。该工具还会把 PNG、JPEG、GIF、WebP 和 PDF 文件传给模型，源数据最大 20 MiB。其他二进制文件会失败。支持的媒体与图片处理见[附件](/zh/docs/configure/attachments)。
+
+权限：`read`，资源为规范化后的路径。
+
+### Glob
+
+`glob` 根据模式查找文件路径，例如 `**/*.ts`。除非 `path` 指定了另一个相对目录，否则在当前目录中搜索；`hidden` 会包含隐藏条目，`limit` 限制结果数量。
+
+```text
+Use glob with **/*.test.ts under packages/core and return at most 50 files.
+```
+
+默认上限为 100 个文件，搜索超时为 30 秒。
+权限：`glob`，资源为所请求的模式。
+
+### Grep
+
+`grep` 搜索文件内容，返回路径、行号和预览。
+除非 `literal` 为 true，否则其 `pattern` 使用正则表达式语法。可用 `path`、`include`、`caseSensitive` 或 `limit` 缩小搜索范围。
+
+```text
+Use grep for the literal text "request timed out" in src, including only *.ts files.
+```
+
+默认上限为 100 个匹配行，搜索超时为 30 秒。
+权限：`grep`，资源为所请求的模式，而非搜索路径。
+
+### 编辑
+
+`edit` 替换现有文件中的文本。提供 `path`、`oldString`，以及一个不同的 `newString`；除非 `replaceAll` 为 true，否则旧文本必须精确匹配一次。
+
+```text
+In src/config.ts, replace the unique text "timeout: 60" with "timeout: 30".
+```
+
+对局部修改请使用 `edit`。OpenCode 可能在写入后格式化该文件。
+权限：`edit`，资源为目标路径。
+
+### 写入
+
+`write` 根据 `path` 和 `content` 创建或完全替换文本文件。它会创建缺失的父目录，并可能运行已配置的格式化工具。
+
+```text
+Create docs/example.md with a heading and one setup command.
+```
+
+若只需修改现有文件的一部分，请改用 `edit`。
+权限：`edit`，资源为目标路径。
+
+### 补丁
+
+`patch` 应用一个补丁，可以添加、更新、移动或删除多个文件。
+其 `patchText` 使用 `*** Add File`、`*** Update File` 和 `*** Delete File` 区段。
+
+```text
+Use patch to rename src/old.ts to src/new.ts and update its exported name.
+```
+
+OpenCode 为受支持的 GPT 模型提供 `patch`；其他模型则改用 `edit` 和 `write`。权限：`edit`，资源为每个受影响的路径。
+
+活动 Location 或其项目工作树之外的路径还会对照 `external_directory` 进行检查，默认情况下是允许的。关于路径规范化、规则顺序和已保存的批准，见[权限](/zh/docs/configure/permissions)。要按名称使用外部材料，请配置[引用](/zh/docs/configure/references)。
+
+## 命令
+
+### Shell
+
+`shell` 在主机用户的 shell 中执行命令。请设置 `workdir`，而不要在命令中写 `cd`；当默认的两分钟前台超时不适用时，以毫秒为单位设置 `timeout`。
+
+```text
+Run bun test from packages/core with a five-minute timeout.
+```
+
+对于开发服务器或其他长时间运行的进程，将 `background` 设为 true。
+后台调用会立即返回，并在完成时通知会话；除非另行提供超时，否则它们没有超时限制。较大的输出会被截断，完整输出保留在托管文件中。
+
+权限：`shell`，资源为扫描器产生的每条命令。扫描器还会检查外部工作目录，以及可以从命令中推断出的目录。Shell 拥有主机用户的文件系统、进程和网络权限，因此请在[权限](/zh/docs/configure/permissions)中使用窄范围规则。
+
+## 网络
+
+### 网页抓取
+
+`webfetch` 获取一个 HTTP 或 HTTPS URL，返回 `markdown`、`text` 或 `html`。
+Markdown 是默认格式；`timeout` 最长可接受 120 秒。
+
+```text
+Fetch https://example.com/docs as markdown.
+```
+
+它接受 HTML、纯文本、JSON 和 XML 等文本类响应，但不接受图片或其他二进制下载。较大的输出可能被截断，完整文本保留在托管存储中。权限：`webfetch`，资源为所请求的 URL。
+
+### 网络搜索
+
+`websearch` 在所选集成中搜索最新信息。
+其输入是一个搜索 `query`。
+
+```text
+Search the web for the latest Bun release notes.
+```
+
+权限：`websearch`，资源为该查询。关于提供商、选择、速率限制和禁用该工具，见[网络搜索](/zh/docs/configure/websearch)。
+
+## 交互
+
+### 提问
+
+`question` 暂停执行，并向用户呈现一个或多个问题。
+每个问题有一个简短标题、提示和选项；`multiple` 允许选择多个选项。始终可以自由作答。
+
+```text
+Before changing the API, ask me to choose between a breaking change and a compatibility layer.
+```
+
+权限：`question`，资源为 `*`。客户端必须支持该交互式表单，关闭表单即取消该问题。
+
+### 技能
+
+`skill` 将某个可用技能 ID 的指令与捆绑资源加载到对话中。
+
+```text
+Load the effect skill before changing this Effect code.
+```
+
+该 ID 必须在已公布的技能列表中，或由用户明确指定。
+权限：`skill`，资源为该技能 ID。关于创建、发现和加载规则，见[智能体技能](/zh/docs/configure/agent-skills)。
+
+## 自动化
+
+### 子智能体
+
+`subagent` 用已配置的子智能体启动一个子会话。请提供智能体 ID、简短的 `description`，以及完整的 `prompt`。
+
+```text
+Ask the explore subagent to map the authentication flow and return the key files.
+```
+
+前台调用会等待结果。`background: true` 会立即返回，并在子会话完成时通知父级。传入返回的 `sessionID`，可继续同一个子会话对话。只能使用子智能体模式的智能体，默认嵌套深度为 1。
+
+权限：`subagent`，资源为所选智能体 ID。
+
+### 执行
+
+`execute` 在 Code Mode 中运行 JavaScript，使智能体可以调用并组合目录中的工具。它适用于并行的独立调用，以及在不把每个中间值加入模型上下文的情况下处理结果。
+
+```text
+Read package.json and README.md in parallel, then return their relevant setup details.
+```
+
+该运行时没有直接的文件系统访问、import 或定时器。它提供 `fetch` 用于 HTTP 请求；其余一切都通过其目录中的工具完成。
+拒绝资源为 `*` 的 `execute`，会移除 Code Mode 以及所有仅通过它触达的工具，包括未设置 `codemode: false` 的服务器所提供的 MCP 工具。
+嵌套的内置工具和 MCP 工具仍会强制执行各自的权限，插件工具会强制执行它们所声明的权限。
+
+### 会话
+
+`opencode` Code Mode 命名空间包含以下会话实用工具：
+
+- `session_rename` 更改当前会话的标题，或由 `sessionID` 选中的另一个会话的标题。
+- `session_move` 将当前会话（或另一个被选中的会话）移动到相对或绝对的 `directory`。移动会在安全边界生效，因此依赖目标位置的工作应放到后续调用中。
+
+```text
+Rename this session to "Timeout cleanup", then move it to the new worktree.
+```
+
+这些实用工具不会请求内置权限动作。
+
+### 工作树
+
+同一命名空间管理会话项目的工作树：
+
+- `worktree_create` 根据 `name` 创建工作树，并返回其 `directory`。项目的工作树配置决定目标位置和策略。
+- `worktree_list` 列出项目的工作树。
+- `worktree_remove` 删除 OpenCode 为该项目记录的工作树。设置 `force` 可丢弃未提交的更改。
+
+```text
+Create a worktree named "login" and move this session into it.
+```
+
+`worktree_remove` 使用 `edit` 权限，以工作树目录作为其资源。其他工作树实用工具不会请求内置权限动作。
+
+## 浏览器
+
+`browser` Code Mode 命名空间控制由 OpenCode 桌面应用附加的浏览器。打开一个标签页，保留其返回的 `tabID`，然后把该显式 ID 传给每一个页面操作。
+
+```text
+Open https://example.com, take a snapshot of that tab, and report the main heading.
+```
+
+该命名空间包括标签页与导航命令、页面快照与搜索、点击与表单输入、截图、文件传输、控制台与网络检查、性能跟踪、堆检查，以及 Lighthouse 审计。
+截图需要处于聚焦状态的可见标签页。上传路径是服务器本地的；捕获会返回服务器本地路径，每次文件传输限制为 5 MiB。
+
+页面内容、日志、响应头和响应体是不可信数据，而非智能体指令。资源为 `*` 的 `browser` 拒绝规则会移除浏览器目录；浏览器操作不会发出单独的权限提示。
+
+## 扩展
+
+[MCP 服务器](/zh/docs/configure/mcp-servers)添加的工具，其名称与输入来自各自已连接的服务器。它们的权限动作是 `<server>_<tool>`，资源为 `*`。它们不是内置目录的固定组成部分。默认情况下，智能体通过 `execute` 在该服务器的命名空间下触达它们；在服务器上设置 `codemode: false` 即可直接列出其工具。
+
+[智能体技能](/zh/docs/configure/agent-skills)添加的是任务指令，而不是新的可执行工具。
+[附件](/zh/docs/configure/attachments)把用户选定的内容放入提示词，而[引用](/zh/docs/configure/references)提供具名的外部目录。这些功能补充工具，但不会绕过其权限检查。

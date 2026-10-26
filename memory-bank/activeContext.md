@@ -1,12 +1,17 @@
 # Active Context
 
 ## Current Focus
-- **[TASK103] OpenCode v2 文档同步 (进行中)**: Phase 0 流水线 + Phase 1 试点 5 页已完成并提交（`7b755e4` on dev，未 push）。**下一步：用户人工审阅试点 diff 后执行 Phase 2**（剩余 16 个 update 页原地更新 + 14 个 legacy 页注入迁移提示），随后 Phase 3（45 个新增页 + 侧边栏扩展）、Phase 4（SEO 回归）。剩余 TODO 详见 `tasks/TASK103-docs-sync-pipeline-v2.md` 的 Subtasks 表。
+- **[TASK103] OpenCode v2 文档同步 (进行中, ~55%)**: Phase 0+1+2 已完成（21 个 update 页 + 14 个 legacy 迁移提示），**待提交**。**下一步：Phase 3**（45 个新增页 + 侧边栏 Console 组 + ROUTE_MAP），优先 `/zh/docs/cli/commands`（消解 /zh/docs/cli 变薄问题），随后 Phase 4（SEO 回归）。剩余 TODO 详见 `tasks/TASK103-docs-sync-pipeline-v2.md` 的 Subtasks 表。
+- **Next.js 已升级 16.1.1→16.4.3**: 修复官方 #87713 SWC 多字节 panic（16.1.x 的 MDX 正文含 CJK 时生产构建必崩）；若回退该版本会复发。
 - **Skills Content Expansion**: Increasing the variety of available smart agent skills to provide more value to developers.
 - **Skills Architecture Upgrade**: Solidifying the "MDX as Database" pattern for the Skills section to enable community contributions.
 - Maintaining site stability while expanding the Chinese documentation suite.
 
 ## Recent Changes
+- **Phase 2 完成 ([TASK103], 2026-10-26)**:
+    - 16 个 update 页全部同步（providers/network/models/skills/themes/commands/formatters/tools/mcp-servers/permissions/rules/cli-tui/acp/keybinds/build-plugins/build-sdk）；models/network 补齐 metadata。
+    - 14 个 legacy 页注入迁移提示（`scripts/docs-sync/legacy.mjs`，MDX 注释标记 `{/* v2-legacy-banner */}`）。
+    - **next 升级 16.1.1→16.4.3**：修复 #87713 SWC 多字节 panic；build 97 页全绿。治标方案（英文 description/buffer/cpus:1）均已还原。
 - **v2 文档同步流水线与试点同步 ([TASK103], 2026-10-24)**:
     - **流水线**: 新增 `scripts/docs-sync/`（fetch→diff→transform→translate→generate→validate→report）与命令 `npm run docs:sync`；数据文件 `page-map.json`（66 slug 映射）+ `glossary.zh.json`（术语表）；`.upstream/` 快照入库作 diff 基线，`.translation-cache/` gitignore。
     - **组件**: `components/docs-mdx/` 新增 Callout/Card/CardGroup/CodeTabs 并注册；**CodeTabs 采用 JSON 字符串属性**（mdxjs-rs 会在对象字面量内部逗号处截断 JSX 属性表达式，数组对象语法无法编译）。

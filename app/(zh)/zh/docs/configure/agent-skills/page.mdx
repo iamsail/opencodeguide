@@ -9,211 +9,242 @@ export const metadata = {
   },
 }
 
-# 智能体技能 (Agent Skills)
+创建技能可为智能体提供针对特定任务的可复用指令。在 `.opencode/skills/<skill-id>` 中放置 `SKILL.md` 文件，并在 `description` 中说明何时使用该技能。
 
-通过 `SKILL.md` 定义可复用的行为。
-
-智能体技能（Agent skills）允许 OpenCode 从您的代码仓库或主目录中发现可复用的指令。技能通过原生的技能工具按需加载——智能体可以看到可用的技能，并在需要时加载完整内容。
-
-## 放置文件
-
-为每个技能名称创建一个文件夹，并在其中放入 `SKILL.md`。OpenCode 会在以下位置搜索：
-
-* **项目配置：** `.opencode/skills/<name>/SKILL.md`
-* **全局配置：** `~/.config/opencode/skills/<name>/SKILL.md`
-* **项目 Claude 兼容路径：** `.claude/skills/<name>/SKILL.md`
-* **全局 Claude 兼容路径：** `~/.claude/skills/<name>/SKILL.md`
-
-## 理解发现机制
-
-对于项目本地路径，OpenCode 会从当前工作目录向上查找，直到到达 git 工作树。它会加载沿途在 `.opencode/` 中找到的任何匹配的 `skills/*/SKILL.md` 以及任何匹配的 `.claude/skills/*/SKILL.md`。
-
-全局定义也会从 `~/.config/opencode/skills/*/SKILL.md` 和 `~/.claude/skills/*/SKILL.md` 中加载。
-
-## 编写 Frontmatter
-
-每个 `SKILL.md` 必须以 YAML frontmatter 开头。仅识别以下字段：
-
-* `name`（必填）
-* `description`（必填）
-* `license`（可选）
-* `compatibility`（可选）
-* `metadata`（可选，字符串到字符串的映射）
-
-未知的 frontmatter 字段将被忽略。
-
-## 验证名称
-
-名称必须：
-
-* 长度为 1–64 个字符。
-* 由小写字母数字组成，并使用单个连字符（-）作为分隔符。
-* 不以 `-` 开头或结尾。
-* 不包含连续的 `--`。
-* 与包含 `SKILL.md` 的目录名称匹配。
-
-等效正则表达式：`^[a-z0-9]+(-[a-z0-9]+)*$`
-
-## 遵循长度规则
-
-描述（description）必须为 1-1024 个字符。请保持描述足够具体，以便智能体能正确选择。
-
-## 使用示例
-
-创建一个 `.opencode/skills/git-release/SKILL.md`，内容如下：
-
-```yaml
+```markdown title=".opencode/skills/git-release/SKILL.md"
 ---
-name: git-release
-description: 创建一致的发布版本和变更日志
-license: MIT
-compatibility: opencode
+name: Git Release
+description: Prepare release notes, version bumps, and GitHub releases
+---
+
+## Workflow
+
+1. Read `references/release-policy.md`.
+2. Summarize merged changes since the previous tag.
+3. Propose the version bump before changing files.
+4. Run `scripts/changelog.ts` only after the user approves the version.
+```
+
+OpenCode 会在相关时展示该技能。智能体随后可通过 `skill` 工具加载其指令，而不必将所有技能都加入每次提示。
+
+## 创建
+
+将相关的脚本、引用和模板放在 `SKILL.md` 旁边：
+
+```text
+.opencode/skills/
+└── git-release/
+    ├── SKILL.md
+    ├── scripts/
+    │   └── changelog.ts
+    └── references/
+        └── release-policy.md
+```
+
+技能中书写的路径相对于包含 `SKILL.md` 的目录。推荐使用目录形式，因为它为支持文件提供了私有的基础目录。
+
+## 发现
+
+OpenCode 会自动搜索以下位置：
+
+| 范围 | 来源 |
+| --------------------- | -------------------------------------- |
+| 全局 | `~/.config/opencode/skills` |
+| 全局兼容 | `~/.claude/skills`, `~/.agents/skills` |
+| 项目 | `.opencode/skills` |
+| 项目兼容 | `.claude/skills`, `.agents/skills` |
+
+对于项目来源，OpenCode 会从当前目录向上搜索到项目根目录，并在每一级包含匹配的目录。
+
+每个来源可以包含任一形式：
+
+```text
+skills/
+├── review.md
+└── git-release/
+    └── SKILL.md
+```
+
+- Markdown 文件必须位于来源根目录，例如 `skills/review.md`。
+- 名为 `SKILL.md` 的文件可以嵌套在分组目录中，例如 `skills/git-release/SKILL.md` 或 `skills/teams/release/SKILL.md`。
+- 包含 `SKILL.md` 的目录即为一个技能。OpenCode 不会在其内部继续搜索更多技能。
+- 隐藏文件、隐藏目录以及 `node_modules` 会被跳过。
+- 搜索在来源根目录以下六级目录处停止。
+
+## 来源
+
+可在任意 `opencode.json` 或 `opencode.jsonc` 中通过 `skills` 数组添加更多本地目录或 HTTP 目录：
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "skills": [
+    "./team-skills",
+    "~/shared/opencode-skills",
+    "/opt/company-skills",
+    "https://example.com/opencode/skills/",
+  ],
+}
+```
+
+| 值 | 解析方式 |
+| ----- | ---------- |
+| 相对路径 | 从当前活动的 OpenCode 工作目录解析，而非配置文件所在目录 |
+| `~/` 路径 | 从当前用户的主目录解析 |
+| 绝对路径 | 按写入的内容直接使用 |
+| `http://` 或 `https://` URL | 作为 HTTP 目录加载 |
+
+每个被发现的配置文件都会贡献其条目。`skills` 数组会被合并，而非替换。
+
+## HTTP 目录
+
+HTTP 目录是一个带有 `index.json` 文件的基础 URL：
+
+```json title="index.json"
+{
+  "skills": [
+    {
+      "name": "git-release",
+      "version": "3",
+      "files": ["git-release.md", "references/release-policy.md"]
+    }
+  ]
+}
+```
+
+对于该条目，OpenCode 会从 `<base-url>/git-release/<file>` 下载每个文件。
+
+| 规则 | 要求 |
+| ---- | ----------- |
+| 路径 | 必须安全、相对且同源 |
+| 条目文件 | 包含 `SKILL.md` 或 `<name>.md`，例如 `git-release.md` |
+| 更新 | 文件变更时递增 `version`，以便 OpenCode 刷新缓存 |
+
+每个下载的技能目录都会成为以条目命名的来源根目录，因此 `git-release.md` 与 `SKILL.md` 的 ID 都是 `git-release`。
+
+## Frontmatter
+
+使用 frontmatter 为技能命名并控制其出现位置：
+
+```markdown title="SKILL.md"
+---
+name: Git Release
+description: Prepare a repository release
 metadata:
-  audience: maintainers
-  workflow: github
+  opencode/autoinvoke: false
 ---
 
-## 我能做什么
-- 从合并的 PR 中起草发布说明
-- 建议版本升级
-- 提供可复制粘贴的 `gh release create` 命令
-
-## 何时使用我
-在准备标记发布（tagged release）时使用此技能。
-如果目标版本方案不清晰，请提出澄清问题。
-
+Prepare the changelog, version bump, tag, and release notes.
 ```
 
-## 识别工具描述
+| 字段 | 行为 |
+| ------------------------------ | ----------------------------------------------------------------- |
+| `name` | 显示名称；默认为路径推导出的 ID |
+| `description` | 用于向模型展示该技能的摘要 |
+| `metadata.opencode/autoinvoke` | 设为 `false` 可将该技能从模型的可用列表中省略 |
+| `disable-model-invocation` | 设为 `true` 效果等同于 `opencode/autoinvoke: false` |
 
-OpenCode 会在技能工具描述中列出可用的技能。每个条目包含技能名称和描述：
+运行时所有 frontmatter 字段均为可选。若希望模型能发现该技能，请添加清晰的 `description`；没有描述的技能不会被展示。
 
-```xml
-<available_skills>
-  <skill>
-    <name>git-release</name>
-    <description>创建一致的发布版本和变更日志</description>
-  </skill>
-</available_skills>
+`opencode/autoinvoke: false` 仅从模型的可用列表中隐藏该技能。技能仍处于已注册状态，仍可通过 ID 显式加载。当 `disable-model-invocation` 与 `opencode/autoinvoke` 同时设置时，以 `opencode/autoinvoke` 为准。V2 接受 `license` 和 `compatibility` 等可移植性字段，但不对其做解释。
 
+## ID
+
+文件路径决定技能 ID。frontmatter 中的 `name` 仅是显示标签。
+
+| 文件 | ID |
+| --------------------------------- | ------------- |
+| `<source>/git-release.md` | `git-release` |
+| `<source>/git-release/SKILL.md` | `git-release` |
+| `<source>/teams/release/SKILL.md` | `release` |
+
+ID 精确匹配且区分大小写。对于可移植的技能，请使用 1–64 个字符的唯一小写 kebab-case ID，并使其与目录名保持一致：
+
+```text
+^[a-z0-9]+(-[a-z0-9]+)*$
 ```
 
-智能体通过调用工具来加载技能：
-`skill({ name: "git-release" })`
+V2 目前不强制执行该模式、1–64 个字符的建议长度、`name` 与目录名的匹配，或描述的最大长度。
 
-## 配置权限
+## 优先级
 
-在 `opencode.json` 中使用基于模式（pattern）的权限来控制智能体可以访问哪些技能：
+技能按 ID 选择。如果两个来源都定义了 `git-release`，则后注册的来源提供 OpenCode 加载的技能：
 
-```json
+```text
+~/.config/opencode/skills/git-release/SKILL.md  ← lower precedence
+.opencode/skills/git-release/SKILL.md           ← loaded
+```
+
+来源按优先级从低到高注册：
+
+1. 内置技能
+2. `.claude/skills`，先全局，然后从最远祖先目录朝当前目录方向
+3. `.agents/skills`，先全局，然后从最远祖先目录朝当前目录方向
+4. `~/.config/opencode/skills`
+5. 项目 `.opencode/skills`，从项目根目录朝当前目录方向
+6. 显式 `skills` 配置条目，按配置优先级与数组顺序
+
+除非有意覆盖较早的技能，否则请避免重复 ID。
+
+## 加载
+
+在模型的每一步中，OpenCode 会列出被允许的、具有描述且未将 `opencode/autoinvoke` 设为 `false` 的技能。该列表仅包含 ID、名称和描述，不含完整的 Markdown 正文。
+
+模型通过以确切 ID 调用 `skill` 工具来加载技能：
+
+```json title="skill tool input"
 {
-  "permission": {
-    "skill": {
-      "*": "allow",
-      "pr-review": "allow",
-      "internal-*": "deny",
-      "experimental-*": "ask"
-    }
-  }
+  "id": "git-release"
 }
-
 ```
 
-<div className="my-6 w-full overflow-y-auto">
-  <table>
-    <thead>
-      <tr>
-        <th>权限行为</th>
-        <th>描述</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>**allow**</td>
-        <td>技能立即加载</td>
-      </tr>
-      <tr>
-        <td>**deny**</td>
-        <td>技能对智能体隐藏，访问被拒绝</td>
-      </tr>
-      <tr>
-        <td>**ask**</td>
-        <td>加载前提示用户批准</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+随后 OpenCode 会：
 
-模式支持通配符：`internal-*` 匹配 `internal-docs`、`internal-tools` 等。
+1. 选择该 ID 的当前定义。
+2. 检查所选智能体的 `skill` 权限。
+3. 将不含 frontmatter 的 Markdown 正文加入对话。
+4. 提供技能的基础目录，以及最多十条支持文件路径的样本。
 
-## 为每个智能体进行覆盖
+若要自行加载技能，可在提示中以 `@skill-id` 形式提及它。
 
-可以为特定的智能体赋予与全局默认值不同的权限。
+支持文件的内容不会自动加载。智能体会在技能指示时读取它们。文件样本适用于基于目录的 `SKILL.md` 技能；扁平的 Markdown 技能不会收到相邻文件列表。
 
-**对于自定义智能体（在智能体 frontmatter 中）：**
+## 权限
 
-```yaml
----
-permission:
-  skill:
-    "documents-*": "allow"
----
+使用 `skill` 动作，并以技能 ID 作为资源。规则按顺序执行，最后一条匹配的规则生效：
 
-```
-
-**对于内置智能体（在 `opencode.json` 中）：**
-
-```json
+```jsonc title="opencode.jsonc"
 {
-  "agent": {
-    "plan": {
-      "permission": {
-        "skill": {
-          "internal-*": "allow"
-        }
-      }
-    }
-  }
+  "permissions": [
+    { "action": "skill", "resource": "*", "effect": "allow" },
+    { "action": "skill", "resource": "internal-*", "effect": "deny" },
+    { "action": "skill", "resource": "experimental-*", "effect": "ask" },
+  ],
 }
-
 ```
 
-## 禁用技能工具
+| 效果 | 行为 |
+| ------ | -------- |
+| `allow` | 展示并加载匹配的技能，无需批准 |
+| `ask` | 展示匹配的技能，并在加载前询问 |
+| `deny` | 对模型隐藏匹配的技能并拒绝加载 |
 
-对于不应使用技能的智能体，可以完全禁用该工具：
+将相同规则放在 `agents.<id>.permissions` 下，即可仅对某个智能体生效。
 
-**对于自定义智能体：**
+## 故障排除
 
-```yaml
----
-tools:
-  skill: false
----
+例如，该技能的 ID 是 `release`，而非其 frontmatter 中的名称 `Git Release`：
 
+```text
+.opencode/skills/release/SKILL.md
+                      └─ ID: release
 ```
 
-**对于内置智能体：**
+如果技能缺失或加载了错误的内容：
 
-```json
-{
-  "agent": {
-    "plan": {
-      "tools": {
-        "skill": false
-      }
-    }
-  }
-}
-
-```
-
-禁用后，`<available_skills>` 部分将被完全忽略。
-
-## 加载故障排除
-
-如果技能没有显示：
-
-1. 验证 `SKILL.md` 是否全部大写。
-2. 检查 frontmatter 是否包含 `name` 和 `description`。
-3. 确保技能名称在所有位置都是唯一的。
-4. 检查权限——权限为 `deny` 的技能对智能体是隐藏的。
+1. 确认该文件要么是根目录下的 `*.md`，要么是嵌套的、名称恰为 `SKILL.md` 的文件。
+2. 检查由路径推导的、区分大小写的 ID，而非 frontmatter 中的 `name`。
+3. 若要让模型发现该技能，请添加 `description`。
+4. 检查 `opencode/autoinvoke` 以及所选智能体的 `skill` 权限。
+5. 查找是否有更晚注册的来源定义了相同的 ID。
+6. 对于 HTTP 目录，请验证 `index.json`、同源的文件路径，以及已变更的 `version`。

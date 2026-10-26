@@ -10,6 +10,11 @@ export const metadata = {
   },
 }
 
+{/* v2-legacy-banner */}
+<Callout type="note">
+  本页基于 OpenCode v1 文档编写，部分内容可能已过时。v2 中服务端形态由 JavaScript 客户端与 SDK 承接。请参阅 [相关页面](/zh/docs/develop/client) 获取最新信息。
+</Callout>
+
 # OpenCode Server
 
 OpenCode Server 是整个系统的核心大脑，负责与 LLM 通信、管理上下文、执行工具调用以及权限控制。运行 `opencode serve` 命令会启动一个无头 HTTP 服务器，该服务器公开 OpenAPI 端点，OpenCode 客户端可通过该端点与之交互。
