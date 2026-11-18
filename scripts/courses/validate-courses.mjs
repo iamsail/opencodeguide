@@ -21,6 +21,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import matter from "gray-matter";
 
 const ROOT = process.cwd();
 const COURSE_DIR = path.join(ROOT, "content/courses");
@@ -457,6 +458,159 @@ function validateLinks(coursesBySlug, args) {
 }
 
 /* ------------------------------------------------------------------ */
+/* 课时正文（文章版 MDX）                                                */
+/* ------------------------------------------------------------------ */
+
+const lessonStats = { total: 0, ready: 0, missing: 0 };
+
+function normalizeTitle(value) {
+  return String(value ?? "")
+    .replace(/[\s·:：,，。.、—\-()（）「」【】]/g, "")
+    .toLowerCase();
+}
+
+function validateLessons(coursesBySlug) {
+  for (const locale of ["zh", "en"]) {
+    const localeDir = path.join(COURSE_DIR, locale);
+    if (!fs.existsSync(localeDir)) continue;
+
+    for (const entry of fs.readdirSync(localeDir)) {
+      const dir = path.join(localeDir, entry);
+      if (!fs.statSync(dir).isDirectory()) continue;
+      const rel = `content/courses/${locale}/${entry}`;
+      const course = coursesBySlug.get(entry);
+      if (!course) {
+        error(rel, "-", `没有对应的课程 JSON（content/courses/${entry}.json），这些正文永远不会被渲染`);
+        continue;
+      }
+
+      const outline = course.locales?.[locale]?.modules ?? [];
+      const slots = new Map();
+      outline.forEach((module, moduleIndex) => {
+        module.lessons.forEach((title, lessonIndex) => {
+          slots.set(`${moduleIndex + 1}:${lessonIndex + 1}`, title);
+        });
+      });
+
+      const files = fs
+        .readdirSync(dir)
+        .filter((file) => file.endsWith(".mdx") && !file.startsWith("_"))
+        .sort();
+
+      const usedSlots = new Map();
+
+      for (const file of files) {
+        const fileRel = `${rel}/${file}`;
+        const slug = file.replace(/\.mdx$/, "");
+        lessonStats.total += 1;
+
+        let parsed;
+        try {
+          parsed = matter(fs.readFileSync(path.join(dir, file), "utf8"));
+        } catch (err) {
+          error(fileRel, "frontmatter", `解析失败：${err.message}`);
+          continue;
+        }
+
+        const data = parsed.data ?? {};
+        const body = parsed.content.trim();
+        lessonStats.ready += 1;
+
+        for (const field of ["title", "summary"]) {
+          if (!isString(data[field])) error(fileRel, field, "缺少非空字符串");
+        }
+        if (isString(data.summary) && data.summary.length > 60) {
+          warn(fileRel, "summary", `长度 ${data.summary.length}，建议 ≤60 字（课程卡片/搜索摘要会截断）`);
+        }
+
+        const module = Number(data.module);
+        const lesson = Number(data.lesson);
+        if (!Number.isInteger(module) || module < 1) error(fileRel, "module", "必须是 ≥1 的整数");
+        if (!Number.isInteger(lesson) || lesson < 1) error(fileRel, "lesson", "必须是 ≥1 的整数");
+
+        const slotKey = `${module}:${lesson}`;
+        if (Number.isInteger(module) && Number.isInteger(lesson)) {
+          if (!slots.has(slotKey)) {
+            error(
+              fileRel,
+              "module/lesson",
+              `大纲里没有 模块 ${module} 第 ${lesson} 节（该语言现有模块数 ${outline.length}），正文不会出现在课表里`,
+            );
+          } else {
+            const outlineTitle = slots.get(slotKey);
+            if (usedSlots.has(slotKey)) {
+              error(fileRel, "module/lesson", `与 ${usedSlots.get(slotKey)} 指向同一节（${slotKey}）`);
+            } else {
+              usedSlots.set(slotKey, file);
+              if (isString(data.title) && normalizeTitle(data.title) !== normalizeTitle(outlineTitle)) {
+                warn(
+                  fileRel,
+                  "title",
+                  `与大纲标题不一致：正文「${data.title}」/ 大纲「${outlineTitle}」（详情页和阅读页会显示不同标题）`,
+                );
+              }
+            }
+          }
+        }
+
+        const duration = Number(data.duration);
+        if (!Number.isInteger(duration) || duration < 4 || duration > 25) {
+          warn(fileRel, "duration", "建议 4–25 的整数（分钟），用于阅读时长展示");
+        }
+        if (typeof data.free !== "boolean") {
+          warn(fileRel, "free", "建议显式写 true/false（决定是否显示「免费试听」）");
+        }
+
+        if (!Array.isArray(data.objectives) || data.objectives.length === 0) {
+          error(fileRel, "objectives", "至少要有 1 条可检验的学习目标");
+        } else if (data.objectives.length < 2) {
+          warn(fileRel, "objectives", "建议 2–3 条");
+        }
+
+        if (body.length < 400) {
+          error(fileRel, "body", `正文只有 ${body.length} 字符，太薄（目标 700–1100 汉字）`);
+        } else if (body.length < 700) {
+          warn(fileRel, "body", `正文 ${body.length} 字符，偏短（目标 700–1100 汉字）`);
+        }
+
+        // 技术课时要命令/配置，商业课时可以是表格或清单；两者都没有才算"没有可复制的产物"
+        const hasCode = body.includes("```");
+        const hasTable = /^\|.*\|$/m.test(body);
+        if (!hasCode && !hasTable) {
+          warn(fileRel, "body", "既没有代码块也没有表格：读者拿不到可复制的产物");
+        }
+
+        const headings = (body.match(/^## /gm) ?? []).length;
+        if (headings < 2) {
+          warn(fileRel, "body", `只有 ${headings} 个二级标题，建议 3–5 个`);
+        }
+      }
+
+      const missing = [...slots.keys()].filter((slot) => !usedSlots.has(slot));
+      lessonStats.missing += missing.length;
+      if (missing.length > 0) {
+        warn(
+          rel,
+          "-",
+          `还有 ${missing.length}/${slots.size} 节没有正文（课表里显示为「制作中」，无法点击）`,
+        );
+      }
+
+      const freeCount = files.filter((file) => {
+        try {
+          return matter(fs.readFileSync(path.join(dir, file), "utf8")).data?.free === true;
+        } catch {
+          return false;
+        }
+      }).length;
+      if (freeCount > 3) {
+        warn(rel, "-", `有 ${freeCount} 节标了免费试听，建议控制在 1–2 节`);
+      }
+    }
+  }
+}
+
+/* ------------------------------------------------------------------ */
 /* 主流程                                                               */
 /* ------------------------------------------------------------------ */
 
@@ -521,6 +675,7 @@ function main() {
   }
 
   validateLinks(coursesBySlug, args);
+  validateLessons(coursesBySlug);
   return report(args, files.length);
 }
 
@@ -545,7 +700,9 @@ function report(args, fileCount) {
       ),
     );
   } else {
-    console.log(`课程数据校验 · ${fileCount} 个文件`);
+    console.log(
+      `课程数据校验 · ${fileCount} 个课程 · 课时正文 ${lessonStats.ready}/${lessonStats.ready + lessonStats.missing} 节`,
+    );
     const byFile = new Map();
     for (const item of diagnostics) {
       if (!byFile.has(item.file)) byFile.set(item.file, []);

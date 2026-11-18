@@ -32,6 +32,7 @@ import {
   type Locale,
 } from "@/lib/courses";
 import { getCourseCopy, fillTemplate } from "@/lib/course-copy";
+import type { CurriculumModule } from "@/lib/course-lessons";
 import { CourseIcon, StatusPill, accentClass } from "@/components/courses/course-visuals";
 import { BuyButton } from "@/components/courses/buy-button";
 import { WaitlistForm } from "@/components/courses/waitlist-form";
@@ -42,9 +43,37 @@ function planLabel(plan: CoursePlan, locale: Locale) {
   return PLAN_LABELS[plan.id]?.[locale] ?? plan.id;
 }
 
-export function CourseDetail({ course, locale }: { course: Course; locale: Locale }) {
+export function CourseDetail({
+  course,
+  locale,
+  curriculum,
+}: {
+  course: Course;
+  locale: Locale;
+  curriculum?: CurriculumModule[];
+}) {
   const copy = getCourseCopy(locale);
   const content = getCourseContent(course, locale);
+  // 有正文时以 MDX 为准（可点进阅读页），否则退回 JSON 大纲（仅展示标题）
+  const hasLessons = Boolean(curriculum?.some((module) => module.ready > 0));
+  const modules =
+    curriculum && curriculum.length > 0
+      ? curriculum
+      : content.modules.map((module, index) => ({
+          index: index + 1,
+          title: module.title,
+          summary: module.summary,
+          lessons: module.lessons.map((title) => ({
+            title,
+            slug: null,
+            duration: null,
+            free: false,
+          })),
+          ready: 0,
+          total: module.lessons.length,
+        }));
+  const readyLessons = modules.reduce((sum, module) => sum + module.ready, 0);
+  const totalLessons = modules.reduce((sum, module) => sum + module.total, 0);
   const track = TRACKS[course.track];
   const status = STATUS_LABELS[course.status];
   const bundle = getBundle();
@@ -105,7 +134,10 @@ export function CourseDetail({ course, locale }: { course: Course; locale: Local
           <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-500 dark:text-gray-400">
             <span className="inline-flex items-center gap-1.5">
               <BookOpen className="h-4 w-4" />
-              {fillTemplate(copy.detail.lessonsCount, { count: course.lessonCount })}
+              {fillTemplate(copy.detail.lessonsCount, {
+                // 有正文时用真实节数，避免页面上写 24 节、课表里却是 27 节
+                count: hasLessons ? totalLessons : course.lessonCount,
+              })}
             </span>
             <span className="inline-flex items-center gap-1.5">
               <Clock className="h-4 w-4" />
@@ -174,12 +206,16 @@ export function CourseDetail({ course, locale }: { course: Course; locale: Local
                   {copy.detail.curriculumTitle}
                 </h2>
                 <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {fillTemplate(copy.detail.curriculumLead, { lessonCount: course.lessonCount })}
+                  {hasLessons
+                    ? locale === "zh"
+                      ? `文章版 · 已上线 ${readyLessons}/${totalLessons} 节`
+                      : `Article edition · ${readyLessons}/${totalLessons} lessons live`
+                    : fillTemplate(copy.detail.curriculumLead, { lessonCount: course.lessonCount })}
                 </span>
               </div>
 
               <div className="mt-5 divide-y divide-gray-200 overflow-hidden rounded-2xl border border-gray-200 dark:divide-gray-800 dark:border-gray-800">
-                {content.modules.map((module, index) => (
+                {modules.map((module, index) => (
                   <details
                     key={module.title}
                     className="group bg-white dark:bg-gray-950"
@@ -200,18 +236,40 @@ export function CourseDetail({ course, locale }: { course: Course; locale: Local
                         )}
                       </span>
                       <span className="shrink-0 text-xs text-gray-400">
-                        {module.lessons.length} {locale === "zh" ? "节" : "lessons"}
+                        {hasLessons && module.ready < module.total
+                          ? `${module.ready}/${module.total}`
+                          : module.lessons.length}{" "}
+                        {locale === "zh" ? "节" : "lessons"}
                       </span>
                       <ChevronRight className="h-4 w-4 shrink-0 text-gray-400 transition-transform group-open:rotate-90" />
                     </summary>
                     <ul className="space-y-2 border-t border-gray-100 bg-gray-50/60 px-5 py-4 dark:border-gray-800 dark:bg-gray-900/40">
-                      {module.lessons.map((lesson) => (
+                      {module.lessons.map((lesson, lessonIndex) => (
                         <li
-                          key={lesson}
+                          key={`${module.index}-${lessonIndex}`}
                           className="flex items-start gap-2.5 text-sm leading-relaxed text-gray-700 dark:text-gray-300"
                         >
                           <span className="mt-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-gray-300 dark:bg-gray-600" />
-                          {lesson}
+                          {lesson.slug ? (
+                            <Link
+                              href={`${locale === "zh" ? "/zh" : "/en"}/courses/${course.slug}/${lesson.slug}`}
+                              className="min-w-0 flex-1 hover:text-gray-900 hover:underline dark:hover:text-gray-100"
+                            >
+                              {lesson.title}
+                              {lesson.duration ? (
+                                <span className="ml-2 shrink-0 text-xs text-gray-400">
+                                  {lesson.duration} {locale === "zh" ? "分钟" : "min"}
+                                </span>
+                              ) : null}
+                              {lesson.free ? (
+                                <span className="ml-2 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[11px] font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                                  {locale === "zh" ? "试听" : "Free"}
+                                </span>
+                              ) : null}
+                            </Link>
+                          ) : (
+                            lesson.title
+                          )}
                         </li>
                       ))}
                     </ul>

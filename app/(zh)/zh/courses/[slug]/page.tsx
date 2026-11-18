@@ -1,6 +1,7 @@
 import { type Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCourse, getCourseContent, getCourseSlugs } from "@/lib/courses";
+import { getCourseCurriculum } from "@/lib/course-lessons";
 import { CourseDetail } from "@/components/courses/course-detail";
 
 interface PageProps {
@@ -44,5 +45,7 @@ export default async function CoursePage({ params }: PageProps) {
   const course = getCourse(slug);
   if (!course) notFound();
 
-  return <CourseDetail course={course} locale="zh" />;
+  const curriculum = getCourseCurriculum(slug, "zh");
+
+  return <CourseDetail course={course} locale="zh" curriculum={curriculum} />;
 }

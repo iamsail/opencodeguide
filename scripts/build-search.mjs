@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import matter from 'gray-matter'
 import { globby } from 'globby'
 
 /** 把课程 JSON 转成搜索索引条目（课程页是 TSX，不在 MDX 扫描范围内） */
@@ -45,6 +46,54 @@ function buildCourseEntries() {
   return entries
 }
 
+/**
+ * 课程正文（文章版）的搜索条目。
+ * 课时页是动态路由，不在 app/**\/*.mdx 的扫描范围里，所以单独读 content。
+ */
+function buildLessonEntries() {
+  const root = path.join(process.cwd(), 'content/courses')
+  const entries = []
+
+  for (const locale of ['zh', 'en']) {
+    const localeDir = path.join(root, locale)
+    if (!fs.existsSync(localeDir)) continue
+
+    for (const courseSlug of fs.readdirSync(localeDir)) {
+      const courseDir = path.join(localeDir, courseSlug)
+      if (!fs.statSync(courseDir).isDirectory()) continue
+
+      const prefix = locale === 'zh' ? '/zh/courses' : '/en/courses'
+      const files = fs.readdirSync(courseDir).filter((file) => file.endsWith('.mdx') && !file.startsWith('_'))
+
+      for (const file of files) {
+        let parsed
+        try {
+          parsed = matter(fs.readFileSync(path.join(courseDir, file), 'utf8'))
+        } catch {
+          continue
+        }
+
+        const slug = path.basename(file, '.mdx')
+        const body = parsed.content
+          .replace(/```[\s\S]*?```/g, '')
+          .replace(/[#*\[\]()_`>|-]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .slice(0, 400)
+
+        entries.push({
+          title: String(parsed.data.title ?? slug),
+          url: `${prefix}/${courseSlug}/${slug}`,
+          content: [parsed.data.summary, body].filter(Boolean).join(' ').slice(0, 500),
+          category: locale === 'zh' ? 'Chinese' : 'English',
+        })
+      }
+    }
+  }
+
+  return entries
+}
+
 async function buildSearchIndex() {
   const pages = await globby(['app/**/*.mdx'])
   
@@ -80,9 +129,9 @@ async function buildSearchIndex() {
     }
   })
 
-  // 课程页（含中英双语），去重同 URL
+  // 课程页与课时正文，去重同 URL
   const seen = new Set(searchIndex.map((entry) => entry.url))
-  for (const entry of buildCourseEntries()) {
+  for (const entry of [...buildCourseEntries(), ...buildLessonEntries()]) {
     if (seen.has(entry.url)) continue
     seen.add(entry.url)
     searchIndex.push(entry)
