@@ -1,0 +1,16 @@
+{
+  "name": "course-delivery",
+  "private": true,
+  "type": "module",
+  "description": "Stripe webhook → D1 order record → Resend delivery email",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "node --test",
+    "migrate:local": "wrangler d1 migrations apply course-delivery --local",
+    "migrate:remote": "wrangler d1 migrations apply course-delivery --remote"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

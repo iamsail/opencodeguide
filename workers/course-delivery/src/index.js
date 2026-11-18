@@ -1,0 +1,216 @@
+/**
+ * Cloudflare Worker 入口。
+ *
+ * 路由：
+ *   POST /stripe/webhook   接收 Stripe 事件（校验签名 → 幂等 → 处理）
+ *   POST /admin/resend     { sessionId } 补发开通邮件（需 ADMIN_TOKEN）
+ *   GET  /health           健康检查与配置自检（不含密钥内容）
+ *
+ * 为什么不放在 Next 里：站点是 `output: 'export'` 的纯静态导出，
+ * 没有服务端运行时；把 Webhook 独立成 Worker，静态站继续零计算成本。
+ */
+
+import {
+  courseTitle,
+  formatMoney,
+  getSettings,
+  planLabel,
+  resolveDelivery,
+} from "./config.js";
+import { createMailer } from "./email.js";
+import { processEvent } from "./handlers.js";
+import { createStore } from "./store.js";
+import { buildGrantEmail } from "./templates.js";
+import { verifyStripeSignature } from "./stripe.js";
+
+const WEBHOOK_PATH = "/stripe/webhook";
+const RESEND_PATH = "/admin/resend";
+const HEALTH_PATH = "/health";
+const TOLERANCE_SECONDS = 300;
+
+function json(payload, status = 200) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+  });
+}
+
+/** 定长比较，避免 token 比对的时间差泄露 */
+function timingSafeEqual(a, b) {
+  if (typeof a !== "string" || typeof b !== "string" || a.length !== b.length) return false;
+  let diff = 0;
+  for (let index = 0; index < a.length; index += 1) {
+    diff |= a.charCodeAt(index) ^ b.charCodeAt(index);
+  }
+  return diff === 0;
+}
+
+export default {
+  async fetch(request, env = {}) {
+    const url = new URL(request.url);
+
+    if (url.pathname === HEALTH_PATH && request.method === "GET") return handleHealth(env);
+    if (url.pathname === WEBHOOK_PATH && request.method === "POST") return handleWebhook(request, env);
+    if (url.pathname === RESEND_PATH && request.method === "POST") return handleResend(request, env);
+
+    return json({ error: "not found" }, 404);
+  },
+};
+
+function handleHealth(env) {
+  return json({
+    ok: true,
+    service: "course-delivery",
+    bindings: {
+      db: Boolean(env.DB),
+      webhookSecret: Boolean(env.STRIPE_WEBHOOK_SECRET),
+      resend: Boolean(env.RESEND_API_KEY),
+      adminToken: Boolean(env.ADMIN_TOKEN),
+      supportEmail: Boolean(env.SUPPORT_EMAIL),
+      deliveryMap: Boolean(env.COURSE_DELIVERY),
+      dryRun: env.EMAIL_DRY_RUN === "1",
+    },
+  });
+}
+
+async function handleWebhook(request, env) {
+  const settings = getSettings(env);
+  if (!settings.webhookSecret) {
+    return json({ error: "STRIPE_WEBHOOK_SECRET 未配置，拒绝处理任何事件" }, 500);
+  }
+
+  const signature = request.headers.get("stripe-signature");
+  // 必须用原始字符串验签，JSON.parse 再 stringify 会改变字节
+  const rawBody = await request.text();
+
+  const verdict = await verifyStripeSignature({
+    payload: rawBody,
+    header: signature,
+    secret: settings.webhookSecret,
+    toleranceSeconds: TOLERANCE_SECONDS,
+  });
+  if (!verdict.valid) {
+    console.warn(`[webhook] 签名校验失败：${verdict.reason}`);
+    return json({ error: "invalid signature", reason: verdict.reason }, 400);
+  }
+
+  let event;
+  try {
+    event = JSON.parse(rawBody);
+  } catch {
+    return json({ error: "body is not valid JSON" }, 400);
+  }
+  if (!event?.id || !event?.type) {
+    return json({ error: "missing event id or type" }, 400);
+  }
+
+  let store;
+  try {
+    store = createStore(env.DB);
+  } catch (error) {
+    console.error(`[webhook] 存储未就绪：${error.message}`);
+    return json({ error: "storage unavailable" }, 500);
+  }
+
+  const receivedAt = new Date().toISOString();
+  const firstDelivery = await store.markEventProcessed(event.id, event.type, receivedAt);
+  if (!firstDelivery) {
+    console.info(`[webhook] 重复事件，跳过：${event.id} (${event.type})`);
+    return json({ received: true, duplicate: true });
+  }
+
+  const mailer = createMailer(env);
+
+  try {
+    const result = await processEvent(event, { store, mailer, env });
+    console.info(
+      `[webhook] ${event.type} ${event.id} → ${result.outcome}${
+        result.reason ? ` (${result.reason})` : ""
+      }`,
+    );
+    return json({ received: true, ...result });
+  } catch (error) {
+    const message = error?.message ?? String(error);
+    console.error(`[webhook] 处理失败 ${event.id}：${message}`);
+    // 撤销幂等标记，让 Stripe 的重试能重新进入处理逻辑
+    await store.unmarkEvent(event.id).catch(() => {});
+    return json({ error: "processing failed", message }, 500);
+  }
+}
+
+async function handleResend(request, env) {
+  const settings = getSettings(env);
+  if (!settings.adminToken) {
+    return json({ error: "ADMIN_TOKEN 未配置，管理接口已禁用" }, 503);
+  }
+
+  const authorization = request.headers.get("authorization") || "";
+  const token = authorization.replace(/^Bearer\s+/i, "").trim();
+  if (!timingSafeEqual(token, settings.adminToken)) {
+    return json({ error: "unauthorized" }, 401);
+  }
+
+  let payload;
+  try {
+    payload = await request.json();
+  } catch {
+    return json({ error: "body must be JSON" }, 400);
+  }
+
+  const sessionId = typeof payload?.sessionId === "string" ? payload.sessionId.trim() : "";
+  if (!sessionId) return json({ error: "missing sessionId" }, 400);
+
+  let store;
+  try {
+    store = createStore(env.DB);
+  } catch (error) {
+    return json({ error: error.message }, 500);
+  }
+
+  const order = await store.findBySession(sessionId);
+  if (!order) return json({ error: "order not found", sessionId }, 404);
+  if (!order.email) return json({ error: "order has no email, deliver manually", orderId: order.id }, 409);
+
+  const delivery = resolveDelivery(env, order.course_slug, order.plan_id);
+  if (!delivery.complete) {
+    return json(
+      {
+        error: "delivery links not configured",
+        hint: "设置 COURSE_DELIVERY 或 DEFAULT_WATCH_URL 后重试",
+        orderId: order.id,
+      },
+      409,
+    );
+  }
+
+  const locale = order.locale || "en";
+  const template = buildGrantEmail({
+    locale,
+    order: { id: order.id, formattedAmount: formatMoney(order.amount_cents, order.currency) },
+    courseTitle: courseTitle({}, order.course_slug, locale),
+    planLabel: planLabel(order.plan_id, locale),
+    delivery,
+    settings,
+  });
+
+  const mailer = createMailer(env);
+  try {
+    await mailer.send({
+      to: order.email,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+      // 区别于首次发送的幂等键，避免被 Resend 去重掉
+      idempotencyKey: `resend/${sessionId}/${Math.floor(Date.now() / 60000)}`,
+    });
+  } catch (error) {
+    return json({ error: "send failed", message: error?.message ?? String(error) }, 502);
+  }
+
+  await store.updateOrder(order.id, {
+    email_status: "resent",
+    updated_at: new Date().toISOString(),
+  });
+
+  return json({ ok: true, orderId: order.id, to: order.email });
+}

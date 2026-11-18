@@ -1,0 +1,30 @@
+# 课程交付 Worker：Stripe Webhook → 订单落库 → Resend 开通邮件
+# 部署前把 database_id 换成 `npx wrangler d1 create course-delivery` 输出的值。
+
+name = "course-delivery"
+main = "src/index.js"
+compatibility_date = "2025-11-01"
+
+# 订单存储（D1）
+[[d1_databases]]
+binding = "DB"
+database_name = "course-delivery"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+
+[observability]
+enabled = true
+
+# 非敏感配置放这里；密钥用 `wrangler secret put <NAME>` 注入，不要写进本文件。
+[vars]
+SITE_URL = "https://opencodeguide.com"
+BRAND_NAME = "OpenCode Guide"
+MAIL_FROM = "OpenCode Guide <courses@opencodeguide.com>"
+SUPPORT_EMAIL = "support@opencodeguide.com"
+REFUND_DAYS = "7"
+
+# 交付物映射（JSON 字符串）。示例：
+# COURSE_DELIVERY = '{"ai-coding-workflow:*":{"watch":"https://stream.example.com/ai-coding","repo":"https://github.com/you/course-ai-coding/invitations","community":"https://discord.gg/xxx"},"all-access:*":{"watch":"https://stream.example.com/all-access"}}'
+# 建议用 secret 注入而不是写在这里（链接含有邀请 token 时等于凭证）：
+#   npx wrangler secret put COURSE_DELIVERY
+# 需要注入的其它 secret：
+#   STRIPE_WEBHOOK_SECRET / RESEND_API_KEY / ADMIN_TOKEN

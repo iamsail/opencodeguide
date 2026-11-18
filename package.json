@@ -4,14 +4,16 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3012",
-    "build": "node scripts/build-search.mjs && next build",
+    "build": "node scripts/build-search.mjs && node scripts/courses/validate-courses.mjs && next build",
     "start": "next start",
     "lint": "next lint",
     "docs:sync": "node scripts/docs-sync/run.mjs",
     "docs:sync:check": "node scripts/docs-sync/run.mjs --dry-run",
     "docs:validate": "node scripts/docs-sync/validate.mjs",
     "courses:stripe": "node scripts/courses/stripe-payment-links.mjs",
-    "courses:stripe:dry": "node scripts/courses/stripe-payment-links.mjs --dry-run"
+    "courses:stripe:dry": "node scripts/courses/stripe-payment-links.mjs --dry-run",
+    "courses:validate": "node scripts/courses/validate-courses.mjs",
+    "workers:test": "cd workers/course-delivery && node --test"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.0.0",

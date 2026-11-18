@@ -38,3 +38,9 @@ node_modules/
 # docs-sync 翻译缓存与运行报告（.upstream/ 入库作为 diff 基线）
 .translation-cache/
 SYNC_REPORT.md
+
+# Cloudflare Worker 本地状态与本地密钥（workers/course-delivery）
+.wrangler/
+.dev.vars
+.dev.vars.*
+workers/**/.wrangler/

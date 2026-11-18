@@ -3,7 +3,7 @@
 ## Current Focus
 - **[TASK104 已完成 2026-11-18]**: 课程板块 Phase 1 完成并验证。新增 `/zh/courses` 与 `/en/courses`（目录/详情/回执），4 门课程 + 全站通由 `content/courses/*.json` 驱动；Stripe 采用 Payment Link（纯静态兼容），由 `npm run courses:stripe` 生成链接写入 `content/courses/stripe-links.json`。设计、课程大纲与进度看板见 `docs/courses/`（含 `06-todo.md`）。
 - **课程板块技术约束**: 站点是 `output: 'export'`，不要给课程页加 API Route / Server Action；需要服务端能力（会员中心/Webhook）时按 `docs/courses/04-stripe-integration.md` 的 Phase 2 方案走 Worker + Supabase。
-- **[TASK105 待启动]**: 课程 P1（正式收款 + 邮件交付）阻塞于 Stripe 密钥、等待名单端点与视频/模板/社群交付物；任务文件 `memory-bank/tasks/TASK105-course-platform-p1-delivery.md`。
+- **[TASK105 进行中 2026-11-18]**: 课程 P1 的代码部分已落地——`workers/course-delivery`（Stripe 签名校验 + D1 幂等落库 + Resend 双语开通/退款邮件 + `/admin/resend` 补发）与 `scripts/courses/validate-courses.mjs`（已接入 `npm run build`），`npm run workers:test` 40/40、build/tsc 全绿。仍阻塞于真实 Stripe 密钥、`COURSE_DELIVERY` 交付物（视频/模板仓库/社群）与 Resend 域名验证；任务文件 `memory-bank/tasks/TASK105-course-platform-p1-delivery.md`。
 - **[TASK103 已完成 2026-10-26]**: OpenCode v2 文档同步 Phase 0~4 全部完成。中文文档 36→81 页，与官方 v2（opencode.ai/v2/docs）对齐；后续维护只需定期跑 `npm run docs:sync`。可选 backlog：Phase 5 GitHub Actions 周检（fetch/diff 开 issue）。详见 `tasks/TASK103-docs-sync-pipeline-v2.md`。
 - **Next.js 已升级 16.1.1→16.4.3**: 修复官方 #87713 SWC 多字节 panic（16.1.x 的 MDX 正文含 CJK 时生产构建必崩）；若回退该版本会复发。
 - **后续同步须知**: 上游新 slug 需先登记 `scripts/docs-sync/page-map.json`（未声明会报错）；翻译质量可调 `glossary.zh.json`（version +1 使缓存失效）。
@@ -12,6 +12,7 @@
 - Maintaining site stability while expanding the Chinese documentation suite.
 
 ## Recent Changes
+- **课程 P1 交付自动化 ([TASK105], 2026-11-18)**: 新增 `workers/course-delivery`（Cloudflare Worker，独立部署、零运行时依赖）：`/stripe/webhook` 验签（WebCrypto）+ `event.id` 幂等 + `orders` 落库 + Resend 中英双语开通邮件，退款与拒付分别改状态、回收权益、告警举证；`/admin/resend` 支持按 session 补发。新增 `scripts/courses/validate-courses.mjs` 并接入 build 前置校验（结构/枚举/价格/双语完整度/支付链接有效性），把课程数据的静默降级变成构建期可见的警告；`npm run workers:test` 40/40 通过。
 - **课程板块 ([TASK104], 2026-11-18)**: 新增 `lib/courses.ts`（数据/定价/支付链接解析）与 `lib/course-copy.ts`（双语文案）；8 个课程路由（中英目录/详情/回执）；课程卡、购买卡、等待名单与 `Course` JSON-LD 组件；Stripe Payment Link 生成脚本（幂等/dry-run）；sitemap 收录课程页并排除感谢页；首页/导航/页脚入口；新增 `/refund-policy`、`/zh/refund-policy` 并在隐私政策补充课程购买数据说明；修复 Tailwind 未扫描课程 JSON、bundle 未进 `generateStaticParams`、移动端头部导航溢出三个问题。
 - **Phase 3 完成 ([TASK103], 2026-10-26)**: 45 个新页三批全部生成（CLI6+Docs主题9+Build10+Console20）；docsConfigZh 扩展 5 组；ROUTE_MAP 4.1~4.5 更新；firstParagraph 按标点截断；PlanTabs 降级重写（slot 内容保留为 Go/Go Plus 小节）。build 142 页全绿。批 C 曾因系统内存不足中断一次，恢复后幂等补齐。
 - **Phase 2 完成 ([TASK103], 2026-10-26)**:
