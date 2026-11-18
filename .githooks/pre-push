@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+
+# Repository push policy check.
+#
+# The policy mirrors the one used by the autoxhs repository: on Windows, WSL
+# and Linux every push needs a manual network confirmation; macOS is exempt.
+#
+# Non-interactive usage (agents, CI):
+#   GIT_PUSH_CONFIRMED=yes GIT_PUSH_NETWORK=YourWiFiName git push
+
+set -euo pipefail
+
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  echo "macOS detected: push allowed without network confirmation."
+  exit 0
+fi
+
+if [[ "${GIT_PUSH_CONFIRMED:-}" == "yes" ]]; then
+  if [[ -z "${GIT_PUSH_NETWORK:-}" ]]; then
+    echo "Warning: GIT_PUSH_NETWORK is not set; recording the network name as unknown."
+  fi
+  echo "Network check passed (env confirmation) for network: ${GIT_PUSH_NETWORK:-unknown}"
+  exit 0
+fi
+
+# git runs this hook with the ref list on stdin, so stdin is always a pipe and
+# never a terminal. Use stdout to detect whether a human is able to answer
+# prompts, and read the answers from the controlling terminal instead. stdin is
+# left untouched so git can keep writing the ref list to it.
+if [[ ! -t 1 ]]; then
+  echo "Push blocked: interactive confirmation is required."
+  echo "Reason: repository policy requires a manual network check on Windows, WSL, and Linux."
+  echo ""
+  echo "To push from a non-interactive environment (e.g. an agent or CI), use:"
+  echo "  GIT_PUSH_CONFIRMED=yes GIT_PUSH_NETWORK=YourWiFiName git push"
+  exit 1
+fi
+
+# read_answer <prompt> <target-variable>
+read_answer() {
+  local prompt="$1"
+  local variable="$2"
+  local answer=""
+
+  if ! read -r -p "${prompt}" answer < /dev/tty; then
+    echo "Push blocked: unable to read interactive input from the terminal."
+    exit 1
+  fi
+
+  printf -v "${variable}" '%s' "${answer}"
+}
+
+echo "Repository push policy check"
+echo "You must confirm that VPN is disconnected and the current network is not an office network."
+
+read_answer "Are you currently connected to a VPN? [y/N]: " vpn_answer
+vpn_answer="${vpn_answer:-N}"
+case "${vpn_answer}" in
+  y|Y|yes|YES)
+    echo "Push blocked: disconnect VPN before pushing."
+    exit 1
+    ;;
+esac
+
+read_answer "Is your current network an office network? [y/N]: " office_answer
+office_answer="${office_answer:-N}"
+case "${office_answer}" in
+  y|Y|yes|YES)
+    echo "Push blocked: office networks are not allowed for push."
+    exit 1
+    ;;
+esac
+
+read_answer "Current WiFi or network name: " network_name
+if [[ -z "${network_name// }" ]]; then
+  echo "Push blocked: network name is required."
+  exit 1
+fi
+
+read_answer "Type ALLOW PUSH to confirm this push follows repository policy: " confirmation
+if [[ "${confirmation}" != "ALLOW PUSH" ]]; then
+  echo "Push blocked: confirmation text did not match."
+  exit 1
+fi
+
+echo "Network check passed for network: ${network_name}"
+exit 0
