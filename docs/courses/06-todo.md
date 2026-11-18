@@ -61,7 +61,9 @@
 
 ### 3.3 页面与内容
 
-- [ ] 每门课加 1 节公开试听（视频或文章），详情页展示
+- [~] 每门课加 1 节公开试听（文章），详情页展示
+  - [x] 课程 1 第 1 节已标 `free: true`，课表与侧边栏显示「试听」
+  - [ ] 课程 2–4 各补 1 节试听
 - [ ] 详情页展示「最近更新 / 更新日志」区块
 - [ ] 补充真实 FAQ（来自社群与邮件的高频问题）
 - [ ] 英文详情页文案校对（当前为直译初稿）
@@ -76,7 +78,14 @@
 
 ## 4. P2 · 会员中心（建议 6-12 周）
 
-- [ ] 基础设施：Cloudflare Worker + Supabase 项目 + `orders` / `entitlements` / `progress` 表
+> 方案已定稿：[`07-access-control.md`](./07-access-control.md)（只公开每门前 2–3 节，其余进会员中心）。任务：[TASK107](../memory-bank/tasks/TASK107-course-access-control.md)。
+> 待拍板：免费边界（2/3 节）、`learn.` 子域 DNS 是否交给 Cloudflare、自建 magic link 还是 Supabase Auth。
+
+- [ ] 公开/付费分流：付费节在公开构建中渲染为锁定页，CI 断言产物无付费正文（P2.0）
+- [ ] 权益表 `entitlements` + Webhook 写入 + 退款即时降权 + 历史订单补齐（P2.1）
+- [ ] 鉴权 Worker：magic link 登录（复用 Resend + D1）、会话 JWT、限流、`/account`（P2.2）
+- [ ] 成员站部署：成员构建 + Cloudflare Worker 静态资源 + `learn.opencodeguide.com` + noindex（P2.3）
+- [ ] 基础设施：D1 `orders` / `entitlements` / `magic_links` / `auth_attempts`（不需要 Supabase，除非改为托管鉴权）
 - [ ] Checkout Session 接口替换 Payment Link（新流量），保留旧链接兼容
 - [ ] Webhook 入库：`checkout.session.completed`、`invoice.paid`、`charge.refunded`、`charge.dispute.created`
 - [ ] Magic Link 登录（Supabase Auth），注册时按邮箱合并历史订单
