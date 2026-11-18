@@ -13,7 +13,8 @@
     "courses:stripe": "node scripts/courses/stripe-payment-links.mjs",
     "courses:stripe:dry": "node scripts/courses/stripe-payment-links.mjs --dry-run",
     "courses:validate": "node scripts/courses/validate-courses.mjs",
-    "workers:test": "cd workers/course-delivery && node --test"
+    "workers:test": "cd workers/course-delivery && node --test",
+    "courses:meta": "node scripts/courses/sync-course-meta.mjs"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.0.0",
