@@ -16,8 +16,8 @@ export const COURSE_COPY = {
         "每门课都配有模板仓库、检查清单与真实项目演练。一次购买，永久观看，内容持续更新。",
       stats: [
         { value: "4", label: "门实战课程" },
-        { value: "110", label: "节视频课" },
-        { value: "56", label: "小时内容" },
+        { value: "123", label: "节图文课" },
+        { value: "18", label: "小时阅读量" },
         { value: "永久", label: "观看与更新" },
       ],
       tracksTitle: "四条学习路线",
@@ -133,8 +133,8 @@ export const COURSE_COPY = {
     },
     faq: [
       {
-        q: "课程是录播还是直播？",
-        a: "主体为录播视频，可永久回看；Pro 版本会定期安排直播答疑与 1:1 诊断。",
+        q: "课程是视频还是图文？",
+        a: "全部为图文文章，可永久回看；每节 8–12 分钟读完，Pro 版本另含模板仓库、社群与 1:1 诊断。",
       },
       {
         q: "购买后可以退款吗？",
@@ -172,8 +172,8 @@ export const COURSE_COPY = {
         "Every course ships with template repos, checklists and real project walkthroughs. Buy once, watch forever, updates included.",
       stats: [
         { value: "4", label: "practical courses" },
-        { value: "110", label: "video lessons" },
-        { value: "56", label: "hours of content" },
+        { value: "123", label: "article lessons" },
+        { value: "18", label: "hours of reading" },
         { value: "Lifetime", label: "access and updates" },
       ],
       tracksTitle: "Four learning tracks",
@@ -293,8 +293,8 @@ export const COURSE_COPY = {
     },
     faq: [
       {
-        q: "Video or live?",
-        a: "Mostly recorded video with lifetime access. Pro plans include periodic live office hours and 1:1 reviews.",
+        q: "Video or article format?",
+        a: "Article-based with lifetime access. Each lesson is an 8–12 minute read; Pro plans add the template repo, community and 1:1 reviews.",
       },
       {
         q: "Can I get a refund?",
