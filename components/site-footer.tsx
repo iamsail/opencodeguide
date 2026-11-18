@@ -25,10 +25,12 @@ export function SiteFooter({ lang = "en" }: SiteFooterProps) {
         </div>
         
         <div className="flex flex-col items-center md:items-end gap-2">
-          <nav className="flex gap-4 text-sm text-gray-600 dark:text-gray-400">
+          <nav className="flex flex-wrap justify-center gap-4 text-sm text-gray-600 dark:text-gray-400 md:justify-end">
             {lang === "en" ? (
               <>
+                <Link href="/en/courses" className="hover:underline">Courses</Link>
                 <Link href="/privacy" className="hover:underline">Privacy Policy</Link>
+                <Link href="/refund-policy" className="hover:underline">Refund Policy</Link>
                 <Link href="/about" className="hover:underline">About Us</Link>
                 <Link href="/contact" className="hover:underline">Contact</Link>
               </>
@@ -40,7 +42,9 @@ export function SiteFooter({ lang = "en" }: SiteFooterProps) {
               </>
             ) : (
               <>
+                <Link href="/zh/courses" className="hover:underline">课程</Link>
                 <Link href="/privacy" className="hover:underline">隐私政策</Link>
+                <Link href="/zh/refund-policy" className="hover:underline">退款政策</Link>
                 <Link href="/about" className="hover:underline">关于我们</Link>
                 <Link href="/contact" className="hover:underline">联系我们</Link>
               </>

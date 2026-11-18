@@ -1,0 +1,347 @@
+{
+  "slug": "cross-border-store",
+  "kind": "course",
+  "track": "ecommerce",
+  "level": "mixed",
+  "status": "preorder",
+  "releaseDate": "2027-01",
+  "icon": "ShoppingBag",
+  "accent": "from-amber-500 via-orange-500 to-rose-500",
+  "durationHours": 18,
+  "lessonCount": 32,
+  "lastUpdated": "2026-11",
+  "plans": [
+    {
+      "id": "single",
+      "priceUSD": 179,
+      "priceCNYRef": 1299,
+      "compareAtUSD": 249,
+      "badge": { "zh": "早鸟", "en": "Early bird" },
+      "features": {
+        "zh": [
+          "32 节视频课 + 全部课件（上线后立即可看）",
+          "独立站建站与支付配置模板",
+          "合规与物流供应商清单",
+          "7 天无理由退款（正式上线后开始计算）"
+        ],
+        "en": [
+          "32 video lessons + all courseware at launch",
+          "Storefront and payment configuration templates",
+          "Compliance and fulfilment vendor lists",
+          "7-day refund starting from official launch"
+        ]
+      }
+    },
+    {
+      "id": "pro",
+      "priceUSD": 299,
+      "priceCNYRef": 2149,
+      "compareAtUSD": 399,
+      "badge": { "zh": "早鸟推荐", "en": "Early bird" },
+      "features": {
+        "zh": [
+          "包含「单课版」全部内容",
+          "店铺诊断：上线后 1 次 60 分钟 1:1 店铺体检",
+          "供应商 / 物流 / 支付渠道对比表（持续更新）",
+          "90 天社群答疑",
+          "预售期专属：优先参与内容共创与案例拆解"
+        ],
+        "en": [
+          "Everything in the Single plan",
+          "One 60-minute store audit after launch",
+          "Continuously updated vendor, logistics and payment comparison sheets",
+          "90 days of community support",
+          "Pre-order perk: early access to case studies and co-creation sessions"
+        ]
+      }
+    }
+  ],
+  "locales": {
+    "zh": {
+      "title": "跨境电商独立站：建站 · 支付 · 合规 · 增长",
+      "subtitle": "从 0 搭建一个能收全球款的独立站，并跑通物流、税务与广告投放",
+      "tagline": "写给技术背景卖家的跨境电商实战课：不只教你点 Shopify 后台，而是理解支付、风控、合规与转化的完整链路。",
+      "audience": [
+        "有技术能力、想自建品牌独立站而不是只做平台铺货的卖家",
+        "已在 Amazon / 平台开店，想沉淀自己的流量与用户资产",
+        "为跨境客户交付建站与支付集成的开发者、外包团队",
+        "做 DTC 小品牌：需要把合规、物流和支付一次做对"
+      ],
+      "outcomes": [
+        "判断该用 Shopify、Shopline 还是 Next.js 自建站，以及三者的成本边界",
+        "配置多币种收款：Stripe、PayPal、支付宝/微信（可行方案）与分期",
+        "设计降低拒付率的支付流程：3DS、风控规则、订单审核",
+        "跑通跨境物流：头程、尾程、海外仓与退货方案的成本对比",
+        "处理 VAT / OSS / 关税与隐私合规（GDPR / CCPA）",
+        "用 AI 批量生产商品文案、图片与视频素材，并做广告素材 A/B"
+      ],
+      "deliverables": [
+        "独立站上线检查清单（域名、支付、物流、税务、法务共 78 项）",
+        "支付渠道与费率对比表（按目标市场给出推荐组合）",
+        "广告素材脚本模板与 AI 生成工作流",
+        "退货 / 拒付 / 客诉处理话术库（中英双语）"
+      ],
+      "modules": [
+        {
+          "title": "模块 1 · 出海电商全景与选品",
+          "summary": "先选对市场和品类，再谈建站。",
+          "lessons": [
+            "平台店 vs 独立站：流量成本、复购与品牌资产的取舍",
+            "目标市场选择：北美、欧洲、东南亚、中东的支付与物流差异",
+            "选品方法：从供应链优势到需求验证的 4 个数据源",
+            "定价模型：含运费、关税、广告成本的毛利测算表"
+          ]
+        },
+        {
+          "title": "模块 2 · 建站选型与落地",
+          "summary": "用最少的维护成本换来最快的上线速度。",
+          "lessons": [
+            "Shopify / Shopline / WooCommerce / Next.js 自建：决策树",
+            "Shopify 主题与结账流程定制（含 Checkout Extensibility）",
+            "自建站方案：Next.js + 无头电商 API + Stripe",
+            "站点性能：Core Web Vitals 对转化与广告质量分的影响",
+            "多语言与多币种站点结构（子目录 vs 子域）"
+          ]
+        },
+        {
+          "title": "模块 3 · 支付与风控",
+          "summary": "收款能力决定你能卖到哪个国家。",
+          "lessons": [
+            "Stripe 跨境收款：账户主体、结算周期、费率与拒付责任",
+            "PayPal / 支付宝 / 微信支付的接入条件与现实限制",
+            "多币种定价与汇率策略：本地货币展示 vs 美元结算",
+            "3DS / SCA 与支付成功率：为什么欧洲必须做",
+            "风控与拒付预防：地址校验、风险规则、人工审核阈值",
+            "退款、部分退款与争议（dispute）处理流程"
+          ]
+        },
+        {
+          "title": "模块 4 · 物流与履约",
+          "summary": "跨境体验的一半是物流。",
+          "lessons": [
+            "头程 / 尾程 / 海外仓：三种履约模式的成本模型",
+            "物流商选择与时效承诺（含追踪页与异常处理）",
+            "关税与 DDP / DDU：收件人体验与成本的平衡",
+            "退货方案：本地退货地址、退货率控制与二次销售"
+          ]
+        },
+        {
+          "title": "模块 5 · 合规与税务",
+          "summary": "合规不是成本，是不被下架的前提。",
+          "lessons": [
+            "VAT / OSS / 销售税：什么规模开始必须注册",
+            "隐私合规：Cookie 同意、数据跨境、GDPR / CCPA 最小实现",
+            "商品合规：CE / FCC / 电池 / 化妆品的认证要求",
+            "广告合规：Meta / Google 的禁售与宣称限制",
+            "法务页模板：条款、隐私、退款、配送政策"
+          ]
+        },
+        {
+          "title": "模块 6 · AI 内容与素材生产",
+          "summary": "用 AI 把内容成本降到原来的十分之一。",
+          "lessons": [
+            "商品文案：多语言卖点提炼与 SEO 标题生成",
+            "图片与场景图：AI 生成 + 实拍结合的合规用法",
+            "短视频脚本与批量剪辑工作流",
+            "落地页与广告素材的 A/B 实验设计"
+          ]
+        },
+        {
+          "title": "模块 7 · 广告投放与转化",
+          "summary": "先算清单位经济模型，再开预算。",
+          "lessons": [
+            "Meta / Google / TikTok 的冷启动结构与最小预算",
+            "广告素材测试矩阵：hook、卖点、场景的组合",
+            "转化率优化：商品页、购物车、结账页的漏斗诊断",
+            "弃购挽回与邮件 / SMS 自动化"
+          ]
+        },
+        {
+          "title": "模块 8 · 数据与复购",
+          "summary": "把一次性买家变成复购用户。",
+          "lessons": [
+            "核心指标：AOV、CAC、LTV、退款率与真实毛利",
+            "会员 / 订阅 / 捆绑销售：提升 LTV 的三种做法",
+            "评论与 UGC：合规收集与展示",
+            "季度复盘模板与下一步扩张决策"
+          ]
+        }
+      ],
+      "faq": [
+        {
+          "q": "课程什么时候上线？",
+          "a": "预计 2027 年 1 月完成主体内容并交付。预售期间可享受早鸟价，并优先参与案例拆解；如果延期超过 30 天，可无条件全额退款。"
+        },
+        {
+          "q": "我是纯小白，能学吗？",
+          "a": "这门课假设你有基本的建站或开发能力。完全没有电商经验也能跟，但需要投入更多时间在模块 1 和 2 的基础概念上。"
+        },
+        {
+          "q": "课程会讲 Amazon 平台运营吗？",
+          "a": "不会深入。课程聚焦独立站（DTC）的建站、支付、合规与增长；平台运营只在选型对比时提及。"
+        },
+        {
+          "q": "涉及具体服务商推荐吗？",
+          "a": "会给出对比维度与费率表，而不是唯一推荐；不同目标市场的最优组合不一样，课程会教你怎么自己判断。"
+        },
+        {
+          "q": "预售付款后能马上看吗？",
+          "a": "预售用户会先获得已完成章节与资料包（模块 1-2 先行版），正式上线后自动解锁全部内容。"
+        }
+      ],
+      "seo": {
+        "title": "跨境电商独立站课程：建站·支付·合规·增长",
+        "description": "面向技术背景卖家的跨境电商实战课：独立站选型与建站、Stripe 多币种收款与风控、跨境物流、VAT/GDPR 合规、AI 素材生产与广告投放。"
+      },
+      "instructor": {
+        "name": "OpenCode Guide 课程组",
+        "role": "跨境独立站与支付集成实战",
+        "bio": "课程由长期为出海品牌做建站、支付接入与合规咨询的实践者共同打磨，所有案例均来自真实店铺数据（已脱敏）。"
+      },
+      "guarantee": "预售保障：若正式上线延期超过 30 天，或上线后 7 天内不满意，均可全额退款。"
+    },
+    "en": {
+      "title": "Cross-border Commerce: Storefront, Payments, Compliance, Growth",
+      "subtitle": "Build an independent store that can take payments worldwide and survive logistics, tax and ads",
+      "tagline": "A practical course for technical sellers: not just clicking around a Shopify admin, but understanding payments, risk, compliance and conversion end to end.",
+      "audience": [
+        "Technical sellers who want a branded DTC store instead of marketplace arbitrage",
+        "Amazon or marketplace sellers building owned traffic and customer data",
+        "Developers and agencies delivering storefronts and payment integrations",
+        "Small DTC brands that need compliance, logistics and payments done right once"
+      ],
+      "outcomes": [
+        "Choose between Shopify, Shopline and a custom Next.js storefront with clear cost boundaries",
+        "Configure multi-currency payments: Stripe, PayPal, Alipay/WeChat where viable, and instalments",
+        "Design a checkout that reduces disputes: 3DS, risk rules, manual review thresholds",
+        "Run cross-border logistics: first mile, last mile, overseas warehousing and returns",
+        "Handle VAT/OSS, duties and privacy compliance (GDPR/CCPA)",
+        "Produce product copy, images and video with AI, then A/B test the creative"
+      ],
+      "deliverables": [
+        "A 78-item store launch checklist (domain, payments, logistics, tax, legal)",
+        "Payment provider and fee comparison with recommended stacks per market",
+        "Ad creative script templates and an AI production workflow",
+        "Refund, dispute and support response scripts (bilingual)"
+      ],
+      "modules": [
+        {
+          "title": "Module 1 · Landscape and product selection",
+          "summary": "Pick the market and product before the storefront.",
+          "lessons": [
+            "Marketplace vs independent store: traffic cost, repeat purchase, brand equity",
+            "Market selection: payments and logistics differences across US, EU, SEA and MENA",
+            "Product selection: four data sources from supply advantage to demand validation",
+            "Pricing model: margin sheet including shipping, duties and ad cost"
+          ]
+        },
+        {
+          "title": "Module 2 · Storefront build",
+          "summary": "Fastest launch at the lowest maintenance cost.",
+          "lessons": [
+            "Shopify, Shopline, WooCommerce or custom Next.js: a decision tree",
+            "Shopify theme and checkout customisation (Checkout Extensibility)",
+            "Custom stack: Next.js plus a headless commerce API plus Stripe",
+            "Site performance: Core Web Vitals, conversion and ad quality scores",
+            "Multilingual and multi-currency site structure: subdirectory vs subdomain"
+          ]
+        },
+        {
+          "title": "Module 3 · Payments and risk",
+          "summary": "Your payment stack decides which countries you can sell to.",
+          "lessons": [
+            "Stripe for cross-border: entity, payout schedule, fees and dispute liability",
+            "PayPal, Alipay and WeChat Pay: eligibility and real-world constraints",
+            "Multi-currency pricing and FX strategy: local display vs USD settlement",
+            "3DS / SCA and authorisation rates: why Europe requires it",
+            "Risk and dispute prevention: AVS, risk rules, manual review thresholds",
+            "Refunds, partial refunds and dispute response"
+          ]
+        },
+        {
+          "title": "Module 4 · Logistics and fulfilment",
+          "summary": "Half of the cross-border experience is shipping.",
+          "lessons": [
+            "First mile, last mile, overseas warehousing: three fulfilment cost models",
+            "Carrier selection, delivery promises, tracking pages and exceptions",
+            "Duties and DDP vs DDU: balancing recipient experience and cost",
+            "Returns: local return addresses, return-rate control, resale"
+          ]
+        },
+        {
+          "title": "Module 5 · Compliance and tax",
+          "summary": "Compliance is the price of staying listed.",
+          "lessons": [
+            "VAT, OSS and sales tax: when registration becomes mandatory",
+            "Privacy: cookie consent, cross-border data, minimum GDPR/CCPA implementation",
+            "Product compliance: CE, FCC, batteries, cosmetics",
+            "Advertising compliance: Meta and Google restricted claims",
+            "Legal page templates: terms, privacy, refunds, shipping"
+          ]
+        },
+        {
+          "title": "Module 6 · AI content production",
+          "summary": "Cut content cost by an order of magnitude.",
+          "lessons": [
+            "Product copy: multilingual benefit extraction and SEO titles",
+            "Images and lifestyle shots: combining AI generation with real photography",
+            "Short-video scripts and batch editing workflows",
+            "Landing page and ad creative A/B experiments"
+          ]
+        },
+        {
+          "title": "Module 7 · Advertising and conversion",
+          "summary": "Know your unit economics before you spend.",
+          "lessons": [
+            "Meta, Google and TikTok cold start structures and minimum budgets",
+            "Creative test matrix: hook, benefit, scenario combinations",
+            "Conversion optimisation: product, cart and checkout funnel diagnosis",
+            "Abandoned cart recovery, email and SMS automation"
+          ]
+        },
+        {
+          "title": "Module 8 · Data and retention",
+          "summary": "Turn one-time buyers into repeat customers.",
+          "lessons": [
+            "Core metrics: AOV, CAC, LTV, refund rate and true margin",
+            "Memberships, subscriptions and bundles to raise LTV",
+            "Reviews and UGC: compliant collection and display",
+            "Quarterly review template and expansion decisions"
+          ]
+        }
+      ],
+      "faq": [
+        {
+          "q": "When does the course launch?",
+          "a": "Core content is scheduled for January 2027. Pre-orders get the early-bird price and early access to case breakdowns; if launch slips more than 30 days you can cancel for a full refund."
+        },
+        {
+          "q": "I am completely new — is this too advanced?",
+          "a": "The course assumes basic web or development literacy. No ecommerce experience is required, but you will spend more time on modules 1 and 2."
+        },
+        {
+          "q": "Do you cover Amazon marketplace operations?",
+          "a": "Not in depth. The focus is DTC storefronts: build, payments, compliance and growth. Marketplaces appear only in the comparison."
+        },
+        {
+          "q": "Will you recommend specific vendors?",
+          "a": "You get comparison dimensions and fee tables rather than a single recommendation, because the best stack depends on your target market."
+        },
+        {
+          "q": "Can I watch immediately after pre-ordering?",
+          "a": "Pre-order buyers get the finished chapters and resource packs first (modules 1-2 preview), then everything unlocks at launch."
+        }
+      ],
+      "seo": {
+        "title": "Cross-border Commerce Course — Storefront, Payments, Compliance, Growth",
+        "description": "A practical course for technical sellers: storefront selection and build, Stripe multi-currency payments and risk, cross-border logistics, VAT/GDPR compliance, AI content and ads."
+      },
+      "instructor": {
+        "name": "OpenCode Guide Course Team",
+        "role": "Cross-border storefront and payment integration practice",
+        "bio": "Built with practitioners who ship storefronts, payment integrations and compliance work for global DTC brands. All case data is real and anonymised."
+      },
+      "guarantee": "Pre-order guarantee: full refund if launch slips more than 30 days, or within 7 days of launch if it is not a fit."
+    }
+  }
+}

@@ -7,6 +7,8 @@ const config: Config = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./content/**/*.{md,mdx}",
+    // 课程数据里的渐变类名（accent）需要被 Tailwind 扫描到
+    "./content/**/*.json",
   ],
   theme: {
     extend: {

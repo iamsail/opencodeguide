@@ -12,6 +12,9 @@
 # 由 Next.js 自动生成（dev/build 会改写 import 路径），按官方文档不入库
 next-env.d.ts
 
+# TypeScript incremental build cache
+*.tsbuildinfo
+
 # Production
 /build
 

@@ -41,22 +41,34 @@ export default function PrivacyPage() {
             This data is used solely to improve the content and performance of the OpenCode Guide. We do not use this data for advertising profiling or sell it to third parties.
         </p>
 
-        <h2>2. Cookies</h2>
+        <h2>2. Course purchases</h2>
+        <p>
+          When you buy a course, payment is processed by <strong>Stripe</strong>. We receive your email
+          address, the course and plan you purchased, and the amount paid. We use this information to
+          deliver access, send course updates, and process refunds. We never receive or store your full
+          card number.
+        </p>
+        <p>
+          If you join a course waitlist, we store the email address you submit together with the course
+          you are interested in, and use it only to notify you about that course. You can ask us to
+          delete it at any time.
+        </p>
+        <h2>3. Cookies</h2>
         <p>
           Our website may use cookies to function correctly (e.g., remembering your theme preference) and for the analytics services mentioned above. You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent.
         </p>
 
-        <h2>3. Third-Party Links</h2>
+        <h2>4. Third-Party Links</h2>
         <p>
           Our Service contains links to other websites (e.g., GitHub, Anthropic, Ollama) that are not operated by us. If you click on a third-party link, you will be directed to that third party's site. We strongly advise you to review the Privacy Policy of every site you visit.
         </p>
 
-        <h2>4. Changes to This Privacy Policy</h2>
+        <h2>5. Changes to This Privacy Policy</h2>
         <p>
           We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last updated" date using the current date.
         </p>
 
-        <h2>5. Contact Us</h2>
+        <h2>6. Contact Us</h2>
         <p>
           If you have any questions about this Privacy Policy, please contact us at: <br />
           Email: hackerai465@gmail.com

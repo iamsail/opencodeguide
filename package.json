@@ -9,7 +9,9 @@
     "lint": "next lint",
     "docs:sync": "node scripts/docs-sync/run.mjs",
     "docs:sync:check": "node scripts/docs-sync/run.mjs --dry-run",
-    "docs:validate": "node scripts/docs-sync/validate.mjs"
+    "docs:validate": "node scripts/docs-sync/validate.mjs",
+    "courses:stripe": "node scripts/courses/stripe-payment-links.mjs",
+    "courses:stripe:dry": "node scripts/courses/stripe-payment-links.mjs --dry-run"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.0.0",

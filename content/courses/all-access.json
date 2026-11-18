@@ -1,0 +1,175 @@
+{
+  "slug": "all-access",
+  "kind": "bundle",
+  "track": "bundle",
+  "level": "mixed",
+  "status": "live",
+  "icon": "Layers",
+  "accent": "from-slate-900 via-slate-800 to-indigo-900",
+  "durationHours": 56,
+  "lessonCount": 110,
+  "lastUpdated": "2026-11",
+  "plans": [
+    {
+      "id": "all-access",
+      "priceUSD": 399,
+      "priceCNYRef": 2879,
+      "compareAtUSD": 486,
+      "badge": { "zh": "最省", "en": "Best value" },
+      "features": {
+        "zh": [
+          "4 门课程全部内容（110 节课，永久观看）",
+          "全部模板仓库与资料包",
+          "1 年内新增课程与更新免费",
+          "课程社群（1 年）",
+          "7 天无理由退款"
+        ],
+        "en": [
+          "All four courses (110 lessons, lifetime access)",
+          "Every template repo and resource pack",
+          "New courses and updates free for one year",
+          "Community access for one year",
+          "7-day no-questions refund"
+        ]
+      }
+    }
+  ],
+  "locales": {
+    "zh": {
+      "title": "全站通：四门出海实战课一次拿下",
+      "subtitle": "AI 编程 × 独立开发 × 跨境电商 × 出海 SEO，覆盖从写代码到收款的完整路径",
+      "tagline": "单课总价 $486，全站通 $399，并包含未来一年新增课程。适合想系统性补齐「技术 → 产品 → 增长」能力的人。",
+      "audience": [
+        "准备从接单/打工转向做自己产品的开发者",
+        "同时需要技术效率、上线能力和获客能力的独立开发者",
+        "团队采购：需要给成员准备一整套可复用的出海知识库"
+      ],
+      "outcomes": [
+        "用 AI 把开发效率提升一个量级",
+        "独立完成一个能收款的 SaaS 或独立站",
+        "理解跨境支付、合规与物流的真实约束",
+        "建立可持续的搜索流量获客系统"
+      ],
+      "deliverables": [
+        "四门课程全部视频与课件",
+        "全部模板仓库（AI 工作流、SaaS 启动、独立站、SEO 检查脚本）",
+        "统一的学习路径：建议按 AI 编程 → 独立开发 → 出海 SEO → 跨境电商 的顺序推进",
+        "1 年社群与更新"
+      ],
+      "modules": [
+        {
+          "title": "包含课程 1 · AI 编程实战（24 节）",
+          "summary": "规则工程、子智能体、MCP 与真实项目交付。",
+          "lessons": ["环境与心智模型", "规则工程", "智能体编排", "MCP 工程化", "真实项目实战", "团队落地与治理"]
+        },
+        {
+          "title": "包含课程 2 · 独立开发者出海（30 节）",
+          "summary": "从选题验证到 Stripe 收款与首批用户。",
+          "lessons": ["选题与需求验证", "最小技术架构", "多租户与权限", "Stripe 收款与定价", "上线清单", "首批用户与增长", "运营与合规"]
+        },
+        {
+          "title": "包含课程 3 · 跨境电商独立站（32 节，2027-01 上线）",
+          "summary": "建站、支付风控、物流、税务合规与 AI 素材。",
+          "lessons": ["选品与市场", "建站选型", "支付与风控", "物流与履约", "合规与税务", "AI 内容生产", "广告与转化", "数据与复购"]
+        },
+        {
+          "title": "包含课程 4 · 出海网站 SEO（24 节）",
+          "summary": "多语言架构、技术 SEO、内容流水线与度量。",
+          "lessons": ["出海 SEO 判断", "多语言架构", "技术 SEO", "内容生产系统", "外链与分发", "度量与迭代"]
+        }
+      ],
+      "faq": [
+        {
+          "q": "全站通包含还没上线的课程吗？",
+          "a": "包含。跨境电商课程将于 2027 年 1 月上线，购买全站通后自动解锁，无需额外付费。"
+        },
+        {
+          "q": "可以先买单课，之后补差价升级吗？",
+          "a": "可以。上线初期通过联系页面提交你的订单邮箱，我们按已付金额抵扣升级全站通。"
+        },
+        {
+          "q": "适合团队购买吗？",
+          "a": "适合。3 人以上团队请联系我们获取团队价与统一开票方案。"
+        }
+      ],
+      "seo": {
+        "title": "全站通：AI 编程 + 独立开发 + 跨境电商 + 出海 SEO",
+        "description": "四门出海实战课打包：AI 编程工作流、独立开发者 SaaS 上线、跨境电商独立站、多语言 SEO 增长，110 节课覆盖从写代码到收款的完整路径。"
+      },
+      "instructor": {
+        "name": "OpenCode Guide 课程组",
+        "role": "出海开发与增长实战",
+        "bio": "我们把文档站点的真实运营经验、支付集成踩坑记录和增长实验，整理成四门可执行的课程。"
+      },
+      "guarantee": "7 天无理由退款：四门课里任何一门不适合你，都可以申请全额退款。"
+    },
+    "en": {
+      "title": "All-Access: Four Courses, One Path to Global Revenue",
+      "subtitle": "AI coding × indie SaaS × cross-border commerce × global SEO",
+      "tagline": "Buying the four courses separately costs $486. All-Access is $399 and includes new courses for a year.",
+      "audience": [
+        "Developers moving from contract work to their own products",
+        "Indies who need engineering leverage, launch skills and acquisition in one place",
+        "Teams that want a shared, reusable global-market knowledge base"
+      ],
+      "outcomes": [
+        "An order-of-magnitude boost in development throughput with AI",
+        "A SaaS or storefront you can launch and charge for alone",
+        "A working understanding of cross-border payments, compliance and logistics",
+        "A search-driven acquisition system that compounds"
+      ],
+      "deliverables": [
+        "All four courses' videos and courseware",
+        "Every template repo: AI workflow, SaaS starter, storefront, SEO audit script",
+        "A suggested learning path: AI coding → indie SaaS → global SEO → cross-border commerce",
+        "One year of community access and updates"
+      ],
+      "modules": [
+        {
+          "title": "Included · AI Coding in Practice (24 lessons)",
+          "summary": "Rules, subagents, MCP and shipping real projects.",
+          "lessons": ["Setup and mental model", "Rule engineering", "Agent orchestration", "MCP in production", "Real projects", "Team rollout"]
+        },
+        {
+          "title": "Included · Indie SaaS Launch (30 lessons)",
+          "summary": "Validation through Stripe and first customers.",
+          "lessons": ["Idea and validation", "Minimal architecture", "Multi-tenancy", "Stripe and pricing", "Launch", "First users", "Operations"]
+        },
+        {
+          "title": "Included · Cross-border Commerce (32 lessons, launching Jan 2027)",
+          "summary": "Storefronts, payments, risk, logistics, tax compliance, AI creative.",
+          "lessons": ["Product and market", "Storefront build", "Payments and risk", "Logistics", "Compliance and tax", "AI content", "Ads and conversion", "Data and retention"]
+        },
+        {
+          "title": "Included · Global Site SEO (24 lessons)",
+          "summary": "Multilingual architecture, technical SEO, content pipeline, measurement.",
+          "lessons": ["SEO fit", "Multilingual architecture", "Technical SEO", "Content system", "Links and distribution", "Measurement"]
+        }
+      ],
+      "faq": [
+        {
+          "q": "Does All-Access include unreleased courses?",
+          "a": "Yes. Cross-border Commerce launches January 2027 and unlocks automatically at no extra cost."
+        },
+        {
+          "q": "Can I buy one course and upgrade later?",
+          "a": "Yes. Contact us with your order email and we apply what you paid toward All-Access."
+        },
+        {
+          "q": "Do you offer team licences?",
+          "a": "Yes. For three seats or more, contact us for team pricing and consolidated invoicing."
+        }
+      ],
+      "seo": {
+        "title": "All-Access: AI Coding, Indie SaaS, Cross-border Commerce and Global SEO",
+        "description": "Four practical courses bundled: AI coding workflows, indie SaaS launch, cross-border storefronts and multilingual SEO. 110 lessons from first line of code to first payment."
+      },
+      "instructor": {
+        "name": "OpenCode Guide Course Team",
+        "role": "Global product engineering and growth",
+        "bio": "We packaged the real operating notes of this documentation site, our payment integration war stories and growth experiments into four executable courses."
+      },
+      "guarantee": "7-day refund: if any of the four courses is not a fit, get a full refund."
+    }
+  }
+}

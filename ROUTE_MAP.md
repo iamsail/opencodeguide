@@ -176,3 +176,18 @@
 **SEO 说明**：
 1. **Canonical**: 所有引流文章均指向对应的 `/zh/docs/` 页面。
 2. **Hreflang**: 核心页面均已配置 `alternates.languages`，实现中英版本互认。
+## 5. 课程板块 (Courses / 商业化)
+| 路由 (Route) | 文件路径 (File Path) | 功能说明 (Description) |
+| :--- | :--- | :--- |
+| `/zh/courses` | `app/(zh)/zh/courses/page.tsx` | 课程总览（四条路线、课程卡、学习路径、FAQ） |
+| `/zh/courses/[slug]` | `app/(zh)/zh/courses/[slug]/page.tsx` | 课程详情（大纲、购买卡、等待名单、结构化数据） |
+| `/zh/courses/thank-you` | `app/(zh)/zh/courses/thank-you/page.tsx` | 付款回执与开通指引（noindex） |
+| `/en/courses` | `app/(main)/en/courses/page.tsx` | English course catalog |
+| `/en/courses/[slug]` | `app/(main)/en/courses/[slug]/page.tsx` | English course detail |
+| `/en/courses/thank-you` | `app/(main)/en/courses/thank-you/page.tsx` | English purchase receipt (noindex) |
+| `/refund-policy` | `app/(main)/refund-policy/page.tsx` | 退款政策（英文） |
+| `/zh/refund-policy` | `app/(zh)/zh/refund-policy/page.tsx` | 退款政策（中文） |
+
+- 数据源：`content/courses/*.json`（一门课一个文件，中英双语内容 + plans）
+- 支付：Stripe Payment Link，映射文件 `content/courses/stripe-links.json`（`npm run courses:stripe` 生成）
+- 站点为静态导出（`output: 'export'`），课程板块不引入 API Route；Phase 2 会员中心方案见 `docs/courses/04-stripe-integration.md`

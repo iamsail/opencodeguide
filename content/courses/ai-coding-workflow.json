@@ -1,0 +1,309 @@
+{
+  "slug": "ai-coding-workflow",
+  "kind": "course",
+  "track": "ai-coding",
+  "level": "mixed",
+  "status": "live",
+  "icon": "Bot",
+  "accent": "from-indigo-500 via-violet-500 to-fuchsia-500",
+  "durationHours": 12,
+  "lessonCount": 24,
+  "lastUpdated": "2026-11",
+  "plans": [
+    {
+      "id": "single",
+      "priceUSD": 79,
+      "priceCNYRef": 569,
+      "compareAtUSD": 129,
+      "features": {
+        "zh": [
+          "24 节视频课 + 全部课件（永久观看）",
+          "3 套可运行的项目模板（AGENTS.md / skills / MCP）",
+          "课程更新免费同步",
+          "7 天无理由退款"
+        ],
+        "en": [
+          "24 video lessons + all courseware (lifetime access)",
+          "3 runnable project templates (AGENTS.md / skills / MCP)",
+          "Free updates for the life of the course",
+          "7-day no-questions refund"
+        ]
+      }
+    },
+    {
+      "id": "pro",
+      "priceUSD": 149,
+      "priceCNYRef": 1079,
+      "compareAtUSD": 229,
+      "badge": { "zh": "推荐", "en": "Recommended" },
+      "features": {
+        "zh": [
+          "包含「单课版」全部内容",
+          "私有 GitHub 仓库：完整示例代码 + 每周更新",
+          "30 天社群答疑（Discord / 微信群）",
+          "2 次 1:1 代码工作流诊断（每次 30 分钟）",
+          "团队落地 checklist 与内部培训模板"
+        ],
+        "en": [
+          "Everything in the Single plan",
+          "Private GitHub repo: full example code, updated weekly",
+          "30 days of community support (Discord / WeChat)",
+          "Two 30-minute 1:1 workflow reviews",
+          "Team rollout checklist and internal training deck"
+        ]
+      }
+    }
+  ],
+  "locales": {
+    "zh": {
+      "title": "AI 编程实战：用 OpenCode 组建你的 AI 工程团队",
+      "subtitle": "从「让 AI 补全代码」到「让 AI 交付 PR」：规则、子智能体、MCP 与真实项目工作流",
+      "tagline": "面向程序员的 AI 编码工程化课程，把 OpenCode / Claude Code 这类终端智能体变成可复用、可审计、可协作的生产力系统。",
+      "audience": [
+        "有 1-3 年经验、想把 AI 真正写进日常开发的工程师",
+        "需要维护遗留项目、又希望用 AI 加速重构与测试的技术负责人",
+        "独立开发者：一个人要同时负责产品、前端、后端和运维",
+        "团队 Tech Lead：要制定 AI 编码规范、权限与成本控制策略"
+      ],
+      "outcomes": [
+        "搭好本地优先的 AI 编码环境：多模型路由、离线模型、成本可视化",
+        "写出真正生效的项目规则（AGENTS.md），让 AI 不再「乱改」代码",
+        "用子智能体 + Skills + 自定义命令拆解复杂任务，稳定产出可合并的 PR",
+        "通过 MCP 把数据库、浏览器、内部 API 接进智能体，完成端到端自动化",
+        "为团队建立代码评审、CI 与安全审计的 AI 协作规范"
+      ],
+      "deliverables": [
+        "3 套可直接落地的模板：单仓库规则、多子智能体编排、MCP 服务封装",
+        "一份「AI 编码工作流自查表」（32 项检查点）",
+        "一份团队 AI 编码规范（可直接改公司名使用）",
+        "成本估算表：不同模型组合下的月度 token 预算模型"
+      ],
+      "modules": [
+        {
+          "title": "模块 1 · 心智模型与环境搭建",
+          "summary": "先建立正确的预期，再动手装环境。",
+          "lessons": [
+            "本地优先 vs 云端助手：安全边界、成本结构与适用场景",
+            "安装 OpenCode 并跑通第一个会话（macOS / Windows WSL / Linux）",
+            "模型提供商配置：Anthropic、OpenAI、DeepSeek、Ollama 的组合策略",
+            "把 token 成本压下来的 6 个开关（路由、缓存、上下文裁剪）"
+          ]
+        },
+        {
+          "title": "模块 2 · 规则工程：让 AI 遵守你的代码库",
+          "summary": "90% 的「AI 乱写代码」问题，都是上下文和规则没给对。",
+          "lessons": [
+            "AGENTS.md 的分层写法：项目级 / 目录级 / 任务级",
+            "把团队约定翻译成机器可执行的规则（命名、测试、提交信息）",
+            "Plan Mode 与 Spec-first：先让 AI 写方案，再让它写代码",
+            "三种反模式：过度上下文、伪需求、无验收标准的任务",
+            "验收环节：如何让 AI 自己跑测试并解释失败原因"
+          ]
+        },
+        {
+          "title": "模块 3 · 智能体编排：从单线程到「小型团队」",
+          "summary": "复杂任务的核心不是提示词，而是任务拆解与并行。",
+          "lessons": [
+            "子智能体（Subagent）的职责划分：规划、实现、评审、测试",
+            "Skills 复用：把团队经验沉淀成一次安装、处处可用",
+            "自定义命令：把高频工作流压缩成 /review、/ship、/migrate",
+            "权限与沙箱：哪些目录绝不允许 AI 写入",
+            "多智能体协作实战：一个功能从需求到 PR 的完整流水线"
+          ]
+        },
+        {
+          "title": "模块 4 · MCP 工程化：把外部系统接进来",
+          "summary": "智能体的上限，取决于它能读到多少真实上下文。",
+          "lessons": [
+            "MCP 协议原理与三类消息：tools、resources、prompts",
+            "数据库 MCP：只读查询、Schema 自省、生成迁移脚本",
+            "Playwright MCP：让 AI 自己点网站、复现前端 Bug",
+            "封装内部 API 为 MCP 服务（30 行代码的最小实现）",
+            "MCP 的安全红线：凭证管理、权限最小化、审计日志"
+          ]
+        },
+        {
+          "title": "模块 5 · 真实项目实战",
+          "summary": "用三个典型场景把方法论跑成肌肉记忆。",
+          "lessons": [
+            "实战 A：给无测试的遗留模块补测试并安全重构",
+            "实战 B：一次性完成「注册 → 支付 → 邮件」全栈功能",
+            "实战 C：跨仓库改动：前端改字段、后端加接口、文档同步",
+            "代码评审自动化：让 AI 按团队 checklist 出评审意见"
+          ]
+        },
+        {
+          "title": "模块 6 · 团队落地与治理",
+          "summary": "一个人用得爽很容易，一个团队用得不翻车才值钱。",
+          "lessons": [
+            "团队规范：允许/禁止清单、Code Review 责任划分",
+            "CI 集成：AI 生成代码的自动化质量门禁",
+            "安全与合规：代码外发、私有化部署、审计留痕",
+            "成本治理：按月复盘 token 开销与产出比"
+          ]
+        }
+      ],
+      "faq": [
+        {
+          "q": "我只会用 ChatGPT 网页版，这门课适合我吗？",
+          "a": "适合。课程从安装终端智能体讲起，前两章会补齐必要的心智模型；只要你能读写代码、会用命令行，就能跟上。"
+        },
+        {
+          "q": "课程只讲 OpenCode 吗？我用 Cursor / Claude Code。",
+          "a": "方法论是通用的：规则工程、任务拆解、子智能体、MCP 都不绑定具体工具。课程以 OpenCode 演示（免费开源、可离线），并给出 Claude Code / Cursor 的等价操作对照。"
+        },
+        {
+          "q": "需要付费的模型 API 吗？",
+          "a": "建议准备一个 Anthropic 或 OpenAI 的 API Key，课程也会演示完全本地、零 API 成本的 Ollama 方案，方便你先试再决定。"
+        },
+        {
+          "q": "课程是视频还是文档？",
+          "a": "视频为主（每节 8-15 分钟），配可复制的文字版步骤、命令清单与模板仓库。所有代码模板随课程更新。"
+        },
+        {
+          "q": "购买后如何交付？",
+          "a": "Stripe 付款成功后会跳转到开通指引页，同时向你填写的邮箱发送观看链接与资料包。若 10 分钟内未收到，请先检查垃圾邮件，再联系我们。"
+        },
+        {
+          "q": "可以开发票 / 退款吗？",
+          "a": "支持 7 天无理由退款（见退款政策）；可开具收据，企业采购请通过联系页面提交公司信息。"
+        }
+      ],
+      "seo": {
+        "title": "AI 编程实战课程：用 OpenCode 组建 AI 工程团队",
+        "description": "面向程序员的 AI 编程工程化课程：规则工程、子智能体编排、MCP 集成与真实项目实战，24 节课把终端 AI 智能体变成可交付的生产力。"
+      },
+      "instructor": {
+        "name": "OpenCode Guide 课程组",
+        "role": "长期维护 OpenCode 中文文档与实战案例",
+        "bio": "我们持续跟踪 OpenCode / Claude Code / Cursor 的真实工程用法，把社区里验证过的工作流整理成可复现的步骤，而不是纸上谈兵的提示词合集。"
+      },
+      "guarantee": "7 天无理由退款：如果你觉得课程没有帮你省下至少 7 天的时间，写封邮件即可全额退款。"
+    },
+    "en": {
+      "title": "AI Coding in Practice: Build Your Own AI Engineering Team",
+      "subtitle": "From autocomplete to merged PRs: rules, subagents, MCP and a real project workflow",
+      "tagline": "An engineering-first course for developers who want terminal agents like OpenCode and Claude Code to be repeatable, auditable and team-ready.",
+      "audience": [
+        "Engineers with 1-3 years of experience who want AI embedded in their real workflow",
+        "Tech leads modernising legacy code with AI-assisted refactors and tests",
+        "Indie developers who are the whole engineering team",
+        "Team leads writing AI coding policies, permissions and cost controls"
+      ],
+      "outcomes": [
+        "Set up a local-first AI coding environment with multi-model routing and cost visibility",
+        "Write project rules (AGENTS.md) that actually stop the agent from rewriting your codebase",
+        "Split complex work across subagents, skills and custom commands to ship reviewable PRs",
+        "Wire databases, browsers and internal APIs into the agent through MCP",
+        "Establish AI code review, CI gates and security practices for a team"
+      ],
+      "deliverables": [
+        "Three ready-to-use templates: repo rules, multi-subagent orchestration, MCP service wrapper",
+        "A 32-point AI coding workflow self-audit checklist",
+        "A team AI coding policy you can put your company name on",
+        "A token budget model for common model mixes"
+      ],
+      "modules": [
+        {
+          "title": "Module 1 · Mental model and setup",
+          "summary": "Set expectations before you install anything.",
+          "lessons": [
+            "Local-first vs cloud assistants: security, cost and fit",
+            "Install OpenCode and run your first session (macOS / Windows WSL / Linux)",
+            "Provider strategy: Anthropic, OpenAI, DeepSeek and Ollama in one setup",
+            "Six switches that cut token cost (routing, caching, context trimming)"
+          ]
+        },
+        {
+          "title": "Module 2 · Rule engineering",
+          "summary": "Most 'the AI broke my code' problems are context problems.",
+          "lessons": [
+            "Layered AGENTS.md: project, directory and task level",
+            "Turn team conventions into executable rules (naming, tests, commits)",
+            "Plan mode and spec-first: design before code",
+            "Three anti-patterns: context stuffing, fake requirements, no acceptance criteria",
+            "Closing the loop: make the agent run tests and explain failures"
+          ]
+        },
+        {
+          "title": "Module 3 · Agent orchestration",
+          "summary": "The hard part is decomposition, not prompts.",
+          "lessons": [
+            "Subagent roles: planning, implementation, review, testing",
+            "Skills as reusable team knowledge: install once, use everywhere",
+            "Custom commands: /review, /ship, /migrate",
+            "Permissions and sandboxing: directories the agent must never write",
+            "Multi-agent pipeline: one feature from request to PR"
+          ]
+        },
+        {
+          "title": "Module 4 · MCP in production",
+          "summary": "An agent is only as good as the context it can reach.",
+          "lessons": [
+            "How MCP works: tools, resources and prompts",
+            "Database MCP: read-only queries, schema introspection, migrations",
+            "Playwright MCP: let the agent click through and reproduce UI bugs",
+            "Wrap an internal API as an MCP server in 30 lines",
+            "Security: credentials, least privilege, audit logs"
+          ]
+        },
+        {
+          "title": "Module 5 · Real projects",
+          "summary": "Three scenarios that turn method into muscle memory.",
+          "lessons": [
+            "Project A: add tests to an untested legacy module and refactor safely",
+            "Project B: ship signup → payment → email end to end",
+            "Project C: cross-repo change: frontend field, backend endpoint, docs",
+            "Automated review: make the agent review against your checklist"
+          ]
+        },
+        {
+          "title": "Module 6 · Team rollout",
+          "summary": "One developer having fun is easy; a team not breaking prod is the goal.",
+          "lessons": [
+            "Team policy: allow/deny lists and review ownership",
+            "CI integration: automated quality gates for AI-written code",
+            "Security and compliance: data egress, self-hosting, audit trails",
+            "Cost governance: monthly token ROI reviews"
+          ]
+        }
+      ],
+      "faq": [
+        {
+          "q": "I only use the ChatGPT web app. Is this for me?",
+          "a": "Yes. The course starts from installing a terminal agent and builds the mental model first. If you can read code and use a shell, you can follow along."
+        },
+        {
+          "q": "Is it OpenCode-only? I use Cursor / Claude Code.",
+          "a": "The method is tool-agnostic: rules, decomposition, subagents and MCP. OpenCode is used for demos (open source, offline capable), with side-by-side notes for Claude Code and Cursor."
+        },
+        {
+          "q": "Do I need paid model API keys?",
+          "a": "A key from Anthropic or OpenAI is recommended, but the course also covers a fully local Ollama setup with zero API cost so you can try first."
+        },
+        {
+          "q": "Video or text?",
+          "a": "Mostly video (8-15 minutes per lesson) plus copy-paste steps, command references and template repos that get updated."
+        },
+        {
+          "q": "How do I get access after buying?",
+          "a": "Stripe redirects you to an onboarding page after payment and we email your access link and resource pack. If it doesn't arrive within 10 minutes, check spam and then contact us."
+        },
+        {
+          "q": "Refunds and invoices?",
+          "a": "7-day no-questions refund per our refund policy. Receipts are available; for company purchases use the contact page."
+        }
+      ],
+      "seo": {
+        "title": "AI Coding in Practice Course — Build Your AI Engineering Team",
+        "description": "An engineering-first AI coding course: rule engineering, subagent orchestration, MCP integration and real project workflows. 24 lessons that make terminal AI agents ship."
+      },
+      "instructor": {
+        "name": "OpenCode Guide Course Team",
+        "role": "Maintainers of the OpenCode Chinese documentation and field notes",
+        "bio": "We track how developers actually use OpenCode, Claude Code and Cursor, and turn the workflows that survive real projects into reproducible steps — not prompt collections."
+      },
+      "guarantee": "7-day refund: if the course doesn't save you at least seven days of work, email us for a full refund."
+    }
+  }
+}
