@@ -1,0 +1,327 @@
+{
+  "slug": "indie-saas-launch",
+  "kind": "course",
+  "track": "indie",
+  "level": "intermediate",
+  "status": "live",
+  "icon": "Rocket",
+  "accent": "from-emerald-500 via-teal-500 to-cyan-500",
+  "durationHours": 16,
+  "lessonCount": 30,
+  "lastUpdated": "2026-11",
+  "plans": [
+    {
+      "id": "single",
+      "priceUSD": 129,
+      "priceCNYRef": 929,
+      "compareAtUSD": 199,
+      "features": {
+        "zh": [
+          "30 节视频课 + 全部课件（永久观看）",
+          "SaaS 启动模板仓库（Next.js + Stripe + Auth）",
+          "定价 / 落地页 / 邮件 文案模板",
+          "7 天无理由退款"
+        ],
+        "en": [
+          "30 video lessons + all courseware (lifetime access)",
+          "SaaS starter repo (Next.js + Stripe + Auth)",
+          "Pricing, landing page and email copy templates",
+          "7-day no-questions refund"
+        ]
+      }
+    },
+    {
+      "id": "pro",
+      "priceUSD": 229,
+      "priceCNYRef": 1649,
+      "compareAtUSD": 329,
+      "badge": { "zh": "推荐", "en": "Recommended" },
+      "features": {
+        "zh": [
+          "包含「单课版」全部内容",
+          "Stripe 上线陪跑：产品、价格、税务、Webhook 逐项检查",
+          "60 天社群答疑 + 每周直播答疑",
+          "一次 1:1 商业模型诊断（45 分钟）",
+          "收入与转化看板模板（Notion / Sheets）"
+        ],
+        "en": [
+          "Everything in the Single plan",
+          "Stripe go-live walkthrough: products, prices, tax, webhooks",
+          "60 days of community support + weekly office hours",
+          "One 45-minute 1:1 business model review",
+          "Revenue and conversion dashboard templates (Notion / Sheets)"
+        ]
+      }
+    }
+  ],
+  "locales": {
+    "zh": {
+      "title": "独立开发者出海：从 0 到 1 上线并收款的 SaaS",
+      "subtitle": "一个人也能跑通：选题验证、最小架构、登录计费、Stripe 收款、上线与首批用户",
+      "tagline": "不教你写 CRUD，而是教你把「一个想法」变成「有付费用户的在线产品」的完整商业链路。",
+      "audience": [
+        "有开发能力，但不知道做什么、怎么验证需求的独立开发者",
+        "已经在做副业项目，卡在「上线了没人付费」阶段的人",
+        "想从外包 / 接单转向产品化收入的工程师",
+        "小团队创始人：需要一套可复用的上线与收款基础设施"
+      ],
+      "outcomes": [
+        "用 2 周完成选题验证，避免花 3 个月做一个没人要的产品",
+        "搭出能扛住第一批 1000 用户的最小技术架构（不做过早优化）",
+        "实现多租户登录、订阅计费、额度限制与升级/降级流程",
+        "用 Stripe 完成全球收款：Checkout、订阅、优惠码、税务与退款",
+        "完成上线清单：域名、邮件、监控、法务页与首屏转化",
+        "拿到前 10 个付费用户的可复制获客动作"
+      ],
+      "deliverables": [
+        "SaaS 启动模板：Next.js App Router + 认证 + Stripe 订阅 + 额度中间件",
+        "定价页与 5 种定价模型对照表",
+        "上线前 60 项检查清单（技术 / 支付 / 法务 / 增长）",
+        "冷启动渠道清单：20 个可直接发帖的社区与打法"
+      ],
+      "modules": [
+        {
+          "title": "模块 1 · 选题与需求验证",
+          "summary": "先卖掉，再开发。",
+          "lessons": [
+            "三种适合独立开发者的产品形态：工具、垂直 SaaS、信息产品",
+            "从自己的痛点里挖需求：问题清单法",
+            "用 5 个页面验证需求（不等产品写完）",
+            "预售与等待名单：用真实付款意图替代点赞"
+          ]
+        },
+        {
+          "title": "模块 2 · 最小技术架构",
+          "summary": "目标是「能上线、能收钱、能改」，不是「能支撑百万用户」。",
+          "lessons": [
+            "技术选型：Next.js / Remix / Astro 的选择标准",
+            "数据库与 ORM：Postgres + Prisma / Drizzle 的最小约定",
+            "认证方案：Auth.js、Clerk、Supabase Auth 的成本与迁移风险",
+            "部署与成本：Vercel、Cloudflare、Fly.io 的免费额度边界",
+            "可观测性：日志、错误追踪、用量埋点一次配好"
+          ]
+        },
+        {
+          "title": "模块 3 · 多租户与权限",
+          "summary": "租户模型设计错了，后面每一步都疼。",
+          "lessons": [
+            "单库多租户 vs 独立 schema：什么时候该选哪个",
+            "组织 / 成员 / 邀请：最小可用的团队模型",
+            "权限设计：角色、资源、动作三层模型",
+            "额度与限流：免费用户的成本护栏"
+          ]
+        },
+        {
+          "title": "模块 4 · Stripe 收款与定价",
+          "summary": "支付是产品功能，不是「接个按钮」。",
+          "lessons": [
+            "Stripe 账户准备：主体、KYB、结算币种与手续费",
+            "Checkout Session vs Payment Link vs 自建表单：怎么选",
+            "订阅模式：试用、按席位、按用量与混合计费",
+            "Webhook 与订单状态机：支付成功不等于开通成功",
+            "优惠码、早鸟价与退款策略",
+            "Stripe Tax / 发票 / 多币种：出海必须处理的细节",
+            "对账：把 Stripe 付款记录和你的用户表对上"
+          ]
+        },
+        {
+          "title": "模块 5 · 上线",
+          "summary": "上线是一份清单，不是一次点击。",
+          "lessons": [
+            "域名、DNS、邮件域名（SPF/DKIM/DMARC）一次配对",
+            "落地页结构：首屏、社会证明、定价、FAQ",
+            "法务三件套：隐私政策、服务条款、退款政策",
+            "上线前演练：用真实测试卡跑通支付全链路",
+            "灰度与回滚：出问题时怎么把损失控制在一小时内"
+          ]
+        },
+        {
+          "title": "模块 6 · 首批用户与增长",
+          "summary": "前 100 个用户靠手，不靠广告。",
+          "lessons": [
+            "冷启动渠道盘点：Product Hunt、Reddit、HN、垂直社区",
+            "内容 SEO：用 10 篇对比文拿下长尾搜索",
+            "转化优化：定价页 A/B 与取消流程挽留",
+            "从免费到付费：触发升级的 4 个时机"
+          ]
+        },
+        {
+          "title": "模块 7 · 运营与合规",
+          "summary": "能长期收款，才算真的上线。",
+          "lessons": [
+            "退款、拒付（chargeback）与风控处理流程",
+            "数据合规：GDPR / CCPA 的最小实现",
+            "收入记账与税务申报的基础认知",
+            "什么时候该注册海外主体，什么时候不该"
+          ]
+        }
+      ],
+      "faq": [
+        {
+          "q": "我没有海外公司，可以用 Stripe 吗？",
+          "a": "Stripe 需要对应国家/地区的合法主体。课程会对比「香港/新加坡/美国主体 + Stripe」与「Paddle / Lemon Squeezy 等 Merchant of Record」两条路径的成本、合规责任与适用阶段，帮你选一条能走通的路。"
+        },
+        {
+          "q": "需要会写前端吗？",
+          "a": "需要基础的 React / TypeScript。模板仓库会给你一个能跑的应用，你主要工作是改业务逻辑和接自己的产品。"
+        },
+        {
+          "q": "课程会教投放广告吗？",
+          "a": "会讲付费投放的时机与最小预算测试，但重点放在免费/低成本渠道，因为独立开发者的现金流更脆弱。"
+        },
+        {
+          "q": "适合已经有产品的人吗？",
+          "a": "适合。模块 4（收款）和模块 5（上线）可以单独吸收；如果你卡在「有流量没转化」，模块 6 会有直接帮助。"
+        },
+        {
+          "q": "课程内容会过时吗？",
+          "a": "会持续更新。Stripe API、认证服务和部署平台的变更都会同步到课件与模板仓库，已购用户免费获取。"
+        }
+      ],
+      "seo": {
+        "title": "独立开发者出海课程：从 0 到 1 上线并收款的 SaaS",
+        "description": "面向独立开发者的出海实战课：需求验证、最小架构、多租户登录、Stripe 订阅收款、上线清单与首批付费用户获客，30 节课跑通完整商业链路。"
+      },
+      "instructor": {
+        "name": "OpenCode Guide 课程组",
+        "role": "独立产品与支付集成实战经验",
+        "bio": "课程内容来自多个自研产品的真实上线记录：踩过的 Stripe 坑、被拒付的订单、以及最后真正带来收入的那几个渠道。"
+      },
+      "guarantee": "7 天无理由退款：先看模块 1 和 4，觉得不适合就退。"
+    },
+    "en": {
+      "title": "Indie SaaS Launch: From Idea to Paid Customers",
+      "subtitle": "Validate, build, charge and launch a SaaS as a team of one",
+      "tagline": "Not another CRUD tutorial — the full commercial path from idea to paying users.",
+      "audience": [
+        "Developers who can build but don't know what to build or how to validate it",
+        "Side-project builders stuck at 'launched, nobody pays'",
+        "Freelancers moving from hourly work to product revenue",
+        "Small founders who need a reusable launch and billing foundation"
+      ],
+      "outcomes": [
+        "Validate an idea in two weeks instead of building for three months",
+        "Ship a minimal architecture that survives your first 1,000 users",
+        "Implement multi-tenant auth, subscription billing, quotas and plan changes",
+        "Take payments globally with Stripe: Checkout, subscriptions, coupons, tax, refunds",
+        "Complete a launch checklist: domain, email, monitoring, legal pages, conversion",
+        "Run a repeatable playbook for your first ten paying customers"
+      ],
+      "deliverables": [
+        "SaaS starter repo: Next.js App Router + auth + Stripe subscriptions + quota middleware",
+        "Pricing page and a comparison of five pricing models",
+        "A 60-item pre-launch checklist (engineering / payments / legal / growth)",
+        "Cold-start channel list: 20 places to post with concrete angles"
+      ],
+      "modules": [
+        {
+          "title": "Module 1 · Idea and validation",
+          "summary": "Sell before you build.",
+          "lessons": [
+            "Three product shapes that fit indie developers: tools, vertical SaaS, info products",
+            "Mine your own pain: the problem inventory method",
+            "Validate with five pages, before the product exists",
+            "Pre-orders and waitlists: real payment intent beats likes"
+          ]
+        },
+        {
+          "title": "Module 2 · Minimal architecture",
+          "summary": "You need launchable, chargeable and changeable — not infinite scale.",
+          "lessons": [
+            "Stack selection: Next.js, Remix or Astro",
+            "Database and ORM: Postgres with Prisma or Drizzle, minimal conventions",
+            "Auth: Auth.js, Clerk, Supabase Auth — cost and lock-in tradeoffs",
+            "Deploy and cost: the real limits of Vercel, Cloudflare and Fly.io free tiers",
+            "Observability: logs, error tracking and usage analytics in one pass"
+          ]
+        },
+        {
+          "title": "Module 3 · Multi-tenancy and permissions",
+          "summary": "Get the tenant model wrong and every later step hurts.",
+          "lessons": [
+            "Shared schema vs schema-per-tenant: when to pick which",
+            "Organisations, members and invites: the minimal team model",
+            "Permissions: roles, resources and actions",
+            "Quotas and rate limits: cost guardrails for free users"
+          ]
+        },
+        {
+          "title": "Module 4 · Stripe and pricing",
+          "summary": "Payments are product work, not a button.",
+          "lessons": [
+            "Stripe account setup: entity, KYB, settlement currency, fees",
+            "Checkout Sessions vs Payment Links vs custom forms",
+            "Subscription models: trials, per-seat, usage-based and hybrid",
+            "Webhooks and order state machines: payment success ≠ access granted",
+            "Coupons, early-bird pricing and refund policy",
+            "Stripe Tax, invoices and multi-currency",
+            "Reconciliation: matching Stripe payouts to your user table"
+          ]
+        },
+        {
+          "title": "Module 5 · Launch",
+          "summary": "Launching is a checklist, not a click.",
+          "lessons": [
+            "Domains, DNS and email authentication (SPF/DKIM/DMARC)",
+            "Landing page anatomy: hero, proof, pricing, FAQ",
+            "The legal trio: privacy policy, terms, refund policy",
+            "Launch rehearsal with real test cards and a full payment run",
+            "Staged rollout and rollback: capping damage to one hour"
+          ]
+        },
+        {
+          "title": "Module 6 · First users and growth",
+          "summary": "Your first hundred users come from hand-to-hand work.",
+          "lessons": [
+            "Cold channels: Product Hunt, Reddit, Hacker News, vertical communities",
+            "Content SEO: ten comparison posts that capture long-tail intent",
+            "Conversion: pricing page A/B tests and cancellation save flows",
+            "Free-to-paid: the four moments that trigger upgrades"
+          ]
+        },
+        {
+          "title": "Module 7 · Operations and compliance",
+          "summary": "You are live only when you can keep charging.",
+          "lessons": [
+            "Refunds, chargebacks and risk handling",
+            "GDPR / CCPA: the minimum viable implementation",
+            "Revenue bookkeeping and tax basics",
+            "When to incorporate abroad — and when not to"
+          ]
+        }
+      ],
+      "faq": [
+        {
+          "q": "Can I use Stripe without an overseas company?",
+          "a": "Stripe requires a legal entity in a supported country. The course compares an HK/SG/US entity with Stripe against merchant-of-record options like Paddle and Lemon Squeezy, including compliance burden and stage fit."
+        },
+        {
+          "q": "Do I need frontend skills?",
+          "a": "Basic React and TypeScript. The starter repo gives you a working app; you adapt business logic and wire your own product."
+        },
+        {
+          "q": "Do you cover paid ads?",
+          "a": "Timing and minimum-budget tests are covered, but the emphasis is on free and low-cost channels because indie cash flow is fragile."
+        },
+        {
+          "q": "Is it useful if I already have a product?",
+          "a": "Yes. Module 4 (payments) and 5 (launch) stand alone; if you have traffic but no conversion, module 6 is the one to watch."
+        },
+        {
+          "q": "Will it get outdated?",
+          "a": "Stripe API, auth and hosting changes are synced into courseware and the template repo; buyers get updates free."
+        }
+      ],
+      "seo": {
+        "title": "Indie SaaS Launch Course — From Idea to Paid Customers",
+        "description": "A practical course for indie developers: validation, minimal architecture, multi-tenant auth, Stripe subscriptions, launch checklist and first paying customers. 30 lessons."
+      },
+      "instructor": {
+        "name": "OpenCode Guide Course Team",
+        "role": "Indie product and payments integration experience",
+        "bio": "Built from the real launch logs of several self-funded products: the Stripe edge cases, the disputed charges, and the few channels that actually produced revenue."
+      },
+      "guarantee": "7-day refund: watch modules 1 and 4 first, and get your money back if it is not a fit."
+    }
+  }
+}

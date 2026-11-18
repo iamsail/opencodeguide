@@ -1,7 +1,16 @@
 import Link from "next/link";
-import { ArrowRight, Terminal, Cpu, Zap, Lock } from "lucide-react";
+import { ArrowRight, Terminal, Cpu, Zap } from "lucide-react";
+import { formatUSD, getBundle, getTrackCourses } from "@/lib/courses";
+import { CourseCard } from "@/components/courses/course-card";
+
+const FEATURED = ["ai-coding-workflow", "indie-saas-launch", "global-site-seo"];
 
 export default function Home() {
+  const bundle = getBundle();
+  const featured = getTrackCourses()
+    .filter((course) => FEATURED.includes(course.slug))
+    .sort((a, b) => FEATURED.indexOf(a.slug) - FEATURED.indexOf(b.slug));
+
   return (
     <div className="flex flex-col items-center">
       {/* Hero Section */}
@@ -20,6 +29,12 @@ export default function Home() {
           >
             Get Started
             <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+          <Link
+            href="/en/courses"
+            className="inline-flex items-center justify-center rounded-md border border-gray-300 px-8 py-3 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-100 dark:hover:bg-gray-900"
+          >
+            Browse courses
           </Link>
           <a
             href="https://ccapi.ai/register?aff=6dhz"
@@ -108,6 +123,63 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Courses */}
+      {featured.length > 0 && (
+        <section className="w-full py-24 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <div className="flex flex-wrap items-end justify-between gap-3 mb-8">
+              <div>
+                <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+                  Courses
+                </p>
+                <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-50">
+                  Go from AI-assisted coding to a business that charges
+                </h2>
+              </div>
+              <Link
+                href="/en/courses"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-900 hover:underline dark:text-gray-100"
+              >
+                All courses
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+              {featured.map((course) => (
+                <CourseCard key={course.slug} course={course} locale="en" />
+              ))}
+            </div>
+
+            {bundle && (
+              <Link
+                href="/en/courses/all-access"
+                className="group mt-5 flex flex-col gap-4 rounded-2xl bg-slate-900 p-6 text-white transition-shadow hover:shadow-xl md:flex-row md:items-center md:justify-between"
+              >
+                <div>
+                  <div className="text-base font-bold">{bundle.locales.en.title}</div>
+                  <p className="mt-1 max-w-xl text-sm text-white/70">{bundle.locales.en.tagline}</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <div className="text-xl font-bold">{formatUSD(bundle.plans[0].priceUSD)}</div>
+                    {bundle.plans[0].compareAtUSD && (
+                      <div className="text-xs text-white/50 line-through">
+                        {formatUSD(bundle.plans[0].compareAtUSD)}
+                      </div>
+                    )}
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-900">
+                    View
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </span>
+                </div>
+              </Link>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* Advanced Topics & CTA */}
        <section className="w-full py-24 bg-gray-900 text-white">
         <div className="container mx-auto px-4 max-w-4xl text-center">
@@ -123,7 +195,7 @@ export default function Home() {
               Explore MCP
             </Link>
              <Link
-              href="/en/neovim"
+              href="/en/neovim-integration"
               className="flex items-center justify-center rounded-md border border-gray-700 bg-gray-800 text-white px-8 py-4 text-sm font-semibold hover:bg-gray-700 transition-all"
             >
               Neovim Setup

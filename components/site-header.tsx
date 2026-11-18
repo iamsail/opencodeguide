@@ -17,9 +17,12 @@ export function SiteHeader({ lang = "en" }: SiteHeaderProps) {
           </Link>
         </div>
         <div className="flex-1 flex items-center justify-end space-x-4">
-          <nav className="flex items-center space-x-6 text-sm font-medium mr-4">
+          <nav className="hidden items-center space-x-6 text-sm font-medium mr-4 md:flex">
             {lang === "zh" ? (
                <>
+                 <Link href="/zh/courses" className="transition-colors hover:text-gray-800/80 text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
+                   课程
+                 </Link>
                  <a
                    href="https://ccapi.ai/register?aff=6dhz"
                    target="_blank"
@@ -54,6 +57,9 @@ export function SiteHeader({ lang = "en" }: SiteHeaderProps) {
                 </>
             ) : (
                 <>
+                  <Link href="/en/courses" className="transition-colors hover:text-gray-800/80 text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
+                    Courses
+                  </Link>
                   <a
                     href="https://ccapi.ai/register?aff=6dhz"
                     target="_blank"

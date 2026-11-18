@@ -142,6 +142,13 @@
 - **MDX 修复**: 解决了由于 `mdxRs` 编译器限制导致的 Markdown 表格渲染异常，通过 HTML 兼容方案修复了中英文核心页面的表格样式。
 - **新增内容 (En)**: 完成 `/en/oh-my-opencode` 社区工作流枢纽页面，针对 "Oh My OpenCode" 及 "OpenCode Workflows" 进行 SEO 优化 ([TASK063])。
 
+## 课程板块 (2026-11-18)
+- **功能**: 新增课程售卖板块（中英双语）：`/zh/courses`、`/en/courses` 目录页，`[slug]` 详情页（4 门课 + 全站通），`thank-you` 付款回执页。课程内容由 `content/courses/*.json` 驱动，新增课程无需改代码。
+- **支付**: 因站点为静态导出，采用 Stripe Payment Link；`scripts/courses/stripe-payment-links.mjs` 幂等创建 Product/Price/Link 并写入 `stripe-links.json`；购买按钮带 `client_reference_id` 与 utm 跟踪；GA4 `begin_checkout` 埋点。未配置链接时自动降级为等待名单/联系。
+- **合规**: 新增 `/refund-policy` 与 `/zh/refund-policy`；隐私政策补充课程购买与等待名单的数据说明。
+- **设计文档**: `docs/courses/`（市场分析、功能设计、课程内容、Stripe 方案、分期路线图、`06-todo` 进度看板）。
+- **验证**: `next build` 静态导出通过（158 页）；`tsc --noEmit` 通过；sitemap 收录 30 条课程 URL 且排除感谢页；`Course` JSON-LD、canonical、hreflang 输出正确；用临时 Stripe 链接构建验证过 `client_reference_id`/utm 参数与未配置时的降级行为。
+- **待办**: P1（正式收款 + 邮件交付）见 `docs/courses/06-todo.md` 与 `TASK105`；阻塞项为 Stripe 密钥、等待名单端点、视频/模板/社群交付物。
 ## Known Issues
 -   Screenshots are still text-based placeholders.
 -   Chinese documentation depth still needs to be expanded for Providers/Configuration sections.

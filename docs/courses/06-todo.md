@@ -1,0 +1,110 @@
+# 06 · TODO 与进度看板
+
+> 更新时间：2026-11-18 · 分支 `dev`
+> 状态图例：`[x]` 已完成 · `[ ]` 未开始 · `[~]` 进行中 · `[!]` 需外部输入
+
+## 0. 总览
+
+| 阶段 | 范围 | 状态 | 完成度 |
+| :--- | :--- | :--- | :--- |
+| P0 基建与预售 | 课程页、数据层、Stripe 接入、文档 | 已完成 | 100% |
+| P1 首发成交 | 正式收款、优惠码、邮件交付、发票 | 未开始（需密钥与交付物） | 0% |
+| P2 会员中心 | 登录、权益、播放页、Webhook | 未开始（方案已定） | 0% |
+| P3 规模化 | 订阅、企业采购、联盟、训练营 | 未开始 | 0% |
+
+## 1. P0 已完成清单（本地已验证）
+
+- [x] 双语课程目录页 `/zh/courses`、`/en/courses`（四条路线、课程卡、全站通、学习路径、FAQ）
+- [x] 课程详情页 5 个（4 门课 + 全站通），`generateStaticParams` 静态生成，`dynamicParams = false`
+- [x] 付款回执页 `/zh|courses/thank-you`，读取 `?course=&plan=` 展示本地化订单摘要（Suspense 包裹）
+- [x] 课程数据层 `lib/courses.ts` + 文案层 `lib/course-copy.ts`
+- [x] 课程内容 `content/courses/*.json`（110 节课大纲，中英双语）
+- [x] Stripe Payment Link 生成脚本（幂等、`--dry-run`、`--only`、`--force`、`--redirect-locale`）
+- [x] 支付链接解析优先级：环境变量 > `stripe-links.json` > 降级（等待名单 / 联系）
+- [x] 跟踪参数：`client_reference_id` + 4 个 utm 参数
+- [x] GA4 `begin_checkout` 埋点
+- [x] 退款政策页 `/refund-policy`、`/zh/refund-policy`；隐私政策补充课程购买与等待名单说明
+- [x] sitemap 收录课程页（含 hreflang alternate），排除感谢页；搜索索引包含课程
+- [x] 导航 / 页脚 / 首页课程区入口；移动端头部导航适配
+- [x] 设计文档 `docs/courses/01-05`
+- [x] 构建验证：`npm run build` 通过（158 页）、`tsc --noEmit` 通过
+
+## 2. 需要人工完成（阻塞 P1 上线）
+
+- [!] **Stripe 账户与密钥**：确认主体、KYB 通过；提供 `sk_live_...`
+  - 命令：`npm run courses:stripe:dry` → `STRIPE_SECRET_KEY=sk_live_xxx npm run courses:stripe`
+  - 产物：`content/courses/stripe-links.json`（提交后重新构建生效）
+- [!] **等待名单端点**：创建 Formspree / Buttondown 表单，配置 `NEXT_PUBLIC_COURSE_WAITLIST_ENDPOINT`
+- [!] **交付物**：视频托管链接（Mux / Cloudflare Stream / 视频号）、模板仓库（私有 GitHub）、社群邀请链接
+- [!] **邮件域名**：配置 SPF / DKIM / DMARC，保证开通邮件不进垃圾箱
+- [!] **税务与主体确认**：根据主体所在地确认 Stripe Tax / VAT / 收入申报方式（见 04 文档第 6 节）
+- [ ] **法务页审阅**：退款政策、隐私政策、服务条款（当前条款为通用版本，建议按主体信息补充公司名与管辖地）
+
+## 3. P1 · 首发成交（建议 2-4 周）
+
+### 3.1 支付与订单
+
+- [ ] 生成正式 Payment Link，逐条核对价格、币种、回执跳转
+- [ ] 用真实小额订单跑通「支付 → 回执 → 邮件 → 退款」全链路
+- [ ] 配置 Statement descriptor（银行账单可识别，降低拒付）
+- [ ] 生成早鸟优惠码（限时 + 限量），在详情页展示入口
+- [ ] 对账脚本：导出 Stripe Payments（按 `client_reference_id` 分组）与课程维度的订单表
+
+### 3.2 交付自动化
+
+- [ ] Cloudflare Worker（或 Vercel Function）：接收 `checkout.session.completed` Webhook
+- [ ] 校验 `Stripe-Signature`，按 `event.id` 幂等
+- [ ] Resend / Postmark 发送开通邮件（观看链接 + 模板仓库邀请 + 社群邀请）
+- [ ] 退款（`charge.refunded`）时发送通知并标记订单
+- [ ] 邮件模板中英双语，含 7 天退款说明与客服邮箱
+
+### 3.3 页面与内容
+
+- [ ] 每门课加 1 节公开试听（视频或文章），详情页展示
+- [ ] 详情页展示「最近更新 / 更新日志」区块
+- [ ] 补充真实 FAQ（来自社群与邮件的高频问题）
+- [ ] 英文详情页文案校对（当前为直译初稿）
+- [ ] 课程页与相关文档互链（AI 编程课 ↔ `/zh/docs/configure/agents` 等）
+
+### 3.4 运营
+
+- [ ] 订单检查 SOP（每日）：新订单 → 交付确认 → 异常跟进
+- [ ] 客服话术库（付款失败、未收到邮件、退款、发票）
+- [ ] 首月复盘：退款率、支付成功率、详情页转化率
+
+## 4. P2 · 会员中心（建议 6-12 周）
+
+- [ ] 基础设施：Cloudflare Worker + Supabase 项目 + `orders` / `entitlements` / `progress` 表
+- [ ] Checkout Session 接口替换 Payment Link（新流量），保留旧链接兼容
+- [ ] Webhook 入库：`checkout.session.completed`、`invoice.paid`、`charge.refunded`、`charge.dispute.created`
+- [ ] Magic Link 登录（Supabase Auth），注册时按邮箱合并历史订单
+- [ ] 课程播放页：视频托管 + 防盗链 + 章节导航
+- [ ] 学习进度记录与「继续上次学习」
+- [ ] 退款自动回收权益（1 分钟内生效）
+- [ ] 自助：重发开通邮件、换绑邮箱、申请退款
+- [ ] 管理端最小能力：按邮箱查订单、手动补发权益
+
+## 5. P3 · 规模化（3-6 个月）
+
+- [ ] 订阅制（月付/年付）与会员专属内容
+- [ ] 企业采购：多席位、统一发票、内训版
+- [ ] 联盟分销：Stripe Coupon + 独立推广链接 + 佣金结算
+- [ ] 直播训练营：排期、报名、回放
+- [ ] A/B 测试：Hero 标题、价格锚点、CTA 文案（单变量）
+- [ ] 新课程：Stripe 深度实战 → AI Agent 产品化 → 企业内训
+
+## 6. 技术债与优化（随时可做）
+
+- [ ] 课程 JSON 的 schema 校验脚本（构建前校验必填字段、价格、slug 唯一性）
+- [ ] 课程页视觉回归截图（当前手动用 Chrome headless 抽查）
+- [ ] 把 `lib/course-copy.ts` 的文案抽成 JSON（与课程内容同构，便于翻译外包）
+- [ ] 详情页价格支持多币种展示（USD 主价 + CNY/EUR 参考）
+- [ ] 为课程页增加 OG 图片（当前复用站点默认）
+- [ ] 课程卡片的「2026 版」徽章改为数据字段（`edition`），避免硬编码
+
+## 7. 下一步建议（优先级排序）
+
+1. **P1 邮件交付 Worker**：投入产出最高，直接决定「付款后能不能顺利开课」。
+2. **正式 Payment Link + 早鸟码**：打通真实收款，验证转化。
+3. **试听内容**：提升详情页转化率的关键素材。
+4. P2 会员中心：等 P1 有稳定订单后再启动，避免过度建设。

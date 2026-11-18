@@ -1,0 +1,295 @@
+{
+  "slug": "global-site-seo",
+  "kind": "course",
+  "track": "global-seo",
+  "level": "intermediate",
+  "status": "live",
+  "icon": "Globe2",
+  "accent": "from-sky-500 via-blue-500 to-indigo-500",
+  "durationHours": 10,
+  "lessonCount": 24,
+  "lastUpdated": "2026-11",
+  "plans": [
+    {
+      "id": "single",
+      "priceUSD": 99,
+      "priceCNYRef": 719,
+      "compareAtUSD": 149,
+      "features": {
+        "zh": [
+          "24 节视频课 + 全部课件（永久观看）",
+          "多语言站点 SEO 检查脚本（开源）",
+          "结构化数据与 hreflang 模板",
+          "7 天无理由退款"
+        ],
+        "en": [
+          "24 video lessons + all courseware (lifetime access)",
+          "Open-source multilingual SEO audit script",
+          "Structured data and hreflang templates",
+          "7-day no-questions refund"
+        ]
+      }
+    },
+    {
+      "id": "pro",
+      "priceUSD": 179,
+      "priceCNYRef": 1299,
+      "compareAtUSD": 249,
+      "badge": { "zh": "推荐", "en": "Recommended" },
+      "features": {
+        "zh": [
+          "包含「单课版」全部内容",
+          "一次站点 SEO 体检（60 分钟，含录屏与改法清单）",
+          "关键词与内容日历模板",
+          "60 天社群答疑",
+          "Google Search Console 数据解读陪跑"
+        ],
+        "en": [
+          "Everything in the Single plan",
+          "One 60-minute SEO audit with recording and fix list",
+          "Keyword and content calendar templates",
+          "60 days of community support",
+          "Search Console interpretation walkthrough"
+        ]
+      }
+    }
+  ],
+  "locales": {
+    "zh": {
+      "title": "出海网站 SEO 与增长工程：多语言站点的流量飞轮",
+      "subtitle": "从站点架构、技术 SEO 到内容与外链，把搜索流量做成可持续的获客渠道",
+      "tagline": "不是「发 100 篇文章」的玄学 SEO，而是用工程方法搭建可度量、可迭代的多语言站点增长系统。",
+      "audience": [
+        "做出海产品 / 工具站，希望降低对付费广告依赖的开发者",
+        "负责官网流量与转化的增长工程师、独立开发者",
+        "有中文站、准备做英文/多语言版本的内容团队",
+        "需要给客户交付 SEO 方案的建站与营销服务商"
+      ],
+      "outcomes": [
+        "设计正确的多语言站点架构（子目录 / 子域 / 参数）与 hreflang 策略",
+        "做出搜索引擎与 AI 摘要都能读懂的技术 SEO 基础",
+        "用结构化数据（Course / Product / FAQ / Article）拿到富媒体结果",
+        "建立关键词 → 内容 → 内链 → 转化的可复制生产流程",
+        "读懂 Search Console 与 GA4，定位「有排名没点击」「有流量没转化」",
+        "用 6 个可量化指标判断 SEO 投入是否值得继续"
+      ],
+      "deliverables": [
+        "多语言 SEO 检查清单（46 项，含 hreflang 生成规则）",
+        "结构化数据代码模板（7 种常见类型）",
+        "内容日历与内链规划表",
+        "Search Console 诊断决策树"
+      ],
+      "modules": [
+        {
+          "title": "模块 1 · 出海 SEO 的基础判断",
+          "summary": "先想清楚：你的产品值不值得做 SEO。",
+          "lessons": [
+            "搜索需求的四象限：高意图 / 低意图 / 品牌词 / 竞品词",
+            "新站 6 个月能拿到什么：真实预期与常见幻觉",
+            "关键词研究：工具组合与「可赢关键词」筛选",
+            "竞品反查：从对手的内容结构里找缺口"
+          ]
+        },
+        {
+          "title": "模块 2 · 多语言站点架构",
+          "summary": "架构错了，后面写多少内容都白费。",
+          "lessons": [
+            "子目录、子域、独立域名的取舍（含成本与权重继承）",
+            "hreflang 的正确写法与 5 个高频错误",
+            "语言与地区分离：en-US / en-GB / es-MX 该怎么组织",
+            "默认语言、自动跳转与爬虫可达性",
+            "静态导出站点的多语言路由实现（Next.js 实战）"
+          ]
+        },
+        {
+          "title": "模块 3 · 技术 SEO 与站点质量",
+          "summary": "让爬虫爬得动、渲染得对、索引得准。",
+          "lessons": [
+            "Core Web Vitals：静态导出 + CDN 的性能基线",
+            "canonical、sitemap、robots 的正确配合",
+            "渲染方式选择：SSG / SSR / 客户端渲染分别适合什么内容",
+            "结构化数据实战：Article、FAQ、Product、Course、Breadcrumb",
+            "AI 搜索时代的可引用性：清晰结构、事实密度与实体标记"
+          ]
+        },
+        {
+          "title": "模块 4 · 内容生产系统",
+          "summary": "内容不是灵感，是流水线。",
+          "lessons": [
+            "搜索意图分类：导航、信息、商业调查、交易",
+            "文章结构模板：从标题到结论的可复用骨架",
+            "内链设计：用 3 层结构把权重导到转化页",
+            "AI 辅助写作的边界：哪些部分必须人来写",
+            "内容更新机制：老文章翻新的收益为什么高于新文章"
+          ]
+        },
+        {
+          "title": "模块 5 · 外链与分发",
+          "summary": "冷启动阶段，分发比写作更重要。",
+          "lessons": [
+            "可链接资产：工具、数据、模板的三种做法",
+            "社区分发：Reddit / HN / Product Hunt 的正确姿势",
+            "目录站、对比站与合作伙伴外链",
+            "外链质量判断与风险规避"
+          ]
+        },
+        {
+          "title": "模块 6 · 度量与迭代",
+          "summary": "用数据决定下一篇写什么。",
+          "lessons": [
+            "Search Console 必看报表与常见误读",
+            "GA4 事件设计：从访问到注册到付费的归因",
+            "6 个判断 SEO 是否值得继续的指标",
+            "季度增长复盘与下季度内容排期"
+          ]
+        }
+      ],
+      "faq": [
+        {
+          "q": "课程适合已经有一定流量的站吗？",
+          "a": "适合。模块 2、3 会帮你修正架构性问题，模块 6 会告诉你哪些页面该保留、哪些该合并或删除——这通常比写新文章带来更快的提升。"
+        },
+        {
+          "q": "需要会写代码吗？",
+          "a": "技术 SEO 部分会涉及 HTML、Next.js 与结构化数据，但会给出可直接复制的实现；非技术同学可以跳过代码细节，掌握决策与验收标准。"
+        },
+        {
+          "q": "会教 AI 批量生成文章吗？",
+          "a": "会讲 AI 在研究与初稿中的高效用法，也会明确哪些环节必须人工介入，以及搜索引擎对低质批量内容的处理方式。"
+        },
+        {
+          "q": "多久能看到效果？",
+          "a": "技术修复通常 2-6 周可见索引变化；内容排名一般 3-6 个月起步。课程会给你阶段性里程碑，而不是「一个月上首页」的承诺。"
+        }
+      ],
+      "seo": {
+        "title": "出海网站 SEO 课程：多语言站点的流量飞轮",
+        "description": "面向出海产品的 SEO 工程课：多语言架构与 hreflang、技术 SEO、结构化数据、内容生产流水线、外链分发与 Search Console 度量，24 节课建立可迭代的增长系统。"
+      },
+      "instructor": {
+        "name": "OpenCode Guide 课程组",
+        "role": "多语言站点增长与 SEO 工程实践",
+        "bio": "我们运营着中英韩三语的文档站点，课程里的每个策略都在自有站点上验证过：哪些带来了自然流量，哪些只是看起来很美。"
+      },
+      "guarantee": "7 天无理由退款：先看模块 1 和 2，判断是否匹配你的阶段。"
+    },
+    "en": {
+      "title": "Global Site SEO & Growth Engineering: The Multilingual Traffic Flywheel",
+      "subtitle": "Architecture, technical SEO, content and distribution for search traffic that compounds",
+      "tagline": "Not 'publish 100 posts' mysticism — an engineering approach to a measurable, iterable multilingual growth system.",
+      "audience": [
+        "Developers of global products and tool sites reducing dependence on paid ads",
+        "Growth engineers and indie developers owning site traffic and conversion",
+        "Content teams with a Chinese site preparing English or multilingual versions",
+        "Agencies delivering SEO work to clients"
+      ],
+      "outcomes": [
+        "Design the right multilingual architecture (subdirectory, subdomain, parameter) and hreflang strategy",
+        "Build technical SEO that both search engines and AI summaries can parse",
+        "Win rich results with structured data (Course, Product, FAQ, Article)",
+        "Run a repeatable pipeline: keyword → content → internal links → conversion",
+        "Read Search Console and GA4 to diagnose 'ranked but no clicks' and 'traffic but no conversion'",
+        "Decide with six metrics whether SEO investment should continue"
+      ],
+      "deliverables": [
+        "A 46-item multilingual SEO checklist with hreflang generation rules",
+        "Structured data templates for seven common types",
+        "Content calendar and internal linking planner",
+        "A Search Console diagnostic decision tree"
+      ],
+      "modules": [
+        {
+          "title": "Module 1 · Is SEO even right for you?",
+          "summary": "Decide before you invest.",
+          "lessons": [
+            "The four quadrants of search demand: high/low intent, brand, competitor",
+            "What a new site can realistically achieve in six months",
+            "Keyword research: tool stack and finding winnable keywords",
+            "Competitor teardown: finding gaps in their content structure"
+          ]
+        },
+        {
+          "title": "Module 2 · Multilingual architecture",
+          "summary": "Wrong architecture wastes every word you write.",
+          "lessons": [
+            "Subdirectory, subdomain or ccTLD: cost and authority tradeoffs",
+            "hreflang done right, and five mistakes that break it",
+            "Language vs region: organising en-US, en-GB and es-MX",
+            "Default language, auto-redirects and crawler reachability",
+            "Implementing multilingual routes on a static Next.js export"
+          ]
+        },
+        {
+          "title": "Module 3 · Technical SEO and site quality",
+          "summary": "Crawlable, renderable, indexable.",
+          "lessons": [
+            "Core Web Vitals: performance baselines for static export plus CDN",
+            "Canonicals, sitemaps and robots working together",
+            "SSG, SSR or client rendering — which content needs which",
+            "Structured data in practice: Article, FAQ, Product, Course, Breadcrumb",
+            "Citable in the AI search era: structure, fact density, entity markup"
+          ]
+        },
+        {
+          "title": "Module 4 · The content production system",
+          "summary": "Content is a pipeline, not inspiration.",
+          "lessons": [
+            "Search intent classification: navigational, informational, commercial, transactional",
+            "Article skeletons you can reuse from headline to conclusion",
+            "Internal linking: a three-layer structure that funnels authority to money pages",
+            "Where AI helps and where a human must write",
+            "Content refreshes beat new posts — here is the process"
+          ]
+        },
+        {
+          "title": "Module 5 · Links and distribution",
+          "summary": "Early on, distribution beats writing.",
+          "lessons": [
+            "Linkable assets: tools, data and templates",
+            "Community distribution: Reddit, Hacker News and Product Hunt without getting banned",
+            "Directories, comparison sites and partner links",
+            "Link quality assessment and risk avoidance"
+          ]
+        },
+        {
+          "title": "Module 6 · Measurement and iteration",
+          "summary": "Let data pick the next article.",
+          "lessons": [
+            "Search Console reports worth reading and how they mislead",
+            "GA4 event design: attribution from visit to signup to payment",
+            "Six metrics that tell you whether to keep investing",
+            "Quarterly growth review and next-quarter content planning"
+          ]
+        }
+      ],
+      "faq": [
+        {
+          "q": "I already have some traffic. Is this still relevant?",
+          "a": "Yes. Modules 2 and 3 fix structural issues, and module 6 tells you which pages to keep, merge or remove — usually a faster win than publishing more."
+        },
+        {
+          "q": "Do I need to code?",
+          "a": "Technical SEO covers HTML, Next.js and structured data, but implementations are copy-paste. Non-technical students can skip the code and focus on decisions and acceptance criteria."
+        },
+        {
+          "q": "Do you teach AI content generation at scale?",
+          "a": "We cover high-leverage AI use for research and drafts, and are explicit about what must stay human and how search engines treat low-quality bulk content."
+        },
+        {
+          "q": "How fast are results?",
+          "a": "Technical fixes often show indexing changes in 2-6 weeks; content rankings typically take 3-6 months. The course gives staged milestones, not 'page one in a month' promises."
+        }
+      ],
+      "seo": {
+        "title": "Global Site SEO Course — The Multilingual Traffic Flywheel",
+        "description": "An SEO engineering course for global products: multilingual architecture and hreflang, technical SEO, structured data, content pipelines, distribution and Search Console measurement. 24 lessons."
+      },
+      "instructor": {
+        "name": "OpenCode Guide Course Team",
+        "role": "Multilingual growth and SEO engineering",
+        "bio": "We run a trilingual documentation site, so every tactic in this course was tested on our own traffic — including the ones that looked clever and did nothing."
+      },
+      "guarantee": "7-day refund: watch modules 1 and 2 to see whether it fits your stage."
+    }
+  }
+}
