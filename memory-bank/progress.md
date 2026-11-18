@@ -142,6 +142,16 @@
 - **MDX 修复**: 解决了由于 `mdxRs` 编译器限制导致的 Markdown 表格渲染异常，通过 HTML 兼容方案修复了中英文核心页面的表格样式。
 - **新增内容 (En)**: 完成 `/en/oh-my-opencode` 社区工作流枢纽页面，针对 "Oh My OpenCode" 及 "OpenCode Workflows" 进行 SEO 优化 ([TASK063])。
 
+## 课程文章化 (2026-11-18)
+- **形态**: 四门课由「视频课」改为图文课。课时正文按 `content/courses/<locale>/<course>/<slug>.mdx` 存放，frontmatter（title/summary/module/lesson/duration/free/objectives）通过 module/lesson 对位 JSON 大纲。
+- **阅读页**: `/zh/courses/<course>/<lesson>`：侧边课表（含「制作中」占位）、本节目标、MDX 正文（remark-gfm 表格 + rehype-slug 锚点）、上下篇导航、canonical/hreflang。
+- **内容**: 课程 1「AI 编程实战」27 节 + 课程 2「独立开发者出海」33 节 + 课程 3「跨境电商独立站」28/36 节，合计 88/123 节中文正文。课程 3 剩余 8 节（广告投放、数据复购）与课程 4 的 27 节待写，英文版待翻译。
+- **检索与结构化数据**: 课时页收录进 `public/search.json`（按 content/courses 扫描），并输出 `TechArticle` JSON-LD（isPartOf 指回 Course）；代码块接 rehype-pretty-code，与文档站同主题。
+- **一致性**: 商品话术/FAQ/统计数字去掉「视频」；节数校正为 27/33/36/27=123（bundle 110→123）；课程 1 `durationHours` 12→4（按 27×8.5 分钟阅读）。
+- **验证**: `npm run build` 通过；`tsc --noEmit` 通过；`courses:validate` 0 错误、66 个课时页（27+33+28，构建数会随正文增加）。
+- **构建稳定性**: `next/font/google` 在弱网下 3 秒超时会让 build/dev 直接失败，改为 `next/font/local` 自托管 Inter（47KB woff2），构建不再依赖外网。
+- **待决策**: 静态站无法鉴权 —— 正文目前对所有人可见，付费墙需要在「开放/Worker 签名链接/会员中心」之间选一条。
+
 ## 课程板块 P1 交付自动化 (2026-11-18)
 - **交付 Worker**: 新增 `workers/course-delivery`（Cloudflare Worker，零运行时依赖）：`POST /stripe/webhook` 校验 `Stripe-Signature`（WebCrypto HMAC-SHA256 + 5 分钟容差 + 定长比较）→ `processed_events` 按 `event.id` 幂等 → `orders` 落库（`session_id` 唯一）→ Resend 发中英双语开通邮件；`charge.refunded` 标记退款并回收权益，`charge.dispute.created` 标记拒付并告警举证。
 - **失败策略**: 邮件失败不阻断 Webhook（订单已落库，改用 `POST /admin/resend` 补发）；无邮箱/识别不出课程/交付链接未配 → `needs_manual_delivery` + 运营告警，不给买家发半成品邮件；只有 D1 写失败才返回 500 让 Stripe 重试（并撤销幂等标记）。

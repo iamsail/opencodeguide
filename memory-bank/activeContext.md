@@ -3,6 +3,8 @@
 ## Current Focus
 - **[TASK104 已完成 2026-11-18]**: 课程板块 Phase 1 完成并验证。新增 `/zh/courses` 与 `/en/courses`（目录/详情/回执），4 门课程 + 全站通由 `content/courses/*.json` 驱动；Stripe 采用 Payment Link（纯静态兼容），由 `npm run courses:stripe` 生成链接写入 `content/courses/stripe-links.json`。设计、课程大纲与进度看板见 `docs/courses/`（含 `06-todo.md`）。
 - **课程板块技术约束**: 站点是 `output: 'export'`，不要给课程页加 API Route / Server Action；需要服务端能力（会员中心/Webhook）时按 `docs/courses/04-stripe-integration.md` 的 Phase 2 方案走 Worker + Supabase。
+- **[TASK107 设计完成 2026-11-18]**: 课程访问控制定稿「只公开每门前 2–3 节，其余进会员中心」。关键结论：安全边界在构建期（公开产物不含付费正文），成员站走 `learn.` 子域 + Cloudflare Worker 静态资源 + 自建 magic link，权益从 Stripe 订单派生并随退款即时降权。设计稿 `docs/courses/07-access-control.md`，4–6 人日，待确认 3 个决策（免费节数、DNS、自建还是 Supabase Auth）。
+- **[TASK106 进行中 2026-11-18]**: 课程改为**文章版**。课时正文存 `content/courses/<locale>/<courseSlug>/*.mdx`（frontmatter 用 module/lesson 指回 JSON 大纲），阅读页 `/zh/courses/<slug>/<lesson>`；课程 1（27 节）、课程 2（33 节）完成，课程 3「跨境电商独立站」28/36 节完成（合计 88/123），课程 3 剩余 8 节、课程 4 的 27 节与英文版待写。付费墙未解决：静态导出无法鉴权，正文当前公开可见。详见 `tasks/TASK106-course-articles.md`。
 - **[TASK105 进行中 2026-11-18]**: 课程 P1 的代码部分已落地——`workers/course-delivery`（Stripe 签名校验 + D1 幂等落库 + Resend 双语开通/退款邮件 + `/admin/resend` 补发）与 `scripts/courses/validate-courses.mjs`（已接入 `npm run build`），`npm run workers:test` 40/40、build/tsc 全绿。仍阻塞于真实 Stripe 密钥、`COURSE_DELIVERY` 交付物（视频/模板仓库/社群）与 Resend 域名验证；任务文件 `memory-bank/tasks/TASK105-course-platform-p1-delivery.md`。
 - **[TASK103 已完成 2026-10-26]**: OpenCode v2 文档同步 Phase 0~4 全部完成。中文文档 36→81 页，与官方 v2（opencode.ai/v2/docs）对齐；后续维护只需定期跑 `npm run docs:sync`。可选 backlog：Phase 5 GitHub Actions 周检（fetch/diff 开 issue）。详见 `tasks/TASK103-docs-sync-pipeline-v2.md`。
 - **Next.js 已升级 16.1.1→16.4.3**: 修复官方 #87713 SWC 多字节 panic（16.1.x 的 MDX 正文含 CJK 时生产构建必崩）；若回退该版本会复发。
@@ -12,6 +14,7 @@
 - Maintaining site stability while expanding the Chinese documentation suite.
 
 ## Recent Changes
+- **课程文章化 ([TASK106], 2026-11-18)**: 四门课从「视频课」改为图文课：新增 `lib/course-lessons.ts`（MDX 课时解析/课表/上下篇）与 `components/courses/lesson-view.tsx`，课时路由 `/zh/courses/[slug]/[lesson]`；详情页课表接入课时链接并显示「文章版 · 已上线 N/M 节」；sitemap 收录课时；校验脚本扩展到课时 frontmatter 与大纲对位。课程 1 的 27 节中文正文已完成（约 7.9 万字符）。商品话术、FAQ、统计数字去掉「视频」，节数校正为 27/33/36/27=123。顺带把字体改为 `next/font/local` 自托管，修掉构建期 gstatic 超时导致的 `Can't resolve '@vercel/turbopack-next/internal/font/google/font'` 失败。
 - **课程 P1 交付自动化 ([TASK105], 2026-11-18)**: 新增 `workers/course-delivery`（Cloudflare Worker，独立部署、零运行时依赖）：`/stripe/webhook` 验签（WebCrypto）+ `event.id` 幂等 + `orders` 落库 + Resend 中英双语开通邮件，退款与拒付分别改状态、回收权益、告警举证；`/admin/resend` 支持按 session 补发。新增 `scripts/courses/validate-courses.mjs` 并接入 build 前置校验（结构/枚举/价格/双语完整度/支付链接有效性），把课程数据的静默降级变成构建期可见的警告；`npm run workers:test` 40/40 通过。
 - **课程板块 ([TASK104], 2026-11-18)**: 新增 `lib/courses.ts`（数据/定价/支付链接解析）与 `lib/course-copy.ts`（双语文案）；8 个课程路由（中英目录/详情/回执）；课程卡、购买卡、等待名单与 `Course` JSON-LD 组件；Stripe Payment Link 生成脚本（幂等/dry-run）；sitemap 收录课程页并排除感谢页；首页/导航/页脚入口；新增 `/refund-policy`、`/zh/refund-policy` 并在隐私政策补充课程购买数据说明；修复 Tailwind 未扫描课程 JSON、bundle 未进 `generateStaticParams`、移动端头部导航溢出三个问题。
 - **Phase 3 完成 ([TASK103], 2026-10-26)**: 45 个新页三批全部生成（CLI6+Docs主题9+Build10+Console20）；docsConfigZh 扩展 5 组；ROUTE_MAP 4.1~4.5 更新；firstParagraph 按标点截断；PlanTabs 降级重写（slot 内容保留为 Go/Go Plus 小节）。build 142 页全绿。批 C 曾因系统内存不足中断一次，恢复后幂等补齐。
