@@ -1,0 +1,94 @@
+---
+title: "收入记账与税务申报的基础认知"
+summary: "把到账金额还原成收入、手续费与退款，做出能交给会计的月度账"
+module: 7
+lesson: 3
+duration: 9
+free: false
+objectives:
+  - "说清 payout 与收入的区别，并列出收入确认应依据哪张表"
+  - "在现金制与权责发生制之间选定一种口径，并写出对应的月度关账查询"
+  - "整理出一份可直接交给会计或代账方的凭证包，并说明留存年限怎么定"
+---
+
+银行到账一笔钱，不等于这个月的收入是这笔钱。把 payout 当收入记账，第一次做申报就会发现对不上：退款发生在下个月、拒付又晚两周、手续费从头到尾没进过账，之后每个月都在补窟窿而不是记账。
+
+## payout 是资金划转，收入在别处
+
+Stripe 的 payout 是一批 charge 减去手续费、退款、拒付、换汇之后的净额，按结算周期打到银行，跨越月末是常态。收入的事实来源是 `charge` 与 `balance transaction`：后者的 `type` 会告诉你这笔是 `charge`、`refund`、`adjustment` 还是 `payout`，`amount`、`fee`、`net` 三个字段就是记账需要的全部数字。
+
+所以第一条纪律是：银行流水只用来核对 payout 是否到账，收入一律从 `balance transaction` 取，退款与手续费才能落在正确的月份。
+
+## 两套口径，选一套并写下来
+
+现金制是收到钱就算收入，和银行流水天然对得上，小主体常用；代价是预售与年付会让某个月虚高，跨年时解释不清。权责发生制是交付了才算收入，未交付的部分挂递延收入，月度数字平滑，代价是每月要做一次分摊，还要维护递延余额。
+
+数字课程按交付时点确认，年付订阅按服务期分摊。选定后写进 `docs/accounting.md`：汇率口径、退款冲减哪个月、拒付是否算当期损失——三条不定，每月都要重新吵一次。
+
+| 记账口径 | 适用条件 | 好处 | 代价 |
+| :--- | :--- | :--- | :--- |
+| 现金制 | 一次性付款为主，没有预售与年付 | 简单，和银行流水直接对 | 单月收入会虚高，跨年说不清 |
+| 权责发生制 | 有年付订阅、预售、按进度交付 | 收入平滑，看得出真实经营 | 要维护递延收入余额，每月分摊 |
+| 混合：报税用现金、管理看权责发生 | 一个人，有订阅但不想养两套账 | 兼顾合规与判断 | 两套数字要能对上，中间要有调节表 |
+| 全交给代账，只要月度汇总 | 收入已稳定，不想自己学 | 省时间 | 凭证仍要你提供，看不懂对方在算什么 |
+
+## 每笔交易只有五种处理
+
+charge 记收入与手续费；refund 冲减收入；chargeback 冲减收入并另记拒付费；fee 记费用；跨境换汇的差额记汇兑损益。gross 法把 100 记收入、3 记手续费，净额法只记 97。净额法省事，但报表里看不出真实费率，定价时会误判。
+
+```sql
+-- 月度关账：balance transaction 同步到本地表后，一张查询出齐三类数字
+create table if not exists balance_txns (
+  id text primary key,
+  created_at timestamptz not null,
+  type text not null,            -- charge / refund / adjustment / payout
+  currency text not null,
+  amount_cents integer not null, -- refund 在 Stripe 侧本身就是负数
+  fee_cents integer not null,
+  net_cents integer not null,
+  exchange_rate numeric,
+  source_id text                 -- charge 或 refund 的 id，用于关联订单
+);
+
+select date_trunc('month', created_at) as month,
+       currency,
+       sum(case when type = 'charge' then amount_cents else 0 end) as gross_cents,
+       sum(case when type = 'refund' then amount_cents else 0 end) as refund_cents,
+       sum(fee_cents) as fee_cents,
+       sum(net_cents) as net_cents
+  from balance_txns
+ where created_at >= date_trunc('month', now()) - interval '12 months'
+ group by 1, 2
+ order by 1 desc;
+```
+
+每月关账后对一次 payout：同一批交易的净额之和应等于 payout 金额，不等说明有交易落在别的周期。
+
+```bash
+# payout 与内部交易明细对不上时，先用这条看差额
+PAYOUT_ID=po_xxx
+curl -s -u "$STRIPE_SECRET_KEY:" \
+  "https://api.stripe.com/v1/balance_transactions?payout=$PAYOUT_ID&limit=100" \
+  | jq '{txn_net: ([.data[].net] | add / 100), count: (.data | length), has_more}'
+```
+
+## 申报节奏与凭证
+
+月度关账，季度看是否触发增值税或销售税的登记门槛（门槛数字会变，以税局当期公告为准），年度做所得税申报。中国居民个人的境外所得需要并入申报，境外已缴税款通常可以抵免，具体适用要按当期税法与专业意见判断，别照搬别人的经验。
+
+凭证包固定四类：发票或收据、退款与拒付记录、银行流水与 payout 清单、合同与条款页面版本。留存年限按主体所在地法规，各地要求不同时取最长的那条，实操上按七年留底基本不会出错。代账方要的从来不是「一个月赚了多少」，而是能对上每一笔的原始单据。
+
+## 落地动作
+
+1. 建 `docs/accounting.md`，写下三件事：确认时点、汇率口径、退款冲减月份。三段话就够，但必须落成文字。
+2. 把 `balance_txns` 建起来，写一个按 `created[gte]` 增量拉取的脚本，每天同步一次，别等月底再导。
+3. 每月 3 号前跑上面的关账查询，把 `gross / fee / refund / net` 四个数抄进一张月度表，连续记满 12 个月再看趋势。
+4. 设一个每季度的提醒，检查销售额是否接近某国的登记门槛，并确认凭证包是否齐全。
+
+月流水还只有几百美元、也没有企业客户时，不用上会计软件：一张表四个数字、每月一次 payout 核对就够。等出现第一笔跨境申报义务或第一个要发票的企业客户，再决定是买工具还是找代账。
+
+## 常见坑
+
+- **现象**：某月收入突然翻倍，下月又掉回去 → **原因**：用 payout 入账，而结算跨月，两个月的钱挤进了一个月 → **对策**：收入按 `balance transaction` 的 `created` 归属月份，payout 只用于核对到账。
+- **现象**：会计问「手续费为什么没入账」→ **原因**：用净额法记账，只记了到账金额，费用消失 → **对策**：改成 gross 法，收入与手续费分开记，费率才看得见。
+- **现象**：年底对不上，差额正好是几笔退款 → **原因**：退款发生在次年，冲减记在了退款当月，与收入确认口径混用 → **对策**：口径里写明退款冲减哪一期，全年一致，调整只做在期初而不是随手改。

@@ -1,0 +1,86 @@
+---
+title: "单库多租户 vs 独立 schema：什么时候该选哪个"
+summary: "按隔离等级而非技术偏好选租户模型，说清三种方案各自的运维代价与升级出口"
+module: 3
+lesson: 1
+duration: 9
+free: false
+objectives:
+  - "能用自己的产品定义一个可检验的「租户」，并说明哪些表可以没有 tenant_id"
+  - "能在共享表方案里写出 tenant_id、复合索引与越权查询的拦截点"
+  - "能给出从共享表升级到独立 schema 的触发条件与迁移路径"
+---
+
+多租户的讨论常从「要不要给每个客户一个 schema」开始，这个起点是错的。真正的分界只有三个：有没有单个客户的数据大到不能和别人共表、有没有合同条款要求物理隔离、以及你一个人能不能承担 N 套 schema 的变更。前两个问题多数产品答案是否，第三个才是每天都要付的成本。
+
+## 先把「租户」定下来，再谈方案
+
+本仓库的课程交付 Worker 是个值得对照的例子：`orders` 表里没有 `tenant_id`，只有 `email` 作自然键。因为它只有一个卖家，买家不是租户。很多人给每个注册用户建一个组织，几个月后有了几百个组织，`pg_dump` 变慢、迁移要跑几百遍，才发现自己把终端用户当成了租户。
+
+判断标准：租户是**数据归属的边界和付费的主体**，不是登录的人。一个租户可以有 20 个成员，一个成员也可以属于 3 个租户。定完之后，没带 `tenant_id` 的表必须能说出一句理由：全局字典、系统日志、Stripe 事件幂等表（`processed_events` 按事件去重）。
+
+## 共享表加 tenant_id：默认答案，但约束要进 schema
+
+隔离靠三样：每行都有的 `tenant_id`、租户打头的复合索引、一个不许绕过的查询入口。索引顺序不能反，`(tenant_id, created_at)` 才能同时服务「某租户的最新 N 条」和分页。
+
+```sql
+create table tenants (
+  id         text primary key,
+  slug       text not null unique,
+  plan       text not null default 'free',
+  isolation  text not null default 'shared',  -- shared | schema
+  created_at timestamptz not null default now()
+);
+
+create table projects (
+  id         text primary key,
+  tenant_id  text not null references tenants(id),
+  name       text not null,
+  created_at timestamptz not null default now(),
+  unique (tenant_id, name)
+);
+
+create index projects_tenant_created_idx on projects (tenant_id, created_at desc);
+```
+
+唯一约束必须带 `tenant_id`，否则两个客户不能有同名项目，这是产品缺陷。想再加保险就用行级安全，代价是每个连接都要设会话变量，而 service role 这类管理密钥会直接绕过它：
+
+```sql
+alter table projects enable row level security;
+
+create policy projects_tenant_isolation on projects
+  using (tenant_id = current_setting('app.tenant_id', true));
+```
+
+`current_setting` 第二个参数为 `true` 时，变量未设置返回空值而非报错——看似宽容，实际更危险：忘设变量时策略是 `tenant_id = null`，查不到任何行，表现为「页面空白」而非「越权」，更难排查。
+
+## 独立 schema 什么时候真的值得
+
+值得的只有四种情况：客户要求删除数据时能一次物理清空（`drop schema` 比跨表级联删除可验证）；单个租户的行数到了需要单独调索引、分区或 vacuum 的量级；要给客户开只读数据库账号接 BI；或者不同客户需要不同表结构。
+
+第四种通常是需求没收敛的信号，前三种都是可以写进合同的硬条件。代价集中在变更传播：加一列在共享表是一次 DDL，在独立 schema 是 N 次，中途失败还会留下「一半租户已升级」的状态。
+
+## 混合：默认共享，大客户升舱
+
+单人产品最划算的架构是混合——`tenants.isolation` 字段决定这个租户走哪条路径，数据访问层统一成 `forTenant(id)` 一个入口，上层代码不感知后端差异。升级阈值提前写死：行数超多少、合同金额超多少、合同里出现哪句合规条款。没有阈值，升级就会变成客户投诉后的紧急改造。
+
+**什么时候不用做**：如果你还没签下第二个付费客户，不要写抽象层。先用共享表加 `tenant_id`，把过滤放进一个函数，其余等有真实需求再说。
+
+| 方案 | 适用条件 | 变更成本 | 主要代价 |
+| :--- | :--- | :--- | :--- |
+| 共享表 + `tenant_id` | 客户数量多、单客户数据量小、无合规隔离条款 | 一次 DDL 全租户生效 | 一条漏写 `where` 的查询就是数据事故，靠代码纪律和测试兜住 |
+| 每租户独立 schema | 有物理隔离条款、需要单租户备份/恢复 | N 次 DDL，需版本表续跑 | 连接池与迁移脚本成倍增加，跨租户统计要在应用层拼 |
+| 每租户独立库 | 客户自带数据库、或单租户量级极大 | N 次 DDL 加 N 套备份策略 | 运维从「一个连接串」变成「一张资产表」，单人很难长期维护 |
+| 混合（共享为默认） | 已有大客户但长尾仍是小客户 | 两套路径都要维护 | 数据访问层必须抽象干净，否则双份 bug |
+
+## 落地动作
+
+1. 写一行 ADR：`租户 = 付费主体（org）`，并列出可以没有 `tenant_id` 的表及理由，放进 `docs/adr/0001-tenant-model.md`。
+2. 写迁移，给所有业务表加 `tenant_id`，把唯一约束和索引都改成租户开头；`orders` 这类以 `email` 为自然键的表改成 `unique (tenant_id, email)`。
+3. 加一条 CI 检查，用 `information_schema.columns` 列出没有 `tenant_id` 的业务表并与白名单比对，新增表漏加就失败。
+4. 给 `tenants` 加 `isolation` 字段，默认 `shared`，今天不用实现第二条路径，但先把开关留下。
+
+## 常见坑
+
+- **现象**：A 客户的列表页出现 B 客户的记录。 → **原因**：某个 handler 直接 `select * from projects` 忘了租户过滤。 → **对策**：数据访问层只暴露 `forTenant(tenantId)`，不把裸连接交给 handler；再写一条双租户的集成测试，用两个租户的数据跑所有列表接口。
+- **现象**：一次加列改了两小时，还有三个租户迁移失败。 → **原因**：选了独立 schema，迁移脚本不幂等也没记版本。 → **对策**：迁移按租户幂等执行，维护 `tenant_schema_versions` 表，失败可续跑；租户数超过二十个就回到共享表。

@@ -1,0 +1,95 @@
+---
+title: "数据库 MCP：只读查询、Schema 自省、生成迁移脚本"
+summary: "用只读角色兜住底线，让模型查真实表结构、产出可回滚的迁移脚本"
+module: 4
+lesson: 2
+duration: 9
+free: false
+objectives:
+  - "能创建一个只读数据库角色，并用 psql 验证写操作被拒绝"
+  - "能用一条固定 SQL 完成 Schema 自省，而不是让模型凭记忆猜表结构"
+  - "能让模型先出迁移方案、再出带 down 语句的迁移脚本"
+---
+
+把 AI 接上数据库，最危险的不是它写错 SQL，而是你以为「提示词里写了只允许 SELECT」就等于只读。一次误执行的 UPDATE 落在正确的库上只需要几毫秒，回滚要几小时。只读必须做成连接身份自带的属性，而不是对话里的约定。
+
+## 只读落在角色上，不是写在提示词里
+
+先造一个只会读的角色，再用它连库。除了 `SELECT`，还要把事务默认设成只读，这样即使模型拼出 `UPDATE`，数据库自己会拒绝，而不是靠服务器实现或模型自觉。
+
+```sql
+CREATE ROLE app_reader LOGIN PASSWORD :'reader_pw';
+GRANT CONNECT ON DATABASE app TO app_reader;
+GRANT USAGE ON SCHEMA public TO app_reader;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO app_reader;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO app_reader;
+ALTER ROLE app_reader SET default_transaction_read_only = on;
+```
+
+验证这一步不要跳过：用同一个角色在 `psql` 里跑一条 `update` 或 `delete`，确认返回的是权限错误。没有这条验证记录，后面所有「只读」的说法都是猜测。
+
+接进 OpenCode 时，连接串里不带密码，密码通过 `{env:}` 注入到进程环境，由 `pg` 客户端读取 `PGPASSWORD`：
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "servers": {
+      "appdb": {
+        "type": "local",
+        "command": ["npx", "-y", "@modelcontextprotocol/server-postgres", "postgresql://app_reader@localhost:5432/app"],
+        "environment": {
+          "PGPASSWORD": "{env:APP_DB_READONLY_PASSWORD}"
+        }
+      }
+    }
+  }
+}
+```
+
+服务器名起短一点，工具名会按 `<server>_<tool>` 归一化成 `appdb_query` 这类形式，权限规则里要写的就是它。
+
+| 防线 | 拦得住什么 | 配在哪 |
+| --- | --- | --- |
+| 数据库角色 | 一切写操作，包括模型自己拼的 SQL | `GRANT` 与 `default_transaction_read_only` |
+| 服务器暴露的工具 | 多余的入口，比如任意执行计划或 DDL 工具 | 选型时看工具清单，只留查询 |
+| OpenCode 权限 | 用 deny 规则收口，再按名字放行 | `permissions` 数组 |
+
+三层都要有，但只有第一层是硬约束。另外两层是减少误触面积，防不住「有人手动改了配置」。
+
+## Schema 自省：先拿事实，再问问题
+
+模型对着表名编字段是常态，尤其在字段名有历史包袱的库里。解决办法不是写更长的提示词，而是把「看结构」变成一条可复用的查询，存进仓库当唯一入口：
+
+```sql
+select c.table_name, c.column_name, c.data_type, c.is_nullable, c.column_default
+from information_schema.columns c
+join information_schema.tables t
+  on t.table_schema = c.table_schema and t.table_name = c.table_name
+where c.table_schema = 'public' and t.table_type = 'BASE TABLE'
+order by c.table_name, c.ordinal_position;
+```
+
+把结果和索引、外键一起看，才有判断依据。外键与索引同样可以一次查全，但别在一次请求里塞四种查询——上下文里堆满列定义之后，模型对「哪些字段可空」这类细节的注意力会明显下降。分两次：先表与列，再索引与外键。
+
+顺序也要固定下来：先读结构快照，再问业务问题，最后才写 SQL。跳到第三步的对话，产出基本都是「看起来对」的查询。把这条 SQL 存成 `snippets/schema.sql`，并在 `AGENTS.md` 里写明「涉及数据库的任务先跑它」，比每次口头提醒可靠（`AGENTS.md` 的写法见模块 2）。
+
+## 迁移脚本：先出 diff 方案，再出 SQL
+
+一步到位的「直接给我迁移脚本」几乎一定会翻车，因为模型会把猜测和事实混在同一段 SQL 里，而你看不出来哪句是猜的。拆成两轮，第一轮只要方案：改哪张表、加哪些列、是否需要回填、预计锁表多久、对现有代码的破坏面。这一轮不动手，你审方案。
+
+第二轮才要 SQL，并且强制两个要求：先重新跑一次结构自省，确认表还长这样；输出 `up` 与 `down` 两个文件，命名带日期，例如 `migrations/20261118_add_customer_tier.sql` 与对应回滚文件。要求它把「不可逆的步骤」单独列出——删列、改类型这类操作就算有 down 也未必能恢复数据，必须由人来决定是否接受。
+
+真正需要专业判断的地方，交给数据库而不是模型：数据量、锁等待、并发建索引。让它先查 `pg_stat_user_tables` 的 `n_live_tup` 再决定是否用并发建索引，比让它承诺「这个操作很快」有用得多。
+
+## 落地动作
+
+1. 把上面的 `CREATE ROLE` 与 `GRANT` 存成 `snippets/grant.sql`，用 `psql -v reader_pw="$APP_DB_READONLY_PASSWORD" -f snippets/grant.sql` 以超级用户执行；再用 `psql "postgresql://app_reader@localhost:5432/app"` 登录，跑一条 `delete from` 确认被拒绝。
+2. 把 `snippets/schema.sql` 提交进仓库，并把 `appdb` 服务器条目写进 `opencode.jsonc`，`opencode mcp list` 确认 connected。
+3. 在会话里让它先跑 `snippets/schema.sql`，再针对一张表提出迁移方案，只审方案不审 SQL；方案通过后再要 up/down 两个文件。
+
+## 常见坑
+
+- **现象**：角色建好了，查询仍报 `permission denied for table` → **原因**：表是在 `ALTER DEFAULT PRIVILEGES` 之前由别的角色建的，或新表建在非 `public` schema → **对策**：对实际 schema 补授权，并用同一角色在 `psql` 里验证，不要只在 OpenCode 里试。
+- **现象**：生成的迁移在生产上锁表几分钟 → **原因**：只给了结构，没给数据量与索引信息，模型按空表估算 → **对策**：要求它先查 `pg_stat_user_tables` 与现有索引，再决定 `create index concurrently` 之类的写法。
+- **现象**：`git diff` 里出现带密码的连接串 → **原因**：图省事把完整 URL 写进了 `command` → **对策**：URL 只留用户名，密码走 `{env:}` 与 `PGPASSWORD`，凭证的完整治理见第 5 节。

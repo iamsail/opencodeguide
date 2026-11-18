@@ -6,8 +6,8 @@
   "status": "live",
   "icon": "Rocket",
   "accent": "from-emerald-500 via-teal-500 to-cyan-500",
-  "durationHours": 16,
-  "lessonCount": 30,
+  "durationHours": 5,
+  "lessonCount": 33,
   "lastUpdated": "2026-11",
   "plans": [
     {
@@ -17,13 +17,13 @@
       "compareAtUSD": 199,
       "features": {
         "zh": [
-          "30 节视频课 + 全部课件（永久观看）",
+          "33 节图文课 + 全部课件（永久观看）",
           "SaaS 启动模板仓库（Next.js + Stripe + Auth）",
           "定价 / 落地页 / 邮件 文案模板",
           "7 天无理由退款"
         ],
         "en": [
-          "30 video lessons + all courseware (lifetime access)",
+          "33 article lessons + all courseware (lifetime access)",
           "SaaS starter repo (Next.js + Stripe + Auth)",
           "Pricing, landing page and email copy templates",
           "7-day no-questions refund"
@@ -35,7 +35,10 @@
       "priceUSD": 229,
       "priceCNYRef": 1649,
       "compareAtUSD": 329,
-      "badge": { "zh": "推荐", "en": "Recommended" },
+      "badge": {
+        "zh": "推荐",
+        "en": "Recommended"
+      },
       "features": {
         "zh": [
           "包含「单课版」全部内容",

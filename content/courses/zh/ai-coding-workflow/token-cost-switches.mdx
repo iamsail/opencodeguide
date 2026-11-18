@@ -1,0 +1,97 @@
+---
+title: "把 token 成本压下来的 6 个开关（路由、缓存、上下文裁剪）"
+summary: "用六个真实配置项减少每轮请求的输入量，并说清每个开关的代价"
+module: 1
+lesson: 4
+duration: 9
+free: false
+objectives:
+  - "能在 cli.json 里打开每轮 token 统计，拿到优化前的基线"
+  - "能配置压缩阈值、摘要模型与工具输出上限并解释各自的副作用"
+  - "能在 20 分钟内判断账单里有多少来自重复输入、多少来自无效上下文"
+---
+
+Token 账单失控，很少是因为单价高，而是每轮都在重发同一批历史、工具输出和工具定义。压缩、缓存、裁剪解决同一件事：让请求里只留下这一轮真正需要的内容。但先拿到基线，否则你不知道哪一刀有效。
+
+## 先量化：每轮 token 从哪来
+
+统计开关在 CLI 配置里，不在 `opencode.jsonc` 里，两者是两套文件。
+
+```json title="cli.json"
+{
+  "$schema": "https://opencode.ai/v2/cli.json",
+  "debug": { "turn_tokens": "verbose" }
+}
+```
+
+文件位于 `~/.config/opencode/cli.json`，运行期间修改会重新加载。`verbose` 会把工具调用的输入也列出，能看出大头是历史、工具输出还是工具定义。同一个任务在改配置前后各跑一次，比较每轮输入 token，别只看单次请求。
+
+## 开关 1–2：压缩提前触发，摘要换模型
+
+自动压缩默认开启：`keep.tokens` 为 15000，`buffer` 是模型限制的 15% 且不小于 16k。`buffer` 越大压缩启动越早，`keep.tokens` 越小压缩后留下的历史越少。
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "compaction": {
+    "auto": true,
+    "keep": { "tokens": 8000 },
+    "buffer": 24000
+  },
+  "agents": {
+    "compaction": { "model": "openai/gpt-6.1-sol" }
+  }
+}
+```
+
+两者都有代价。`keep` 收得太紧，丢掉的细节会迫使它重读文件，轮次增加、总量反而上升；压缩是有损的，稳定知识要写进 `AGENTS.md`。摘要换便宜模型基本是纯收益，解析失败时会回退到会话模型，但模型太弱会污染后续每一轮。
+
+## 开关 3：别让缓存断点在代理上丢掉
+
+提示词缓存是单价层面最直接的省钱手段：命中缓存的输入更便宜，没命中的每一轮都是全价。OpenCode 在 Anthropic 这类已知路由上自动放断点，位置是最后一个工具定义、系统提示词和最新消息，有效期取端点默认的五分钟。
+
+代理会破坏它：Claude 经 OpenAI 兼容代理（如 LiteLLM）时，OpenCode 判断不出需要 Anthropic 风格断点，于是每次全价，此时给对应模型加 `compatibility.cacheFormat: "anthropic"`，走 Alibaba Model Studio 的模型用 `"alibaba"`。五分钟有效期也意味着，同一件事连续做完比上午问一句、下午问一句更省。
+
+## 开关 4–5：裁掉工具输出与固定开销
+
+工具结果默认最多保留 2000 行、51200 字节，对调试场景仍然过大。日志类任务先让它 `grep` 或 `tail`，或把上限压低，让超长输出在进入上下文前被截断。
+
+```jsonc title="opencode.jsonc"
+{
+  "tool_output": {
+    "max_lines": 500,
+    "max_bytes": 16384
+  }
+}
+```
+
+固定开销同样要算：MCP 服务器的工具定义、Skills 索引、`AGENTS.md` 正文都随每轮请求发送，哪怕这轮用不到。不用的 MCP 从配置移除，`AGENTS.md` 控制在几十行，目录级规则下沉到子目录。没进上下文的东西不花钱，「少读无关文件」比任何参数都有效。
+
+## 开关 6：路由、变体与传输
+
+根级 `model` 用最便宜的一档做默认，重活靠 `--model` 或智能体级模型显式切换。`#high` 抬高推理强度的同时也抬高思考 token，别设成默认；自定义变体用 `variants` 加 `settings.reasoningEffort` 把快与深分开。
+
+长会话还有传输层优化：OpenAI、xAI 与受支持的 Azure Responses 模型可走 WebSocket，连续步骤复用未变更的请求前缀，只发送增量。用 `settings.transport: "websocket"` 启用，`"http"` 关闭；路由不支持时会告警并回退。
+
+最后是别开的开关：`warming` 默认关闭，开启后按间隔发送空请求维持预热，买的是首字延迟，花的是 token。
+
+| 开关 | 配置项 | 省在哪 | 代价 |
+| --- | --- | --- | --- |
+| 1 压缩阈值 | `compaction.buffer`、`keep.tokens` | 每轮少带历史 | 细节丢失，可能多读几轮文件 |
+| 2 摘要模型 | `agents.compaction.model` | 摘要请求单价 | 模型太弱会污染上下文 |
+| 3 提示词缓存 | `compatibility.cacheFormat` | 输入按缓存价计费 | 仅对特定代理与路由必要 |
+| 4 工具输出 | `tool_output.max_lines`、`max_bytes` | 截断超长日志 | 关键行可能被切掉 |
+| 5 固定开销 | 移除 MCP、精简 `AGENTS.md` | 每轮少发工具定义 | 能力与规则覆盖变窄 |
+| 6 路由与传输 | 根级 `model`、`transport` | 不该发的别发 | 需要按任务手动切模型 |
+
+## 落地动作
+
+1. 在 `~/.config/opencode/cli.json` 打开 `debug.turn_tokens`，用同一个重构任务记录改动前的每轮输入 token。
+2. 在 `opencode.jsonc` 补齐 `compaction`、`tool_output` 与 `agents.compaction.model` 三处，重跑同一任务对比。
+3. 检查 `opencode.jsonc`：删掉一周没用过的 MCP 服务器，确认根级 `model` 不是最贵的那一档。
+
+## 常见坑
+
+- **现象**：调小 `keep.tokens` 后账单反而更高。 → **原因**：压缩丢掉了必要细节，模型重复读取同一批文件，轮次与总输入一起上升。 → **对策**：把稳定事实写进 `AGENTS.md`，`keep` 一次只降一档，用每轮 token 统计验证。
+- **现象**：接了 LiteLLM 之后缓存费用没有变化。 → **原因**：Claude 经 OpenAI 兼容代理时不会自动加 Anthropic 风格断点。 → **对策**：给这些模型设置 `compatibility.cacheFormat: "anthropic"`，并确认请求间隔不超过缓存有效期。
+- **现象**：会话越用越慢，首字延迟变长。 → **原因**：工具定义、Skills 与目录级 `AGENTS.md` 随探索不断加入上下文。 → **对策**：精简 MCP 与规则文件，换任务时开新会话，而不是在原会话里继续。

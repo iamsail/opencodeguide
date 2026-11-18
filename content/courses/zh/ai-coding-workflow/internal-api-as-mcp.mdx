@@ -1,0 +1,126 @@
+---
+title: "封装内部 API 为 MCP 服务（30 行代码的最小实现）"
+summary: "用一个工具、一处错误处理把内部 API 包成 MCP 服务器，并用 local 配置接进会话"
+module: 4
+lesson: 4
+duration: 9
+free: false
+objectives:
+  - "能写出一个只暴露单个只读查询工具的 MCP 服务器，并在本地用 stdio 跑通"
+  - "能在 opencode.jsonc 里用 local 类型注册它并确认连接成功"
+  - "能说清 stdout 为什么必须留给协议、日志为什么只能走 stderr"
+---
+
+内部 API 通常有一把内部 token、藏在 VPN 后面、还有一套只有老员工才记得的分页规则。把这些规矩写进 `AGENTS.md` 是最差的选择：文档会漂移，token 迟早进仓库。包成 MCP 服务器其实不用几十个工具——第一版只包一个你每天都在问的问题，就能跑通整条链路。
+
+## 只包一个动作，别把 API 抄一遍
+
+每多一个工具，就多一份常驻上下文的 schema，也多一个模型可以误用的入口。第一版只包高频只读查询：按邮箱查客户，或者按订单号查状态。其余的端点等真的被需要时再加，加的时候你有真实调用记录，判断依据比现在充分。
+
+工具描述按使用说明来写，不要写成产品文案。模型是靠 `description` 判断「什么时候该调它」的，一句「只读，返回账户状态、套餐与最近一次订单」比「强大的客户数据服务」有用一百倍。
+
+## 30 行实现：一个工具，一处错误处理
+
+本地服务器由 OpenCode 当子进程拉起，走 stdio 传输，所以不需要监听端口，也不需要自己实现鉴权端点——凭证通过进程环境注入即可。
+
+```bash
+npm install @modelcontextprotocol/sdk zod
+npm install -D tsx
+```
+
+```ts
+// mcp/internal/server.mts
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { z } from "zod";
+
+const BASE = process.env.INTERNAL_API_BASE!;
+const TOKEN = process.env.INTERNAL_API_TOKEN!;
+
+async function call(path: string) {
+  const res = await fetch(`${BASE}${path}`, {
+    headers: { Authorization: `Bearer ${TOKEN}`, "Content-Type": "application/json" },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+  return res.json();
+}
+
+const server = new McpServer({ name: "internal", version: "1.0.0" });
+
+server.registerTool(
+  "lookup_customer",
+  {
+    title: "按邮箱查询客户",
+    description: "只读。传入邮箱，返回账户状态、套餐和最近一次订单。",
+    inputSchema: { email: z.string().email() },
+  },
+  async ({ email }) => {
+    try {
+      const data = await call(`/v1/customers?email=${encodeURIComponent(email)}`);
+      return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+    } catch (err) {
+      return { content: [{ type: "text", text: String(err) }], isError: true };
+    }
+  },
+);
+
+await server.connect(new StdioServerTransport());
+console.error("[internal] connected");
+```
+
+这里只有三件事：读环境变量、把一次 `fetch` 收成一个 `call` 函数、注册工具。注意异常处理不是装饰。抛出去的异常在协议层是错误响应，模型只看到「失败」；把可预期的错误包成 `isError` 的内容返回，它才有机会换参数重试，而不是把整个任务判死。
+
+文件用 `.mts` 后缀：无论仓库本身是 CJS 还是 ESM，它都按 ESM 解析，不需要动根目录的 `type` 字段。跑 TypeScript 用 `npx tsx`，想用 `node` 就先编译出 `dist`——两条路都行，别在配置里写 `node server.ts`，那是在等一个报错。
+
+## stdout 是协议通道，日志一律走 stderr
+
+stdio 传输把 stdout 当成 JSON-RPC 通道，任何一行非协议输出都会让客户端解析失败，表现是「服务器一连就断」，而且日志里往往什么都没有。所以 `console.log` 在这类服务器里等于禁止使用，`console.error` 才是安全的。
+
+`npx` 也有同样的问题：首次下载的进度提示会写到 stdout。把依赖装进项目、用 `tsx` 或 `node` 启动，启动路径就干净了。这一条值得写进团队模板，因为它是排查成本最高的坑——连接失败和代码写错长得一模一样。
+
+## 接进 OpenCode：一条 local 配置
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "servers": {
+      "internal": {
+        "type": "local",
+        "command": ["npx", "tsx", "mcp/internal/server.mts"],
+        "cwd": ".",
+        "environment": {
+          "INTERNAL_API_BASE": "https://api.internal.example.com",
+          "INTERNAL_API_TOKEN": "{env:INTERNAL_API_TOKEN}"
+        }
+      }
+    }
+  }
+}
+```
+
+`cwd` 默认就是工作区，写出来是为了让相对路径意图明确。`environment` 里的 `{env:INTERNAL_API_TOKEN}` 由 OpenCode 在启动子进程时替换，你的 token 因此只存在于 shell 环境里，不落仓库。HTTP 地址可以明文写，凭证不行。
+
+接上之后工具名是 `<server>_<tool>` 拼出来的，服务器叫 `internal`、工具叫 `lookup_customer`，实际名称是 `internal_lookup_customer`，权限规则里写的就是它。
+
+如果这份 API 有 OpenAPI 文档，用 `registerResource` 把它注册成 resource，比塞进工具描述便宜得多：文档只在被读取时占上下文，而工具描述每一轮都在。
+
+| 上线前检查 | 通过标准 |
+| --- | --- |
+| 启动 | stderr 打印 connected，stdout 一个字节都没有 |
+| 工具名 | 归一化后为 `internal_lookup_customer`，与权限规则一致 |
+| 凭证 | 配置里只有 `{env:...}`，`git grep` 搜不到明文 |
+| 错误 | 可预期失败返回 `isError` 内容，而不是抛异常 |
+| 上下文 | 工具不超过 3 个，每个描述一句话说清返回什么 |
+
+## 落地动作
+
+1. 执行 `npm install @modelcontextprotocol/sdk zod && npm install -D tsx`，把上面的代码存到 `mcp/internal/server.mts`。
+2. 在终端里 `export INTERNAL_API_TOKEN=...`，然后 `INTERNAL_API_BASE=https://api.internal.example.com npx tsx mcp/internal/server.mts`，确认 stderr 打印出 connected，且 stdout 没有任何输出。
+3. 把 `internal` 条目写进 `opencode.jsonc`，`opencode mcp list` 确认 connected，再在会话里问一个真实问题，把返回字段和后台页面逐项核对。
+
+## 常见坑
+
+- **现象**：配置写好后服务器一连就断，日志里没有有效错误 → **原因**：`console.log` 或 `npx` 首次安装提示污染了 stdout → **对策**：日志全改 `console.error`，依赖装进项目后用 `tsx`/`node` 启动。
+- **现象**：工具调用返回 401，但同样的 token 在 curl 里能用 → **原因**：`{env:INTERNAL_API_TOKEN}` 在父 shell 里没导出，替换结果为空 → **对策**：先 `export` 再启动 OpenCode，并确认变量名拼写一致。
+- **现象**：模型传了不存在的参数，调用直接失败 → **原因**：`description` 里许诺了 `inputSchema` 没声明的字段 → **对策**：schema 与描述保持一一对应，想加参数就先加 schema。

@@ -1,0 +1,111 @@
+---
+title: "Webhook 与订单状态机：支付成功不等于开通成功"
+summary: "把开通权只交给验签后的 Webhook，用唯一索引和五个状态挡住重复与丢单"
+module: 4
+lesson: 4
+duration: 10
+free: false
+objectives:
+  - "能说明为什么成功跳转页不能当作开通凭证，并写出验签必须使用原始请求体的原因"
+  - "能为订单画出状态与事件、幂等键的对应表，并加上唯一约束"
+  - "能把基础设施错误与业务不完整分开处理，避免无意义重试"
+---
+
+把 `success_url` 当成开通凭证，是这类系统最常见的一个错：用户关掉标签页就永远收不到货，改一下 URL 参数就能白拿。支付成功是买家侧的事实，开通是你自己做的决定，两者之间必须有一层可重放、可幂等的状态机。
+
+## 跳转是浏览器行为，Webhook 才是通知
+
+成功页只是浏览器跳转，用户可以伪造参数、中途关页，异步支付方式下还可能在几小时后才真正到账。唯一可信的来源是 Webhook：Stripe 主动 POST 到你的端点，带 `Stripe-Signature` 头，你用 endpoint secret 验签。
+
+| 开通触发方式 | 可信度 | 适用条件 | 代价 |
+| --- | --- | --- | --- |
+| 只认成功页跳转 | 低，参数可伪造、页面可能不会被打开 | 还没接服务端的原型，交付靠人工 | 漏单与白拿都要人工兜底 |
+| 成功页带 `session_id` 回服务端查 | 中，数据来自服务端 | 需要即时反馈用户体验 | 用户不回到页面就永远不触发 |
+| Webhook 验签加唯一索引 | 高，可重放、可幂等 | 任何自动交付 | 要公网端点、签名密钥与幂等设计 |
+| Webhook 加定时轮询兜底 | 最高 | 支付方式含异步、单笔金额较大 | 多一条定时任务要长期维护 |
+
+验签必须用原始请求体。先 `request.text()` 再交给 `constructEvent`，任何先 `JSON.parse` 再序列化的写法都会让签名对不上，这类失败在本地最难查。
+
+```ts
+const signature = request.headers.get("stripe-signature");
+const body = await request.text(); // 必须是原始字符串，不能先 parse
+if (!signature) return new Response("missing signature", { status: 400 });
+
+let event: Stripe.Event;
+try {
+  event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!);
+} catch {
+  return new Response("invalid signature", { status: 400 });
+}
+
+if (event.type === "checkout.session.completed") {
+  const session = event.data.object as Stripe.Checkout.Session;
+  if (session.payment_status !== "paid") {
+    return new Response(null, { status: 200 }); // 异步支付，等 async_payment_succeeded
+  }
+  await db.insertOrder(session); // stripe_session_id 唯一索引，冲突直接返回
+}
+return new Response(null, { status: 200 });
+```
+
+## 状态不多，但每条边都要有唯一键
+
+整个订单只需要几个状态，复杂的是「哪个事件可以把状态推到下一步」。事件可能重复、也可能乱序，所以幂等键必须是数据库里能唯一约束的字段，而不是进程内的锁。
+
+| 状态 | 由什么事件进入 | 允许的下一步 | 幂等键 |
+| --- | --- | --- | --- |
+| `paid` | `checkout.session.completed` 且 `payment_status` 为 `paid` | `granted` / `needs_manual_delivery` | `stripe_session_id` |
+| `needs_manual_delivery` | 缺邮箱、识别不出商品、交付物没配 | `granted` | `stripe_session_id` |
+| `granted` | 交付完成（权益写入或邮件发出） | `refunded` / `disputed` | `stripe_session_id` 加邮件 `idempotencyKey` |
+| `refunded` | `charge.refunded`，按 `amount_refunded` 与 `amount` 比较是否为全额 | 终态，回收权限 | `payment_intent` |
+| `disputed` | `charge.dispute.created` | 举证或接受 | `payment_intent` |
+
+两个容易踩的边：`checkout.session.completed` 不等于已付款，异步支付方式下 `payment_status` 先是 `unpaid`，要等 `checkout.session.async_payment_succeeded`；订阅续费不看这个事件，看 `invoice.paid`。只按事件类型发货，等于给没到账的订单发货。
+
+订阅还有一条容易被忽略的边：`invoice.paid` 表示某期续费成功，但它不会自动更新你那张一次性订单表。把订阅权益按 `subscription` 维度单独记，或者在同一张表里用 `kind` 字段区分，否则续费成功之后，会员中心看到的还是一年前的旧记录。
+
+```sql
+create table orders (
+  id uuid primary key,
+  stripe_session_id text not null unique,
+  stripe_payment_intent text,
+  email text not null,
+  course_slug text not null,
+  plan_id text not null,
+  amount_cents integer not null,
+  currency text not null,
+  status text not null default 'paid',
+  email_status text not null default 'pending',
+  delivery_note text,
+  refunded_at timestamptz,
+  revoked_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create index orders_payment_intent_idx on orders (stripe_payment_intent);
+```
+
+## 三类错误分开处理，别让重试吃完订单
+
+把失败一律当成「抛错让 Stripe 重试」是最贵的做法：重试不会让缺失的邮箱出现，只会重复建单、重复发信，还把你的错误日志刷满。
+
+- 基础设施错误（写库失败、连接超时）：返回 5xx，让 Stripe 按退避重试，它有几天窗口。
+- 业务不完整（无邮箱、商品识别不出、交付物没配）：不抛错，落库标记为 `needs_manual_delivery`，同时发运营告警。重试一万次也不会自愈。
+- 下游失败（邮件服务报错）：订单已经落库，把 `email_status` 置为 `failed`，用补发接口重发，不要让整个 Webhook 失败。
+
+判断标准只有一条：只有第一类值得重试。做完之后再补一个补发端点（例如 `POST /admin/resend`），任何漏发的订单都能手动收尾，不需要重放事件。
+
+最小可行版本就三样东西：一张带唯一索引的 `orders` 表、一个验签后只负责落库的端点、一个补发接口。什么时候不用做：只卖一次性下载、不做权益且几乎不退款的产品，Webhook 里落一条记录给人工发货就够；只要涉及订阅、席位或退款回收权限，这套状态机省不掉。
+
+## 落地动作
+
+1. 先建 `orders` 表并加上 `stripe_session_id` 的唯一约束，幂等的全部成本就在这里。
+2. 在 Dashboard 的 Developers、Webhooks 下添加端点，只订阅需要的类型：`checkout.session.completed`、`checkout.session.async_payment_succeeded`、`invoice.paid`、`charge.refunded`、`charge.dispute.created`。
+3. 本地用 `stripe listen --forward-to localhost:3000/api/webhook` 拿临时 secret 写进 `.env.local`，用 `4242 4242 4242 4242` 跑一笔，确认只落一条订单。
+4. 在成功页只按 `session_id` 向服务端查订单，页面不展示 URL 里传来的金额或权益。
+
+## 常见坑
+
+- **现象**：同一用户收到两封开通邮件 → **原因**：重复事件加上成功页也触发了一次交付 → **对策**：交付只由 Webhook 触发，靠唯一索引挡重复，邮件发送带 `idempotencyKey`。
+- **现象**：Webhook 一直重试，Dashboard 里全是 500 → **原因**：业务数据缺失却抛了错 → **对策**：业务不完整改为落 `needs_manual_delivery` 并告警，只有写库失败才返回 5xx。
+- **现象**：本地验签永远失败，线上却正常 → **原因**：用了正式环境的 endpoint secret，或先 parse 了 body → **对策**：CLI 给的临时 secret 与 Dashboard 的 secret 分开存放，验签统一用原始 body。

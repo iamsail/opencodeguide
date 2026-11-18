@@ -1,0 +1,96 @@
+---
+title: "权限设计：角色、资源、动作三层模型"
+summary: "把散落在 if 里的角色判断收敛成一张权限矩阵，并让检查落在查询层而不是按钮上"
+module: 3
+lesson: 3
+duration: 8
+free: false
+objectives:
+  - "能把现有所有 role 判断改写成「动作 + 资源」形式的权限项"
+  - "能写出一个纯函数 can() 并在 API 入口统一调用"
+  - "能让越权请求在列表和详情两条路径上返回同样的结果"
+---
+
+「管理员能改、普通成员不能改」这句话写到第三个页面就开始对不上：有的接口只查了 role，有的页面在前端藏了按钮但接口没查，还有按项目授权的需求——同一个组织里，A 只能看自己参与的项目。权限不是一堆 if，而是三层：谁（角色）能对哪个对象（资源）做什么（动作）。
+
+## 三层：角色只是动作集合的别名
+
+动作要写成动词加名词：`project:update`、`member:invite`、`billing:manage`。资源要带范围：org 级还是 project 级。角色名永远不出现在业务代码里，只出现在权限矩阵的第一列。这样加一个「只读成员」只是矩阵里少几项，而不是全局搜 `role === 'member'` 再逐个改。
+
+只做 RBAC（角色到权限）解决不了「同角色对不同对象权限不同」；只做逐行 ACL 又会让权限散落在每张表里，改一次要扫全库。三层模型是把两者接起来：角色决定动作集合，资源范围决定这个动作对哪些行生效。
+
+## 用一张静态矩阵起步
+
+单人产品阶段不要上策略引擎。一张写死在代码里的矩阵，加一个 `can()`，足以覆盖绝大多数判断，而且权限提升会出现在 code review 的 diff 里。
+
+```ts
+export const ACTIONS = [
+  "org:read", "org:update", "member:invite", "member:remove",
+  "project:create", "project:update", "project:delete", "billing:manage",
+] as const;
+export type Action = (typeof ACTIONS)[number];
+export type Role = "owner" | "admin" | "member";
+
+const MATRIX: Record<Role, readonly Action[]> = {
+  owner: ACTIONS,
+  admin: ["org:read", "member:invite", "member:remove", "project:create", "project:update", "project:delete"],
+  member: ["org:read", "project:create", "project:update"],
+};
+
+export function can(role: Role, action: Action): boolean {
+  return MATRIX[role].includes(action);
+}
+
+export function requirePermission(role: Role, action: Action): void {
+  if (!can(role, action)) throw new HttpError(403, "forbidden");
+}
+```
+
+`owner: ACTIONS` 让 owner 自动拥有以后新增的所有动作——省事，也意味着任何新加的危险动作默认给了 owner，评审时要盯。
+
+## 检查要落到查询，不是按钮
+
+最关键的一条：列表接口必须按范围过滤，而不是先查出全量再在内存里筛。前者分页和计数都对，后者一旦有人改分页就泄露。同一份可见范围子查询要同时给列表和详情用，否则会出现「列表里看不到、猜 ID 能打开」。
+
+```sql
+-- 可见项目：org 责任人看全部，普通成员只看自己参与的
+select p.id, p.name, p.updated_at
+from projects p
+join memberships m on m.org_id = p.org_id and m.user_id = $2
+where p.org_id = $1
+  and (
+    m.role in ('owner', 'admin')
+    or exists (
+      select 1 from project_members pm
+      where pm.project_id = p.id and pm.user_id = $2
+    )
+  )
+order by p.updated_at desc
+limit $3;
+```
+
+详情接口沿用同一段条件，未命中统一返回 404 而不是 403：403 等于告诉对方「这个 ID 存在，只是你没权限」，跨租户场景下这就是一个探测接口。
+
+## 什么时候该换方案
+
+**什么时候不用做**：如果你只有一个付费用户、或者所有成员权限完全相同，只写 `isOwner()` 一个函数加两条测试就够，别建矩阵。矩阵的价值在角色多于两个、或出现资源级授权时才开始兑现。
+
+| 方案 | 适用条件 | 代价 | 什么时候必须换掉 |
+| :--- | :--- | :--- | :--- |
+| 硬编码 `if (role === 'admin')` | 只有 owner 和 member 两个角色 | 加角色时全库搜索改写，容易漏 | 出现第二种资源类型或第三个角色 |
+| 静态矩阵 + `can()` | 角色固定、按 org 授权、单人维护 | 客户无法自定义角色，加权限要发版 | 客户开始要求自定义角色 |
+| 角色-权限表（DB） | 需要客户自定义角色或按套餐给权限 | 权限数据要迁移与审计，测试难写 | 需要按单个资源分享 |
+| 策略引擎 / ReBAC（如 OpenFGA） | 需要「把某个项目分享给外部人」这类关系型授权 | 多一个服务、一套策略语言，策略与代码不同步很难调 | 一般不需要，除非授权本身是产品卖点 |
+
+## 落地动作
+
+1. 搜出现有的角色判断：`rg "role ===|role ==|isAdmin" -g '!node_modules'`，输出一份清单，每条映射成一个 `动作:资源` 名字。
+2. 建 `lib/authz.ts`，放入上面的矩阵与 `requirePermission`，作为唯一抛 403 的地方。
+3. 每个 API handler 第一行调用 `requirePermission`，再写一个遍历路由表的测试，断言每个 handler 都引用了它——防止以后新增接口忘记加。
+4. 补四条集成测试：成员改他人项目返回 403；猜 ID 访问别的 org 返回 404；列表接口在分页边界不越界；转移 owner 后旧 owner 立刻失去 `billing:manage`。
+
+## 常见坑
+
+- **现象**：按钮藏起来了，但用 curl 直接打接口还能改。 → **原因**：检查只写在前端，接口信任了客户端。 → **对策**：服务端 handler 唯一入口做检查，前端 `can()` 只用于渲染。
+- **现象**：越权访问返回 403，攻击者据此枚举出哪些 ID 存在。 → **原因**：把「无权限」和「不存在」分成了两种响应。 → **对策**：跨 org 一律 404，日志里记真实原因。
+- **现象**：转移 owner 后，原 owner 还能改付款信息。 → **原因**：某处把首个 owner 的 `user_id` 写死了。 → **对策**：owner 只是 `memberships.role` 的一个值，不存 user id。

@@ -1,0 +1,110 @@
+---
+title: "团队规范：允许/禁止清单、Code Review 责任划分"
+summary: "把 AI 的允许与禁止写进仓库配置，并把评审签字责任落到具体角色"
+module: 6
+lesson: 1
+duration: 8
+free: false
+objectives:
+  - "能写出一份提交进仓库的 opencode.jsonc，区分 allow / ask / deny 三类裁决"
+  - "能解释 policies 与 permissions 的分工，以及为什么全局 deny 无法被仓库解除"
+  - "能在 30 分钟内定出团队的评审责任表与升级路径"
+---
+
+团队第一次用智能体改生产代码，翻车基本不是模型笨，而是没人定义过边界：A 同学的全局配置里禁了 `git push`，B 同学没有；`.env` 能被读走，只因为默认规则没人写。规范写在 wiki 里的版本从来不会被执行，写进仓库配置文件的版本每开一次会话就生效一次。
+
+## 规范拆成两份文件，一份管建议、一份管执行
+
+`AGENTS.md` 是给模型读的建议：构建命令、约定、什么时候停下来问人。`opencode.jsonc` 决定能不能做，它不依赖模型是否配合。两者都要提交进仓库，但只有后者是可验证的。
+
+规范条目不必多，先回答三个问题：哪些行为永不发生、哪些每次都要问人、哪些可以放手让它跑。
+
+## 允许/禁止清单按“动的对象”分类
+
+按工具分类会过时，工具一直在换；按对象分类很稳定，`.env`、迁移文件、生成目录明年还在。下面这张表可以直接当团队的底线。
+
+| 对象 | 默认裁决 | 写法 |
+| --- | --- | --- |
+| `.env`、凭证、密钥目录 | 禁止读 | `read` + `*.env` |
+| 生成物、锁文件重排 | 禁止写 | `edit` + `*generated*` |
+| 远端仓库（push、tag、发布） | 禁止执行 | `shell` + `git push *` |
+| 只读诊断（status、diff、log） | 允许 | `shell` + `git status *` |
+| 其他 shell 命令 | 每次询问 | `shell` + `*` |
+| 项目之外的目录 | 每次询问 | `external_directory` + `*` |
+| 外网抓取 | 禁止 | `tool.use` + `webfetch:*` |
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permissions": [
+    { "action": "read", "resource": "*", "effect": "allow" },
+    { "action": "read", "resource": "*.env", "effect": "deny" },
+    { "action": "edit", "resource": "*generated*", "effect": "deny" },
+    { "action": "shell", "resource": "*", "effect": "ask" },
+    { "action": "shell", "resource": "git status *", "effect": "allow" },
+    { "action": "shell", "resource": "git diff *", "effect": "allow" },
+    { "action": "shell", "resource": "git push *", "effect": "deny" },
+    { "action": "external_directory", "resource": "*", "effect": "ask" }
+  ],
+  "policies": [
+    { "action": "tool.use", "resource": "webfetch:*", "effect": "deny" }
+  ]
+}
+```
+
+两条读法：规则按顺序合并，最后一条匹配的生效，所以宽泛规则在前、例外在后；`*` 能跨 `/` 匹配，`*generated*` 覆盖任意深度的生成目录。
+
+## deny 与 ask 不是同一件事
+
+`ask` 把决定权留给人，代价是这个决定会被记住：某人在提示里选过一次“始终允许”，同一模式后面就不再问。凡是“任何情况下都不该发生”的动作，要写进 `policies` 的 `tool.use`。策略是二元的，从不弹窗，并且覆盖智能体规则和已保存的批准，被拦下的检查会以 `Blocked by configuration policy` 失败。
+
+反过来，`tool.use` 的 `allow` 不授予新能力，只解除前面更宽的 `deny`，真正的放行仍由智能体自己的权限规则决定。
+
+还有一条方向相反的优先级：策略让更宽范围的配置更晚求值，所以仓库里的 `allow` 解除不了你在全局文件里做的 `deny`。团队层面的分工就清楚了：全局只放公司底线，仓库放这个仓库的具体放行。
+
+## Code Review 责任划分：签字的人要能在本地复跑
+
+AI 生成的 diff 仍然是提交者的 diff。三条可以写进规范、不靠自觉的约定：
+
+1. 提交者逐行读过自己提交的 AI 改动，能在评审里解释每一处为什么这么改；解释不了就删掉重做。
+2. AI 评审只产出初筛意见，不能充当审批记录，PR 上必须有人类 approval。
+3. 碰认证、支付、迁移、依赖大版本的改动，需要对应模块 owner 参与，而不是随便一位 reviewer。
+
+| 改动类型 | 必须的评审人 | 合并前附的证据 |
+| --- | --- | --- |
+| 普通业务代码 | 任意一位有写权限的工程师 | 测试命令与输出 |
+| 认证、权限、支付 | 模块 owner 加一位其他人 | 新增或更新的测试用例 |
+| 数据库迁移 | DBA 或后端 owner | 回滚步骤 |
+| 依赖升级 | 维护该依赖的人 | 锁定文件 diff 与构建结果 |
+| AI 生成的测试 | 对应业务代码的 owner | 修复前必须失败过的记录 |
+
+最后一行比什么都管用：模型很擅长写出“一定通过”的测试，评审时先让它证明这条测试曾经红过。
+
+## 配置挡不住方向错，把升级路径写进 AGENTS.md
+
+配置能拦住误操作，拦不住“方向从一开始就错了还一路改下去”。这层判断写在根目录的 `AGENTS.md` 里并提交：
+
+```md title="AGENTS.md"
+## Escalation
+
+- Open a pull request instead of pushing to a protected branch.
+- Stop and ask before changing `db/migrations/` or `infra/`.
+- If a task changes a public API or a shared type, write the proposed diff in the PR body first.
+- Never commit `.env*`, credentials, or files under `dist/`.
+- After changing TypeScript, run `npm run typecheck` and paste the result in the PR.
+```
+
+这几条是给模型的建议，不是保证。真正的保证来自三样东西：仓库配置、分支保护、以及有人真的会读 diff。
+
+## 落地动作
+
+1. 在仓库根目录新建 `opencode.jsonc`，先写不超过 8 条规则，提交并发起一次团队评审，把争论留在配置 diff 里。
+2. 在 `AGENTS.md` 加 `## Escalation` 段，列 5 条以内必须停下来问人的场景。
+3. PR 模板加三行勾选项：读过 AI diff、跑过测试并贴输出、敏感模块 owner 已 approve。
+4. 跑 `opencode debug config`，确认生效的配置来源里包含仓库文件，而不是只有全局配置。
+
+## 常见坑
+
+- **现象**：本机怎么都拦不住 `git push`，同事的机器却能拦住 → **原因**：规则写在某个开发者的全局配置里，别人的全局配置没有这条 → **对策**：把 `deny` 提交进仓库 `opencode.jsonc`，全局文件只保留公司级底线。
+- **现象**：AI 评审说“通过”，合并后线上出问题 → **原因**：把 AI 初筛当成了审批 → **对策**：分支保护要求人类 approval，AI 意见只作为输入。
+- **现象**：批准过一次危险命令后，智能体反复执行同类命令 → **原因**：`ask` 的批准被记住，宽泛模式被放行 → **对策**：这类命令改用 `policies` 的 `tool.use` 硬拒，而不是依赖询问。

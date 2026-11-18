@@ -1,0 +1,89 @@
+---
+title: "子智能体（Subagent）的职责划分：规划、实现、评审、测试"
+summary: "把规划、实现、评审、测试拆成四个子智能体，用权限矩阵和描述把边界钉死"
+module: 3
+lesson: 1
+duration: 8
+free: false
+objectives:
+  - "能写出只读评审子智能体，并让越权编辑直接失败"
+  - "能用 subagent 权限规则限定主智能体可以启动哪些子智能体"
+  - "能在 10 分钟内把一次代码评审从主会话迁到只读评审子智能体"
+---
+
+让同一个会话既写实现又评审实现，评审意见基本只会复述 diff：上下文里堆满了它自己的取舍理由，它没有立场推翻自己。子智能体的价值不是「多几个 AI」，而是每个角色拿到干净上下文、一条收窄的权限边界、一份明确的交付物。
+
+代价同样真实。子智能体看不到你刚才的口头约定，交接写不清，它就用猜测补齐，这比不拆分更糟。
+
+## 同一上下文里，评审会退化成自我背书
+
+父会话带着需求理解、试错记录和已经放弃的方案。子智能体在独立子会话中以全新上下文启动，只看得到你给它的任务描述和仓库真实状态。这也是 OpenCode 把 `general` 与 `explore` 设为 `subagent` 的原因：探索类工作不需要写权限，放进主会话只会放宽整条工具链。
+
+所以角色的输入必须落盘：需求、验收标准、改动范围写成文件，任务描述里只给路径和约束。子智能体读文件比读父会话记忆可靠得多。
+
+## 四个角色和它们的最小权限
+
+| 角色 | mode | 关键权限 | 交付物 |
+| --- | --- | --- | --- |
+| 规划 planner | `subagent` | `edit` 全禁，`read` / `grep` 允许 | 方案文件：验收标准 + 明确不做什么 |
+| 实现 implementer | `primary` 或 `subagent` | `edit` 允许，`shell` 默认 `ask` | 代码改动 + 自测命令与输出 |
+| 评审 reviewer | `subagent` | `edit` 与 `shell` 全禁 | 按严重度排序的问题清单（文件:行） |
+| 测试 tester | `subagent` | `edit` 仅限测试目录，`shell` 仅限测试命令 | 失败用例的最小复现 + 修复建议 |
+
+权限不追求好看，只要求越界时失败得明显。评审子智能体被禁掉 `edit` 和 `shell` 后，唯一输出方式就是文本，这恰好是评审该有的形态。测试子智能体正相反：不给 `shell` 它跑不动测试，给全量 `shell` 它就敢 `git push`。
+
+## 把路由写进 description 和 subagent 规则
+
+`description` 不是注释。OpenCode 会把它展示给负责挑选子智能体的模型，所以它应该写成触发条件加输出格式，「代码评审助手」这种职能名词等于没写。
+
+父智能体能启动哪些子智能体，由 `subagent` 动作的权限规则控制。先拒绝全部再逐个放行，顺序不能反——最后一条匹配的规则生效。
+
+```md title=".opencode/agents/reviewer.md"
+---
+description: Reviews the staged diff for correctness, regressions and missing tests; reports findings by severity with file and line references
+mode: subagent
+model: anthropic/claude-sonnet-5-5#high
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: shell
+    resource: "*"
+    effect: deny
+---
+
+You review only. Never modify files.
+
+Start from the staged diff, then read the affected files. For each finding report: severity, `file:line`, what breaks, and the smallest fix. End with the risks you could not verify.
+```
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agents": {
+    "orchestrator": {
+      "mode": "primary",
+      "permissions": [
+        { "action": "subagent", "resource": "*", "effect": "deny" },
+        { "action": "subagent", "resource": "reviewer", "effect": "allow" },
+        { "action": "subagent", "resource": "planner", "effect": "allow" }
+      ]
+    }
+  }
+}
+```
+
+给实现类智能体加 `steps: 12` 之类的正整数上限，可以避免单个角色在一次任务里无限重试；到达上限时 OpenCode 会移除工具并要求它以文本总结。
+
+## 落地动作
+
+1. 建目录并写第一个角色：`mkdir -p .opencode/agents && $EDITOR .opencode/agents/reviewer.md`，先只做只读评审。
+2. 在 `opencode.jsonc` 的 `agents.<id>.permissions` 里加 `subagent` 规则：`*` 先 `deny`，再逐个 `allow`。
+3. 拿真实分支试跑：`git diff --cached` 之后让主智能体调用 reviewer，把它的结论与人工评审逐条对照，删掉没人用的角色。
+4. 把每个角色的交付物格式固定成模板（严重度、文件:行、修复建议），否则不同子智能体的输出没法合并。
+
+## 常见坑
+
+- **现象**：评审子智能体说「我会修复这些问题」并尝试改文件。 → **原因**：`edit` 的 `deny` 写在宽泛 `allow` 之前，被后一条规则覆盖。 → **对策**：宽泛规则在前、例外在后，`deny` 放在列表末尾。
+- **现象**：主智能体从不主动调用 reviewer，永远自己顺手改。 → **原因**：`description` 写成了职能名词，模型判断不出触发时机。 → **对策**：改成「当存在已暂存改动且需要回归风险评估时使用」，并写明输出格式。
+- **现象**：子智能体沿用了父会话里已被否定的方案。 → **原因**：交接只靠上下文，没有落盘的需求与验收标准。 → **对策**：把 spec 写成文件，任务描述里只给路径，禁止它自行扩展范围。

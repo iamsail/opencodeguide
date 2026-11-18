@@ -1,0 +1,102 @@
+---
+title: "CI 集成：AI 生成代码的自动化质量门禁"
+summary: "用可复现检查守住合并口，让 AI 复核只做输入不做断言"
+module: 6
+lesson: 2
+duration: 9
+free: false
+objectives:
+  - "能把门禁拆成确定性检查、仓库策略、AI 复核三层，并说明各层的阻断权"
+  - "能写出一个在 PR 上只审 diff 的 GitHub Actions 工作流"
+  - "能在 CI 中验证仓库配置确实生效，而不是依赖开发者本机设置"
+---
+
+把 AI 塞进 CI 有两种常见错法：只加一个「AI review」job，模型说 OK 就合并；或者门禁全靠人盯 PR，CI 里什么都没跑。模型的回答是采样结果，同一个 diff 跑两次结论可能不同。能稳定挡住回归的，仍然只有可复现的检查。
+
+## 门禁分三层，阻断权只给前两层
+
+| 层级 | 跑什么 | 失败后果 | 是否阻断合并 |
+| --- | --- | --- | --- |
+| 确定性检查 | lint、typecheck、test、build | 红，直接打回 | 是 |
+| 仓库策略 | 配置文件是否被改坏、密钥是否被写入 | 红，打回 | 是 |
+| AI 复核 | 逐块读 diff，列出可疑点 | 只留意见 | 否 |
+
+顺序不是审美问题。AI 复核最贵、最慢、最不可复现，放在最后，前面一红就根本不用花 token。反过来，把一个采样过程设成 required check，团队很快会学会重跑到绿为止，那时门禁已经名存实亡。
+
+## CI 里的最小工作流
+
+```yaml title=".github/workflows/ai-gate.yml"
+name: ai-gate
+on: [pull_request]
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+
+  ai-review:
+    needs: checks
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: npm install --global @opencode/cli
+      - name: Review only the diff
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          git diff origin/${{ github.base_ref }}...HEAD > /tmp/change.diff
+          opencode run --standalone --model anthropic/claude-sonnet-5-5 \
+            --file /tmp/change.diff \
+            "Review this diff for correctness and security. List blocking defects with file and line. If there are none, say so in one line." >> "$GITHUB_STEP_SUMMARY"
+```
+
+三个参数各有原因。`--standalone` 是必须的：runner 上没有可复用的后台服务，独立服务器才能拿到你注入的密钥。`--file` 只把 diff 喂进去而不是整个仓库，这是同时压住成本和噪声最有效的一步。`fetch-depth: 0` 保证对比基线存在，否则 `origin/<base>` 是个空引用。
+
+`continue-on-error: true` 不是偷懒，是明确表态：这一步只提供信息，不参与合并判定。结论写进 step summary，评审人打开 PR 就能看到。
+
+## CI 没有你的本地配置
+
+runner 是一个干净的家目录：没有 `~/.config/opencode/opencode.jsonc`，没有你点过的「始终允许」，也没有你手写的全局 `AGENTS.md`。只有提交进仓库的配置和指令会生效。
+
+这条推论很实用：凡是“必须每个 PR 都成立”的规则，只有在仓库里才对 CI 成立。所以 `opencode.jsonc` 要和代码一样走 review，并且把分享关掉，避免会话内容被上传到分享页：
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "share": "disabled"
+}
+```
+
+顺带一个副作用：CI 反而是最干净的对照组。本地能跑通、CI 里行为异常，通常说明本地配置里藏着一条你以为已经写进仓库的规则。
+
+## 别让模型输出变成断言
+
+模型的回答是自然语言，不是可判定的结果。想让 AI 也具备“阻断”能力，唯一的办法是把结论落到程序能检查的东西上：让它补上缺失的测试、然后跑测试；让它改 schema、然后跑类型检查。判断本身不是门禁，判断产生的代码才是。
+
+同理，想让 AI 只出意见不改文件，就用 `--agent` 指定一个权限里把 `edit` 全 deny 的智能体。它在 CI 里连写文件的路径都没有，输出自然只剩意见。
+
+## 另一条入口：PR 评论触发的修复
+
+`opencode github install` 之后，PR 评论里的 `/oc` 可以让智能体直接改代码。这条路径适合“让它修”，不适合“让它判”：修完照样要过上面三层门禁。两种入口并存时，最容易出的事是权限边界不一致——评论里它能推的分支，CI 里却改不动，团队就会在“到底谁说了算”上反复扯皮。规则只有一份，入口可以有两个。
+
+## 落地动作
+
+1. 先把 lint、typecheck、test 合成一个 PR 上的 required check，确认它真的能变红；没有这一步，后面的 AI 步骤只是装饰。
+2. 按上面的 workflow 加 `ai-review` job，只喂 `git diff`，结论写进 step summary。
+3. 在 CI 里加一行校验，确保分享被关掉：`grep -q '"share": "disabled"' opencode.jsonc || exit 1`。
+4. 给 `ai-review` 设 `timeout-minutes`，避免一个巨型 PR 把月度预算烧穿。
+
+## 常见坑
+
+- **现象**：同一个 PR 重跑一次，AI 从“有阻塞缺陷”变成“没问题” → **原因**：采样加上下文差异，结果不可复现 → **对策**：required check 只放在确定性检查上，AI 步骤固定为 advisory。
+- **现象**：本地从不触发 `git push` 拦截，CI 里动作却不对劲 → **原因**：本地有全局配置和已保存的批准，runner 上什么都没有 → **对策**：规则提交进仓库，把 CI 当干净环境来验证配置。
+- **现象**：AI 复核在大型仓库上超时，或只挑出格式问题 → **原因**：整个仓库进了上下文，模型在噪声里挑易改的说 → **对策**：只喂 diff，并在提示里明确要求“列出阻塞缺陷，没有就一句话说完”。

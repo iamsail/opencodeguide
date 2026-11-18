@@ -1,0 +1,91 @@
+---
+title: "Skills 复用：把团队经验沉淀成一次安装、处处可用"
+summary: "把只在该类任务用得上的团队经验做成 SKILL.md，按需加载、跨项目复用"
+module: 3
+lesson: 2
+duration: 7
+free: false
+objectives:
+  - "能写出带 description 与脚本目录的 SKILL.md，并让模型在相关任务里自动发现它"
+  - "能用 skills 配置把团队共享目录挂到所有项目，且说清优先级顺序"
+  - "能排查「技能没出现」与「改了不生效」两类问题"
+---
+
+把团队约定全塞进 `AGENTS.md`，代价是每次会话都要为它付上下文：几十行发布流程，只在发版那天有用，其余时间都在稀释真正重要的规则。Skills 的机制正好相反——模型平时只看到一行 `description`，判定相关时才把完整步骤读进来。
+
+这也意味着 Skills 不适合放「永远成立」的硬规则。那类内容属于 `AGENTS.md`；Skills 放的是「做某件事时必须按这个顺序」。
+
+## 一个技能就是一个目录加一个 SKILL.md
+
+目录形式优于单文件。`SKILL.md` 里的相对路径以该文件所在目录为基准，脚本、模板、参考文档放在旁边，加载时 OpenCode 会把基础目录和最多十条支持文件路径一并交给模型。
+
+支持文件的内容不会自动加载。必须在正文里写清「第几步读哪个文件」，否则模型知道有 `references/compat-policy.md`，却不会去读。
+
+```md title=".opencode/skills/api-migration/SKILL.md"
+---
+name: API Migration
+description: Migrate a REST endpoint and its callers to a new response shape without breaking existing consumers
+---
+
+## Workflow
+
+1. Read `references/compat-policy.md` before touching any response field.
+2. List callers: `grep -rn "old_field" --include=*.ts src/`.
+3. Change the response, keep a deprecated alias for one release.
+4. Update every caller listed in step 2.
+5. Run `scripts/check-openapi.ts` and paste its output into the report.
+6. State the compatibility window; do not delete the alias in this change.
+```
+
+对应的目录结构：
+
+```text
+.opencode/skills/api-migration/
+├── SKILL.md
+├── scripts/check-openapi.ts
+└── references/compat-policy.md
+```
+
+## ID 由路径决定，优先级由来源决定
+
+frontmatter 里的 `name` 只是显示名，真正的 ID 来自路径：`.opencode/skills/api-migration/SKILL.md` 的 ID 是 `api-migration`，精确匹配且区分大小写。同名技能由后注册的来源提供，所以项目目录里的同名技能会盖掉全局那份——这既是团队覆盖个人偏好的机制，也是「我明明改了却没生效」的头号原因。
+
+| 来源 | 路径 | 适用场景 |
+| --- | --- | --- |
+| 全局 | `~/.config/opencode/skills` | 个人习惯，跨项目都想带 |
+| 项目 | `.opencode/skills` | 与代码库同版本演进，跟着分支走 |
+| 显式配置 | `opencode.jsonc` 的 `skills` 数组 | 团队共享目录、只读挂载、HTTP 目录 |
+
+加载顺序上，项目 `.opencode/skills` 晚于全局目录注册，显式 `skills` 条目最后生效。要覆盖某个技能，就放到更晚注册的位置；不想被覆盖，就别复用同一个 ID。
+
+## 用 skills 配置把团队技能装一次
+
+团队共享库不必复制进每个仓库。克隆一份到固定目录，然后在 `opencode.jsonc` 里登记：
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "skills": [
+    "./team-skills",
+    "~/shared/opencode-skills"
+  ]
+}
+```
+
+注意相对路径从当前 OpenCode 工作目录解析，而不是配置文件所在目录。把配置放在子包里、路径却按配置文件位置写，是第二个高频失效原因。
+
+还有两个细节值得在团队规范里写死：没有 `description` 的技能不会展示给模型；不想让它被自动挑中、只能由人显式 `@skill-id` 加载的技能，在 frontmatter 里设 `metadata.opencode/autoinvoke: false`。这类技能通常是一次性危险操作，比如发布和回滚。
+
+## 落地动作
+
+1. 建目录并把流程写成技能：`mkdir -p .opencode/skills/git-release && $EDITOR .opencode/skills/git-release/SKILL.md`。
+2. 从 `AGENTS.md` 里搬走一条「只在特定任务用得上」的流程，正文写成带编号的步骤，每步一个可执行命令。
+3. 把团队技能目录放进独立 git 仓库，在 `opencode.jsonc` 的 `skills` 数组里指向克隆位置，别复制第二份。
+4. 用 `@api-migration` 手动触发一次，确认加载的是你刚改的那份，而不是全局目录里的旧版本。
+5. 给发布、回滚这类技能加 `metadata.opencode/autoinvoke: false`，避免模型自作主张执行。
+
+## 常见坑
+
+- **现象**：技能列表里始终没有自己写的那份。 → **原因**：文件名不是来源根目录下的 `*.md`，也不是恰好叫 `SKILL.md` 的嵌套文件，或缺少 `description`。 → **对策**：按 ID 反查路径，补上描述，确认没落在 `node_modules` 或隐藏目录里。
+- **现象**：改了 `SKILL.md`，模型用的还是旧步骤。 → **原因**：同名 ID 有多个来源，后注册的生效——例如显式 `skills` 数组里的团队目录也定义了 `api-migration`，它晚于项目 `.opencode/skills` 注册。 → **对策**：`grep -rl "description" ~/.config/opencode/skills .opencode/skills` 找出重复定义，删掉不用的那份。
+- **现象**：加载技能后模型直接开始写代码，没读参考文档。 → **原因**：支持文件不会自动加载，正文也没写何时读。 → **对策**：在 Workflow 第一步写明相对路径与读取条件。

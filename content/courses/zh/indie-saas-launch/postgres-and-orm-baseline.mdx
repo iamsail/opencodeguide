@@ -1,0 +1,76 @@
+---
+title: "数据库与 ORM：Postgres + Prisma / Drizzle 的最小约定"
+summary: "用五条 schema 约定和一条迁移纪律，避开连接池与金额存储的常见崩法"
+module: 2
+lesson: 2
+duration: 8
+free: false
+objectives:
+  - "能把产品数据分成「必须进库」和「留在仓库」两类，并说出判断依据"
+  - "能写出订单表的最小 schema，含幂等唯一键、整数金额与带时区时间"
+  - "能根据迁移习惯和查询类型在 Prisma、Drizzle 与裸 SQL 之间做出选择"
+---
+
+第一次建表最容易犯的错是把什么都往库里塞：课程正文、配置项、图片路径。等到要迁移、要给客户导数据时，才发现自己在维护一个半成品 CMS。数据库该存的是「一次操作就会改变、并且错了要赔钱」的东西，其余都可以留在仓库里。
+
+## 先划一条线：什么数据必须进库
+
+判据只有一条：错了会不会赔钱。订单、权益、用量必须进库，它们决定谁能看什么、你实收多少。课程正文、落地页文案、价格表不必进库，它们是构建期数据，放在仓库的 JSON 或 MDX 里，改一次提交一次，天然有版本记录和回滚。
+
+仓库的课程站就是这么分的：内容在 `content/courses/*.json`，数据库只放交易与权限。这样做的收益不是省钱，而是把「内容变更」和「数据迁移」彻底解耦。数据库的固定成本从来不是存储费，是备份、迁移、连接数，和一次手滑的 `delete`。
+
+租户列怎么加属于模块 3 的事，这里只约定单表纪律。
+
+## 连接池：serverless 上的第一道坎
+
+托管 Postgres 通常给两条连接串：一条直连，一条经过连接池。直连留给迁移和运维查询，运行时用 pooled 串。原因是 serverless 每个函数实例会各自建池，并发一上来就撞上 `max_connections`，而本地开发永远复现不出来。
+
+Drizzle 和 Prisma 都不能替你解决这件事，它们只是客户端。Prisma 在 serverless 环境下的连接管理需要显式配置，托管商的 pooling 串是更稳的默认选择。判断是否已经踩坑：看数据库面板的当前连接数曲线，它应该跟请求量同向，而不是只涨不落。
+
+## 五条 schema 约定，一次写对
+
+```sql
+create table orders (
+  id                uuid primary key default gen_random_uuid(),
+  stripe_session_id text not null unique,          -- 幂等键：重复事件打不进来
+  email             text not null,
+  plan_id           text not null,
+  amount_cents      integer not null check (amount_cents >= 0),
+  currency          text not null default 'usd',
+  status            text not null default 'pending'
+                    check (status in ('pending','paid','refunded','disputed')),
+  created_at        timestamptz not null default now(),
+  paid_at           timestamptz,
+  revoked_at        timestamptz
+);
+
+create index orders_email_idx on orders (lower(email));
+create index orders_status_created_idx on orders (status, created_at desc);
+```
+
+五条约定：主键用 `uuid`，别用自增整数（它会泄露单量，迁移时也难合并）；时间一律 `timestamptz`，`timestamp` 会丢掉时区，跨境对账必错；金额用 `integer` 存最小货币单位，浮点在汇总时一定差分；状态加 `check` 约束，让写错的值在插入时就失败；幂等键建唯一索引，Webhook 重投才不会重复开通。`gen_random_uuid()` 在 Postgres 13 及以上是内置函数。
+
+## Prisma、Drizzle 还是裸 SQL
+
+| 维度 | Prisma | Drizzle | 裸 SQL（pg / postgres.js） |
+| --- | --- | --- | --- |
+| schema 位置 | 独立 schema 文件 | TypeScript 文件 | 迁移 SQL 本身 |
+| 迁移工具 | 自带 migrate | drizzle-kit 生成 SQL | 自己选，如 node-pg-migrate |
+| 类型来源 | 由 schema 生成客户端 | schema 即类型 | 手写 |
+| 复杂查询（CTE、窗口函数） | 常需退回 raw | 贴近 SQL | 原生 |
+| 冷启动与包体 | 偏重 | 轻 | 最轻 |
+| 适合条件 | 表少、以 CRUD 为主、不想写 SQL | 表会长期演进、查询偏分析型 | 只有两三张表且熟悉 SQL |
+
+真正该拿来当决策依据的是「迁移怎么走」。如果你的表会在半年内改十次，选迁移文件可读、可 review、能在 CI 里跑的那个；如果你只打算有一张订单表，写 SQL 就够了，ORM 的抽象成本大于收益。
+
+## 落地动作
+
+1. 在托管 Postgres 上建库，拿到直连串与 pooled 串，分别写进 `.env` 的 `DATABASE_URL` 与 `DIRECT_URL`，并确认 `.env*` 已在 `.gitignore` 中。
+2. 用上面的 SQL 建 `orders` 表，跑一次迁移并把迁移文件提交进仓库。之后所有结构变更都走迁移文件，不用 `push` 同步。
+3. 插一条 `stripe_session_id` 相同的记录两次，确认第二次被唯一约束拒绝。这就是幂等生效的证据。
+
+## 常见坑
+
+- **现象**：本地跑几周都没事，上线后偶发 `too many connections`，重启又好一阵。 → **原因**：每个 serverless 实例各自建池，实例数随并发扩张，连接总数超限。 → **对策**：运行时用 pooled 连接串，只有迁移和后台脚本用直连。
+- **现象**：月度对账时金额比 Stripe 差几分钱。 → **原因**：金额存成浮点或字符串，汇总时精度丢失。 → **对策**：统一 `integer` 存分为单位的金额，展示时再除 100，币种单独一列。
+- **现象**：本地改了表结构，线上还是老结构，报「column does not exist」。 → **原因**：用 `push` 直接改了库，没生成迁移文件，部署时没有可执行的结构变更。 → **对策**：迁移文件进仓库，部署流程里先跑迁移再起应用，失败就中止发布。

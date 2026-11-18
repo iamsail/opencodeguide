@@ -1,0 +1,139 @@
+---
+title: "安全与合规：代码外发、私有化部署、审计留痕"
+summary: "封住代码外发的四条路径，把唯一出口换成内部网关，并留下可归档的审计证据"
+module: 6
+lesson: 3
+duration: 8
+free: false
+objectives:
+  - "能列出代码离开本机的四条路径，并为每条写出对应的策略语句"
+  - "能在 opencode.jsonc 里把内部网关设为唯一可用提供商，并用 opencode models 验证其他模型消失"
+  - "能在 20 分钟内产出一份脱敏的会话审计包，并说清每条证据的来源与局限"
+---
+
+安全评审问「它会传我的代码吗」，答「不会」基本过不了：OpenCode 确实不存储代码或上下文，但推理请求、分享链接、网页抓取和 MCP 调用这四条路径都能把仓库内容带出去。要交付的不是承诺，而是每条路径的开关，和事后真能查的证据。
+
+## 四条外发路径，先封三条再谈模型
+
+判断标准只有一条：会不会把仓库内容交给第三方。模型请求是业务必需的，另外三条默认关闭。用 `policies` 而不是 `permissions`：策略是二元的、从不弹窗，还覆盖成员点过「始终允许」的批准，只有这层不会被个人配置解开。
+
+| 路径 | 怎么发生 | 封法 | 代价 |
+| --- | --- | --- | --- |
+| 模型请求 | 每一轮对话 | `provider.use` 白名单 | 只剩一个提供商可用 |
+| 分享链接 | `/share`、`share: "auto"` | `share: "disabled"` | 同事之间不能靠链接求助 |
+| 网页抓取 | `webfetch`、网络搜索 | `tool.use` + `webfetch:*` | 读不了外部文档与 issue |
+| MCP 与技能 | 加载 `mcp:*`、`skill:*` | `integration.use` | 第三方集成需逐个评审 |
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "share": "disabled",
+  "websearch": false,
+  "policies": [
+    { "action": "provider.use", "resource": "*", "effect": "deny" },
+    { "action": "provider.use", "resource": "company-ai", "effect": "allow" },
+    { "action": "tool.use", "resource": "webfetch:*", "effect": "deny" },
+    { "action": "integration.use", "resource": "mcp:*", "effect": "deny" },
+    { "action": "integration.use", "resource": "mcp:internal-db", "effect": "allow" }
+  ]
+}
+```
+
+语句按书写顺序求值，最后一条匹配的生效，所以全拒写在最前面；`integration.use` 的 `allow` 只解除更宽的 `deny`，`internal-db` 之后仍按自己的配置加载。被拒的提供商不会报错，而是从目录与模型选择中消失：凭据有效也一样，跑一次 `opencode models` 就看得出来。
+
+## 私有化部署：自建网关当唯一出口
+
+私有化不是把 OpenCode 搬进内网自托管 Console——Console 是托管服务，分享页面的自托管仍在路线图上。真正要私有化的是推理出口：用 `providers` 声明内部网关，再让策略只放行它。
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "providers": {
+    "company-ai": {
+      "package": "@opencode/ai/providers/openai-compatible",
+      "settings": { "baseURL": "https://ai.company.example/v1" }
+    }
+  },
+  "policies": [
+    { "action": "provider.use", "resource": "*", "effect": "deny" },
+    { "action": "provider.use", "resource": "company-ai", "effect": "allow" }
+  ]
+}
+```
+
+网关走代理或私有 CA 时，环境变量要写进受管服务配置，只在当前 shell `export` 的话，换个终端起的后台服务就绕过了代理。
+
+```bash
+opencode service set env HTTPS_PROXY http://proxy.example.com:8080
+opencode service set env NO_PROXY localhost,127.0.0.1,::1
+opencode service set env NODE_EXTRA_CA_CERTS /etc/company/ca.pem
+opencode service start
+```
+
+还有一条出口容易漏：装插件与 Skills 拉的是 npm 包，用私有仓库得先登录，让 `~/.npmrc` 带上凭据，并且在启动 OpenCode 之前完成。
+
+```bash
+npm login --registry=https://your-company.jfrog.io/api/npm/npm-virtual/
+```
+
+## 审计留痕：三处证据，别只留聊天记录
+
+审计要回答的是一个具体问题：某天某人用哪个模型、读过哪些文件、被哪条策略拦下。会话正文只是其中一半。本地日志每行带进程 `run` ID 与 `role` 字段，`role=server` 覆盖会话、提供商、插件、权限与工具活动，是唯一能还原「当时判了什么」的原始材料。
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ "$#" -eq 0 ]; then
+  echo "用法: ./archive-sessions.sh <session-id> [session-id...]" >&2
+  exit 1
+fi
+
+day=$(date +%F)
+out="compliance/${day}"
+mkdir -p "$out"
+
+# 只导出服务端活动的切片，避免把客户端日志一起交出去
+grep 'role=server' ~/.local/share/opencode/log/opencode.log > "$out/server.log"
+
+# 会话清单做索引，正文按 ID 逐个脱敏导出
+opencode session list --max-count 50 --format json > "$out/sessions.json"
+
+for id in "$@"; do
+  opencode session export "$id" --sanitize > "$out/${id}.json"
+done
+
+ls -lh "$out"
+```
+
+用法是显式传入要归档的会话 ID，而不是全量导出：`./archive-sessions.sh ses_4f2a1c ses_9c1b08`。列 ID 本身就是一次人工筛选。
+
+| 证据 | 位置 | 能证明什么 | 局限 |
+| --- | --- | --- | --- |
+| 服务端日志 | `~/.local/share/opencode/log/opencode.log` | 会话、提供商、权限与工具的判定过程 | 在本机，没有保留期承诺 |
+| 会话导出 | `opencode session export <id> --sanitize` | 请求与响应正文 | 脱敏只发生在导出这一步 |
+| Console 活动 | **Activity › Logs**、**Export usage** | 成员、模型、费用与被哪条策略拦下 | 只覆盖经 Console 的用量 |
+
+身份归因别靠自述。用 Console 就打开 SSO，成员必须经身份提供商登录才能进入工作区；再接上 SCIM 目录同步，离职在身份系统里取消分配，访问与预算随之失效。
+
+## 评审现场最常被问的四个问题
+
+答案写进安全文档，比每次答辩现编省事：
+
+1. **数据出网到哪**：贴 `providers` 与 `policies`，说明除 `company-ai` 外全部 `deny`。
+2. **谁能改这条边界**：策略让更宽范围的配置更晚求值，托管偏好设置与系统文件最高，Console 工作区次之，仓库的 `allow` 解不开上层的 `deny`。
+3. **谁在什么时候用过**：SSO 管身份，SCIM 管入离职，会话导出与日志 `run` ID 管行为。
+4. **证据留多久**：文档没给本地日志保留期，归档要落到自己控制的存储，本机磁盘不是审计系统。
+
+## 落地动作
+
+1. 把 `share`、`websearch` 与四条 `policies` 写进仓库的 `opencode.jsonc`，提交前跑 `opencode debug config`，确认合并后的配置里确实有这几条。
+2. 跑 `opencode models` 确认被拒提供商已消失；再用 `opencode run --model` 指向一个被拒的模型试一次，确认请求不会回退到别的提供商。
+3. 把归档脚本存成 `scripts/archive-sessions.sh` 并 `chmod +x`，挑昨天的会话跑一次，确认导出里没有密钥残留。
+4. 在 Console 的 **Settings › Security** 打开 SSO；不用 Console 就在安全文档里写清身份归因靠哪套系统。
+
+## 常见坑
+
+- **现象**：全局 `deny` 了某提供商，仓库加 `allow` 仍用不了 → **原因**：策略让更宽范围更晚求值，上层 `deny` 不被下层解除 → **对策**：例外与宽泛规则写在同一文件、宽泛在前；跨团队放行交给 Console 工作区策略。
+- **现象**：封了 `webfetch`，智能体改用 shell 把内容发出去 → **原因**：`shell` 以主机用户的网络权限运行，`webfetch` 只是出门方式之一 → **对策**：shell 用窄允许列表，别穷举危险命令。
+- **现象**：脱敏后的审计包里仍有内部域名与 token 片段 → **原因**：脱敏只在导出环节生效，明文早进了上下文 → **对策**：先加 `read` 的 `*.env` 拒绝规则，导出后 grep `TOKEN|SECRET|PASSWORD` 再归档。

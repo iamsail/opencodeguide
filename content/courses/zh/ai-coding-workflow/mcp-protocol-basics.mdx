@@ -1,0 +1,67 @@
+---
+title: "MCP 协议原理与三类消息：tools、resources、prompts"
+summary: "拆开 MCP 的握手与能力协商，讲清 tools、resources、prompts 各自进上下文的方式和代价"
+module: 4
+lesson: 1
+duration: 8
+free: false
+objectives:
+  - "能按顺序说出一次 MCP 连接的 initialize 握手与 capability 协商过程"
+  - "能判断一份数据该暴露成 tool 还是 resource，并说出两者的上下文成本差异"
+  - "能把权限规则对齐到 OpenCode 改写后的 <server>_<tool> 名称"
+---
+
+「MCP 就是 AI 的插件市场」是这类介绍里最省事的说法，也是最没用的。真正决定体验的是三类消息各自由谁调度：tools 交给模型自己判断，resources 由应用按需拉取，prompts 由人敲命令触发。分不清这条边界，最常见的后果是把几万字的 schema 塞成常驻上下文，然后怪模型变笨。
+
+## 握手只有一轮，能力表决定后面能问什么
+
+MCP 跑在 JSON-RPC 2.0 上，传输只有两条路：本地服务器由 OpenCode 当子进程拉起，走 stdio；远程服务器走 Streamable HTTP，要求绝对 URL。无论哪条路，开局都是一次 `initialize`——客户端报协议版本，服务器声明自己的 capabilities，客户端再补一条 `notifications/initialized` 表示确认。服务器没声明的能力，后面就不能要。这是 MCP 与「随便调个 HTTP 接口」最根本的区别：能力是协商出来的，不是猜出来的。
+
+```json
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{}}}
+
+{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-11-25","capabilities":{"tools":{},"resources":{"subscribe":true},"prompts":{}}}}
+
+{"jsonrpc":"2.0","method":"notifications/initialized"}
+```
+
+握手成功后进入目录阶段：`tools/list`、`resources/list`、`resources/templates/list`、`prompts/list`。OpenCode 给这一组请求的默认超时都是 30 秒（catalog），建立连接另算 30 秒（startup），而工具调用宽到 12 小时（execution）。三个数字就是分工说明：连接和列目录必须快，执行可以慢。本地服务器连不上，多数是 `npx` 首次下载超过了 startup，而不是协议不兼容。
+
+## 三类消息的差别在「谁决定现在要不要」
+
+| 消息类型 | 触发方 | 是否常驻上下文 | 在 OpenCode 里的形态 |
+| --- | --- | --- | --- |
+| tools | 模型 | 是，名称、描述、inputSchema 长期占位 | 默认经 `execute` 在服务器命名空间下调用；`codemode: false` 时直接进原生工具列表 |
+| resources | 应用侧 | 否，读取那一刻才进 | 内置 `list_mcp_resources` 与 `read_mcp_resource` |
+| prompts | 人 | 否，敲命令时生成一条消息 | `/<server>:<prompt>` 命令 |
+
+结论很直接：需要模型带参数反复调用的，做成 tool；一次性的长内容（OpenAPI、表结构、运维手册），做成 resource；固定多步流程（「按模板生成迁移脚本」），做成 prompt。接 8 个服务器、每个 6 个工具，就是 48 份 schema 的固定开销；而同一份表结构做成 resource，只有真去读时才花 token。
+
+## 工具名会被改写，权限也按改写后的名字匹配
+
+OpenCode 把工具命名为 `<server>_<tool>`，字母、数字、`_` 和 `-` 之外的字符一律换成 `_`。服务器叫 `context 7`、工具叫 `resolve.library/id`，暴露出来是 `context_7_resolve_library_id`；prompts 变成命令时规则相同，形如 `/context_7:find_docs`。权限规则匹配的也是改写后的名字，写原始名不会生效。
+
+有两个实际后果。服务器名要短且唯一，`context-7` 和 `context_7` 归一化后撞车，权限规则里就分不清谁是谁。另外，默认开启的 Code Mode 按服务器名分组，调用形态是 `tools.context_7.resolve_library_id(...)`，只有一份 `execute` 的 schema 常驻上下文，工具描述按需出现，代价是模型得先写一小段 JS。确实需要工具进入提供商原生列表时，把该服务器设为 `codemode: false`，并接受随之而来的上下文开销。
+
+## 先接一个「什么都有」的服务器，把三类消息看全
+
+`@modelcontextprotocol/server-everything` 是官方演示服务器，tools、resources、prompts 三样齐全，适合做一次性对照。接上之后核对连接状态，再在会话里让它列资源、读其中一条，重点观察资源内容是在「读」的那一步才进入上下文的；然后用 `/` 翻命令列表，找到以服务器名开头的 prompt 命令。
+
+```bash
+opencode mcp add everything -- npx -y @modelcontextprotocol/server-everything
+opencode mcp list
+```
+
+实验结束就删掉该条目，或者保留配置但写 `"disabled": true`。配置留着、连接不建立，这才是把服务器当「备查」而不是「常驻」的正确姿势——`disabled` 而非 `enabled`，别写反。
+
+## 落地动作
+
+1. 执行 `opencode mcp add everything -- npx -y @modelcontextprotocol/server-everything`，再用 `opencode mcp list` 确认状态为 connected，记下实际暴露的工具名。
+2. 在会话里读一条 resource，然后问模型「刚才读到的内容占了多少上下文」，对照工具 schema 的常驻开销，得出自己的取舍标准。
+3. 打开 `opencode.jsonc`，给这个服务器加一条 `{"action": "everything_*", "resource": "*", "effect": "deny"}`，观察工具是否从会话中消失但连接仍在。
+
+## 常见坑
+
+- **现象**：`opencode mcp list` 里服务器一直是待连接状态，日志没有协议错误 → **原因**：`npx` 首次拉包超过了默认 30 秒 startup → **对策**：先在终端手动跑一遍那条命令预热缓存，或在服务器配置里用 `timeout.startup` 放宽。
+- **现象**：挂上几个服务器后回答质量下降、成本上升 → **原因**：每个工具的 schema 都在占上下文，Code Mode 只是缓解不是免费 → **对策**：给非当前任务的服务器设 `"disabled": true`，需要时再开。
+- **现象**：deny 规则写了却没挡住 → **原因**：写的是原始工具名，或者被后面更宽泛的规则覆盖（匹配规则是最后一条生效）→ **对策**：具体规则放后面，用改写后的 `<server>_<tool>` 名称核对。

@@ -1,0 +1,104 @@
+---
+title: "自建站方案：Next.js + 无头电商 API + Stripe"
+summary: "把能收钱的链路缩到五段，先做对幂等与价格边界，再谈前端体验"
+module: 2
+lesson: 3
+duration: 10
+free: false
+objectives:
+  - "画出商品、购物车、结账会话、订单落库、履约五段链路并标出数据位置"
+  - "写出一个只在服务端决定价格、只接受 sku 与数量的结账接口"
+  - "用月固定成本除以月订单数，算出自建摊到每单的成本并判断规模是否够"
+---
+
+用 Next.js 加 Stripe 搭一个能收钱的商店，一两天就能跑通；把它变成能发货、能退款、能对账的系统，通常要几个月。差别不在前端，而在订单落库之后那半段。这一段没有演示视频，只有一堆必须做对的小事。
+
+## 最小链路只有五段
+
+商品与价格源 → 购物车 → 结账会话 → 订单落库 → 履约与通知。
+
+- **商品与价格源**：Stripe 的 Price，或无头电商 API（商品、库存、订单）。价格必须由服务端持有。
+- **购物车**：cookie 或 localStorage 只存 sku 与数量，不存价格。
+- **结账会话**：服务端创建，返回 `session.url`，浏览器跳转过去。
+- **订单落库**：webhook 写入 orders 表，唯一键防重。
+- **履约与通知**：发货、邮件、退款时回收权益。
+
+| 链路 | 数据存在哪 | 典型失败 |
+| --- | --- | --- |
+| 商品与价格 | Stripe Price 或无头 API | 前端缓存了旧价格 |
+| 购物车 | cookie 或 localStorage | 把价格也存进了浏览器 |
+| 结账会话 | Stripe | 金额由客户端传入 |
+| 订单落库 | orders 表 | 只有成功页逻辑，没有 webhook |
+| 履约与通知 | 邮件服务与物流商 | 重复发货、重复发信 |
+
+选无头电商 API 时看三件事：库存能否原子扣减、订单能否回写、税费与物流能否复用平台能力。三件都不行，你买到的只是一个商品查询接口，剩下的全是自建。
+
+## 信任边界：钱的信息只在服务端
+
+前端只传 sku 与数量，价格由服务端映射表决定；金额一旦由客户端决定，等于把改价权限公开。webhook 必须用原始请求体校验签名，按 session id 做幂等，重复事件直接返回 200，不要返回错误——错误会触发无限重试。成功页只负责展示：用户刷新、改参数都能伪造一个页面，但伪造不了 orders 表。
+
+```ts
+// app/api/checkout/route.ts —— 只在服务端运行
+import Stripe from "stripe";
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const PRICE: Record<string, string> = { "tee-black-m": "price_xxx" };
+
+export async function POST(req: Request) {
+  const { sku, qty } = await req.json();
+  const price = PRICE[sku];
+  if (!price) return new Response("unknown sku", { status: 400 });
+  const session = await stripe.checkout.sessions.create({
+    mode: "payment",
+    line_items: [{ price, quantity: Math.min(qty, 10) }],
+    client_reference_id: sku,
+    success_url: `${process.env.SITE_URL}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${process.env.SITE_URL}/cart`,
+  });
+  return Response.json({ url: session.url });
+}
+```
+
+```sql
+-- 幂等的落库点：重复事件不会写出第二条
+create table orders (
+  id uuid primary key default gen_random_uuid(),
+  stripe_session_id text unique not null,
+  email text not null,
+  amount_cents int not null,
+  currency text not null,
+  status text not null default 'paid',
+  created_at timestamptz default now()
+);
+```
+
+## 自建多出来的那一层是固定成本
+
+税、面单、退货、客服、对账、发票——这些在平台店里是内置功能，自建之后全部变成待办。其中大部分不是按单计费的变动成本，而是固定成本：监控与日志、邮件与短信、税务服务、订阅型插件，以及最贵的一项，你自己的维护工时。
+
+判断自建划不划算，用这个式子而不是拍脑袋：
+
+单均成本 = 售价 − 变动成本 − 月固定成本 ÷ 月订单数
+
+月订单数低的时候，固定成本被摊得极薄，单位成本会高到没有竞争力；单量上来之后它才逐渐消失。到岸成本、关税与广告成本属于变动项，在毛利测算那一节里算，这里只补自建新增的固定那一层。把两项放在同一张表里，你就能看出多少单量之后自建才开始划算。
+
+## 什么时候不该自建
+
+- **投放还没跑通**：先有稳定的转化与复购信号，再谈架构。
+- **没有能持续维护的人**：自建的成本峰值不在上线，而在每次大促前的回归。
+- **需要快速验证市场**：平台店开一个市场只要配置，自建要重做路由、货币、税费与物流。
+
+自建真正合理的场景是：同一套商品数据要被多个渠道复用、结账必须按身份变化，或者品牌体验本身就是产品的一部分。
+
+## 落地动作
+
+1. 画出五段链路，标出每段数据存在哪；任何「价格存在浏览器里」的字段都改掉。
+2. 写一个只在服务端运行的结账接口，只接受 sku 与数量。
+3. 建 orders 表并给 `stripe_session_id` 加唯一索引，先把幂等做对再谈功能。
+4. 用测试卡跑成功、需要验证、失败三种情况，确认只有 webhook 写入才算订单。
+5. 用上面的公式填一版毛利表，把它和你的定价放在同一张纸上核对。
+
+## 常见坑
+
+- **现象**：用户付了钱但权益没开通 → **原因**：发放逻辑写在成功页的前端 → **对策**：只由 webhook 发放，成功页去服务端查状态。
+- **现象**：同一笔订单发了两封邮件、扣了两次库存 → **原因**：webhook 重试没有幂等 → **对策**：唯一索引，冲突时返回 200 而不是 500。
+- **现象**：签名校验一直失败 → **原因**：用了框架解析后的 JSON 而不是原始 body → **对策**：读原始字符串再 `constructEvent`。

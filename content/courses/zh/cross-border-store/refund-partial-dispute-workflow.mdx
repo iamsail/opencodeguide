@@ -1,0 +1,119 @@
+---
+title: "退款、部分退款与争议（dispute）处理流程"
+summary: "退款不是一键退钱：先算净损失、再用事件驱动状态，最后才决定争议是接受还是举证"
+module: 3
+lesson: 6
+duration: 8
+free: false
+objectives:
+  - "区分全额退款、部分退款、inquiry 与 chargeback 的资金结果与是否可撤回"
+  - "用累计字段判断全退与部分退，写出幂等的 webhook 处理逻辑"
+  - "按争议原因与手头证据，决定接受还是举证，并算出资金敞口"
+---
+
+退款按钮点下去，钱原路退回，很多人就认为这件事结束了。没结束的是后面四件事：客户还能不能看内容、账目上的退款额对不对、客服有没有留下记录、这笔钱在拒付率里算什么。四件事里任何一件没做，都会在下次对账或下一封投诉邮件里回来找你。
+
+## 四个动作，四种资金结果
+
+| 动作 | 谁发起 | 资金结果 | 能否撤回 | 计入拒付率 |
+| :--- | :--- | :--- | :--- | :--- |
+| 全额退款 | 你 | 本金退回，手续费通常不退（以当期 pricing 为准） | 不能，只能重新收款 | 不计入 |
+| 部分退款 | 你 | 只退一部分，余款留在账上 | 不能 | 不计入 |
+| inquiry（warning） | 持卡人 | 钱还没划走，要你回应 | 回应后关闭 | 计入争议工单 |
+| chargeback | 持卡人 | 本金与争议费立刻扣走 | 举证或接受 | 计入 |
+
+这张表说明一件常被忽略的事：退款是最便宜的争端解决方式，拒付是最贵的。判断标准不该是「客户有没有道理」，而是「哪种做法总成本更低」。反过来，把退款当万能按钮，goodwill 退款会变成常态，毛利在没人注意处被吃掉。
+
+## 部分退款要算净损失，不是退款额
+
+```
+可退上限     = charge.amount − charge.amount_refunded     # 累计值，不是本次退款额
+净损失       = 退款额
+             + 未退回的支付手续费
+             + 已发生的履约成本（头程 + 尾程 + 包装）
+             + 逆向物流或弃置成本
+             − 可二次销售的残值
+```
+
+公式的前两项是你必然承担的，后两项随处置方式变化；要算的是已经花掉的钱，不是退款额本身。数字商品没有物流项，净损失接近「退款额 + 手续费」，和解几乎总比举证便宜。
+
+判断就有了依据：举证要花的时间、它可能挽回的金额，与净损失比一比。举证赢面不高时，痛快的部分退款更专业。
+
+## 用事件驱动状态，不要靠人工记账
+
+退款漏改状态，客户还能继续看内容，账上却显示已退款——这类问题只能靠事件驱动解决。关键是记住 `amount_refunded` 是累计值：
+
+```ts
+// charge.refunded：amount_refunded 是累计值，多次部分退款会累加
+async function onRefunded(charge: Stripe.Charge) {
+  const order = await db.order.findByPaymentIntent(charge.payment_intent as string);
+  if (!order) {
+    await alertOps("退款找不到订单", charge.id); // 后台手动退款很常见，告警不要抛错
+    return { ok: true };
+  }
+
+  const refunded = charge.amount_refunded ?? 0;
+  const isFull = refunded >= charge.amount; // 用 >=，不要用 ==
+
+  await db.order.update(order.id, {
+    status: isFull ? "refunded" : "partially_refunded",
+    refundedAmount: refunded,
+    // 部分退款保留权益，全额退款才回收；反过来会让客户付了钱看不到内容
+    revokedAt: isFull ? new Date() : order.revokedAt,
+  });
+
+  await mailer.send(buildRefundMail(order, refunded, isFull)); // 邮件失败不回滚订单
+  return { ok: true };
+}
+```
+
+两个细节决定这套逻辑能不能长期用：找不到订单时只告警不抛错，否则 Stripe 会把它当成失败事件反复重投；写库用 `payment_intent` 反查并做幂等，重投两次不能回收两次权益。
+
+## 争议：先算账，再决定举证还是接受
+
+举证不免费，花的是时间，而且输赢都收争议费。按原因分诊：
+
+| 争议原因 | 你手上有 | 建议 |
+| :--- | :--- | :--- |
+| `fraudulent`，没有 3DS | 订单记录 | 接受，把时间省下来 |
+| `fraudulent`，有 3DS 通过记录 | 验证记录与时间 | 举证，责任已转移 |
+| `product_not_received`，无追踪号 | 发货邮件 | 和解或接受 |
+| `product_not_received`，有签收 | 追踪号与签收记录 | 举证 |
+| `duplicate` | 两笔 charge 的 id 与时间 | 举证 |
+| `unrecognized` | 账单名与收据 | 举证，同时改 `statement_descriptor` |
+
+现金上还有一层：争议期间金额被冻结或扣除，可用余额会变少。按近一季度的争议金额留一笔缓冲，比事后从别处挪钱从容。
+
+接受争议也是决定，不是认输：后台点接受或调接口关闭后不能反悔，本金与争议费一起认下。所以只在「净损失小于举证成本」时才接受。
+
+争议的多少，其实由退款政策决定。政策里要写明部分退款的条件：已发货、已拆封、超期能不能退、退多少。写不清的结果是客服现场发明规则，同一个问题在不同客服那里答案不同，goodwill 退款最后变成默认选项。
+
+给 goodwill 定一个相对上限（占当月营收的比例），超了改用补发、优惠券或换货。这笔预算的作用是让你在情绪上不被迫让步，不是鼓励花掉它。
+
+## 什么时候可以不做
+
+每周退款只有个位数时，后台手动退、手工改两个字段、发一封邮件就够了，不需要 webhook 自动化。等退款开始影响状态一致性（客户退款后还能登录看内容），或每周手动改状态超过十来次，再把这套逻辑写成代码。
+
+## 落地动作
+
+1. 在测试模式做一次部分退款，观察 `charge.refunded` 里 `amount_refunded` 的累计变化：
+
+```bash
+# 部分退款：amount 传本次金额（最小货币单位），不是累计值
+curl -s https://api.stripe.com/v1/refunds \
+  -u "$STRIPE_SECRET_KEY:" \
+  -H "Idempotency-Key: refund-$ORDER_ID-v1" \
+  -d payment_intent="$PI_ID" \
+  -d amount="$REFUND_MINOR" \
+  -d "metadata[reason]=damaged_in_transit" \
+  | jq '{id, amount, status, charge}'
+```
+
+2. 在订单表补 `refunded_amount` 与 `revoked_at` 两列，只让全退触发权益回收。
+3. 把上面那张「争议原因 → 建议」的表复制进店内的运营文档，作为客服的唯一口径。
+
+## 常见坑
+
+- **现象**：客户说只收到一半退款，客服又退了一次，实际退多了 → **原因**：把 `amount_refunded` 的累计值当成「本次退款额」 → **对策**：区分「本次金额」与「累计已退」两个字段，可退上限按累计值算。
+- **现象**：退款后客户仍能访问内容或继续下载 → **原因**：只处理了全额退款，部分退款没改状态；或 `charge.refunded` 事件根本没订阅 → **对策**：订阅退款事件，状态机里写清部分退与全退的权益差异。
+- **现象**：发现争议时已过举证期 → **原因**：Webhook 只订阅了支付成功，争议事件靠人偶然发现 → **对策**：订阅争议的创建、更新、关闭事件，把通知发到每天都会看的收件箱。

@@ -1,0 +1,85 @@
+---
+title: "自定义命令：把高频工作流压缩成 /review、/ship、/migrate"
+summary: "用 commands 目录把高频提示词固化成带参数与 shell 注入的斜杠命令"
+module: 3
+lesson: 3
+duration: 8
+free: false
+objectives:
+  - "能写出 /review 命令，注入 staged diff 且强制只读执行"
+  - "能用 $ARGUMENTS 与 $1 两种占位符区分「整串参数」和「结构化参数」"
+  - "能把长任务命令设为后台子会话，并说清父会话如何拿回结果"
+---
+
+每次评审都手打一遍「按严重度排序、给出行号、不要改代码」，本质上是用自然语言做版本管理：措辞每次不同，结论自然每次不同。自定义命令把这些提示词变成仓库里的文件，能跟着分支走，也能被同事 code review。
+
+判断标准很简单：一段提示词你连续用了三次以上，就该搬进 `.opencode/commands/`。
+
+## 命令是一段带变量的提示词模板
+
+`commands/` 目录下的每个 `.md` 文件就是一个斜杠命令，去掉首尾空白的正文即提示词模板。`$ARGUMENTS` 拿到原样输入的整串参数，`$1`、`$2` 拿解析后的位置参数，引号可把多个词并成一个参数。编号最大的占位符会消费其后的全部内容；模板里一个占位符都没有时，OpenCode 会在空行之后追加非空参数。
+
+嵌套目录构成命令名：`.opencode/commands/team/review.md` 用 `/team/review` 调用。只有 `.md` 文件会被发现，旧版单数目录 `command/` 同样能识别，但新文件请用 `commands/`。
+
+frontmatter 只放元数据，别把 `template` 写进去——Markdown 命令的模板永远来自正文。
+
+## /review：只读、带 diff、结论可比
+
+评审命令最容易犯的错是让它「顺手修一下」。用 `agent: plan` 把会话切到只读智能体，再用 shell 注入把 diff 直接喂进提示词，模型就不必自己猜该看哪个范围。
+
+```md title=".opencode/commands/review.md"
+---
+description: Review staged changes for correctness, regressions and missing tests
+agent: plan
+model: anthropic/claude-sonnet-5-5#high
+---
+
+Review only the staged changes below. Do not edit files, do not run formatters.
+
+Report each finding as: severity, `file:line`, what breaks, smallest fix.
+End with the risks you could not verify.
+
+!`git diff --cached --stat && git diff --cached`
+```
+
+注意 shell 代码块在 OpenCode 求值命令时就执行，位于智能体的工具权限流程之外。把它当配置文件对待：只放固定命令，绝不把用户传入的参数拼进去。
+
+## /ship 与 /migrate：一个进后台，一个收窄参数
+
+| 命令 | 关键字段 | 形态 |
+| --- | --- | --- |
+| `/review` | `agent: plan`、`model` | 前台只读，注入 diff |
+| `/ship` | `subagent: true`、`agent: general` | 后台跑发布前检查，父会话可继续干活 |
+| `/migrate` | `$1` 收窄范围 | 只输出方案，不落盘 |
+
+`subagent: true` 让命令在后台子会话中运行，父会话保留自己的智能体与模型；子会话结束后，结果或失败会回传给父会话。省略该字段时，只有所选智能体是 `mode: subagent` 才用子会话；写 `false` 则强制留在当前会话。
+
+```md title=".opencode/commands/ship.md"
+---
+description: Pre-PR checklist for the current branch
+agent: general
+subagent: true
+---
+
+Run the pre-PR checklist. For every item report pass or fail with the command output as evidence. Do not commit, do not push.
+
+!`git status --short && git diff --stat && git log --oneline -5`
+
+Checklist: unrelated files in the diff, missing tests, leftover debug output, migration needed, docs updated.
+```
+
+`/migrate` 这类命令要用位置参数而不是整串参数：`/migrate users` 里 `$1` 是 `users`，模板只提这一张表，模型就没有扩展范围的余地。同时把 `agent` 设为 `plan`，让它连写文件的能力都没有。
+
+## 落地动作
+
+1. 建目录并先只做 `/review`：`mkdir -p .opencode/commands && $EDITOR .opencode/commands/review.md`。
+2. 用 `agent: plan` + `!` 反引号注入 `git diff --cached`，跑一次确认真只读。
+3. 把团队评审标准（严重度定义、必查项）写进 `AGENTS.md`，命令里只引用，不要复制第二份。
+4. 加 `/ship` 时显式写 `subagent: true`，验证父会话在后台运行期间仍能接收新指令。
+5. 一个月后回看：没人调用的命令删掉，命令目录本身就是团队工作流的清单。
+
+## 常见坑
+
+- **现象**：`/review` 提交的提示词里 `$ARGUMENTS` 原样保留。 → **原因**：调用时没带参数，缺失的位置参数变成空字符串；或模板用了 `$1` 而参数没给。 → **对策**：模板里写默认行为（「若未指定文件则评审 staged diff」），并让 shell 注入提供默认输入。
+- **现象**：命令执行后界面像卡住，主会话无法继续。 → **原因**：长任务没设 `subagent: true`，且所选智能体是 `mode: primary`，于是跑在当前会话里。 → **对策**：显式写 `subagent: true`，或把命令 `agent` 指向一个 `mode: subagent` 的智能体。
+- **现象**：`!` 后面的 shell 命令完全没执行。 → **原因**：写成了行内代码，或漏掉 `!`，OpenCode 只把它当普通文本。 → **对策**：用 `!` 紧跟一对反引号包裹整条命令，保存后重新运行该命令。

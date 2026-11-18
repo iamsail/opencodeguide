@@ -1,0 +1,105 @@
+---
+title: "对账：把 Stripe 付款记录和你的用户表对上"
+summary: "每周用一次差集查询，让每一笔差额都有归属，而不是月底怀疑 webhook"
+module: 4
+lesson: 7
+duration: 9
+free: false
+objectives:
+  - "列出对账必须比对的三组数据：覆盖、金额、状态"
+  - "用一条 SQL 找出漏单、金额不符与重复落库三类差异"
+  - "用唯一索引让重复的 webhook 事件变成无害操作"
+---
+
+对账的目标不是让两个数字相等，而是让每一笔差额都有归属。做不到这一点，月底你会盯着一堆无法解释的差额，开始怀疑 webhook 是不是写错了——多数时候没写错，只是从来没比过。
+
+## 钱在 Stripe，权限在你这里
+
+Stripe 的 charge、balance transaction 与 payout 是钱的事实来源；你的 orders 表是权益的事实来源，决定谁该看到什么、什么时候被收回。两者靠事件传递，而事件会丢，所以「不一致」是常态，不是 bug。
+
+丢的方式就三种：部署或改 endpoint 期间重试耗尽；你在 Dashboard 里手工退款，这笔操作根本不经过站点；某类事件从来没订阅过。三种都不会报错，只会安静地留下差额。
+
+所以要定期比三组东西：覆盖（已付款的 session 有没有对应订单）、金额（`amount_total` 与币种是否一致）、状态（退款金额、拒付有没有反映到权限上）。加上第四组唯一性：同一笔付款是否只有一条订单。
+
+| 比对维度 | Stripe 侧看什么 | 你的表看什么 | 不一致说明什么 |
+| :--- | :--- | :--- | :--- |
+| 覆盖 | 已付款的 `checkout.session` | `stripe_session_id` 是否存在 | 漏单，用户付了钱没拿到东西 |
+| 金额 | `amount_total`、`currency` | `amount_cents`、`currency` | 优惠码、部分退款、币种记错 |
+| 状态 | `amount_refunded`、dispute | `status`、`revoked_at` | 退了款但权限还在 |
+| 唯一 | session id 本身 | 唯一索引 | 一条订单发了两封开通邮件 |
+
+## 别拿 Events API 当账本
+
+Events 有保留期，过期的事件不能回放。所以「按事件表重建三个月前的订单」这件事做不到，账本必须建在有长期保留的对象上：Checkout Session、Charge、Balance Transaction、Payout。事件只做触发器，不做账本——这个区分决定了 webhook 挂了能不能靠重放补。
+
+拉列表要注意分页方式：游标分页，用 `starting_after` 往后翻，用 `created[gte]` 限定窗口，单次 `limit` 有上限。写脚本时先取一页，看清楚 `has_more` 再决定要不要继续，别假设一次能取完。
+
+幂等必须落在数据库，不在代码里。`orders.stripe_session_id` 建唯一索引，插入用 `on conflict do nothing`，插入返回 0 行就跳过发信。这个仓库的做法就是这样：`insertOrder` 返回 false 时直接返回 duplicate，不发第二封开通邮件。两个并发事件同时通过代码里的 if 判断是常态，只有索引拦得住。
+
+## 差异只有四类，先归类再修数
+
+漏单：Stripe 有付款、你没有订单。补录并补发交付，然后检查订阅的事件类型，别只看 `checkout.session.completed`。
+
+幽灵单：你有订单、Stripe 没收到钱。常见原因是异步支付方式——session 先完成为 completed，之后才变 `paid`，所以落单前必须判断 `payment_status` 是 `paid` 或 `no_payment_required`，否则会提前发货。
+
+金额不符：先看有没有优惠码，再看部分退款，最后看币种是不是存成了展示币种。金额一律存整数的最小货币单位，用浮点或字符串存，迟早对出一分钱的差额。
+
+重复：唯一索引缺失，或者两条事件并发写入。修数原则是以 Stripe 为准改金额、以业务事实为准改权限，任何手工改动留一行备注，写清谁改的、依据哪个 ID，否则三个月后没人能解释这张表。
+
+退款匹配要用 `payment_intent`：`charge.refunded` 事件里没有 session id，而且 Dashboard 手工退款也触发同一事件，于是必然出现「退款找不到订单」。这类情况不该抛错让 Stripe 重试——重试一万次也不会变好——应该记告警、等人工判断。区分「重试能修好」和「只有人能修好」，是对账里最省时间的一条判断。
+
+| 做法 | 能覆盖的差异 | 单人维护成本 | 适用条件 |
+| :--- | :--- | :--- | :--- |
+| 只信 webhook，不做差集 | 覆盖不到任何一类 | 最低 | 上线第一周，订单个位数 |
+| 每周导出 Payments CSV 跑差集 SQL | 漏单、金额、重复 | 每周十几分钟 | 有稳定订单后的常态做法 |
+| 定时任务拉 API 全量比对 | 以上几类，可自动告警 | 一次开发加少量维护 | 月订单过百，或已有会员中心 |
+| 交给代账方核对流水 | 只覆盖现金层面 | 持续费用 | 有收入但不想自己做账，权限仍需自己对 |
+
+## 落地动作
+
+1. 先给订单表加唯一索引，这一步只能做一次，越早越好：
+
+```sql
+CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_session
+  ON orders (stripe_session_id);
+
+-- 落单时用返回值决定要不要发信（D1 / SQLite 语法）
+INSERT INTO orders (id, stripe_session_id, email, amount_cents, currency, status, created_at)
+VALUES (?, ?, ?, ?, ?, 'paid', ?)
+ON CONFLICT (stripe_session_id) DO NOTHING;
+```
+
+2. 每周一从 Dashboard 的 Payments 页导出 CSV，确认字段至少含 `id`、`amount`、`currency`、`client_reference_id`（本仓库约定为 `slug:plan`）。
+3. 把 CSV 灌进本地临时库，跑三条查询定位差异：
+
+```bash
+# 列名随导出模板变化，先看表头再对齐字段
+head -1 "$HOME/Downloads/payments.csv"
+sqlite3 -csv recon.db ".import --csv --skip 1 $HOME/Downloads/payments.csv stripe_payments"
+```
+
+```sql
+-- 1) 漏单：Stripe 已付款，本地没有订单
+SELECT p.id, p.client_reference_id, p.amount, p.currency
+FROM stripe_payments p
+LEFT JOIN orders o ON o.stripe_session_id = p.id
+WHERE o.id IS NULL;
+
+-- 2) 金额不符：导出是主单位，订单表存的是分
+SELECT o.id, o.stripe_session_id, o.amount_cents, p.amount
+FROM orders o
+JOIN stripe_payments p ON p.id = o.stripe_session_id
+WHERE o.amount_cents <> CAST(ROUND(p.amount * 100) AS INTEGER);
+
+-- 3) 重复落库
+SELECT stripe_session_id, COUNT(*) AS n
+FROM orders GROUP BY stripe_session_id HAVING n > 1;
+```
+
+4. 把每周差异条数记在一个固定位置（表格或 issue），连续四周为 0 才算这条链路稳。
+
+## 常见坑
+
+- **现象**：每月都有一两笔「退款找不到订单」→ **原因**：退款在 Dashboard 手工发起，或订单来自别的渠道 → **对策**：退款按 `payment_intent` 匹配，找不到时发告警而不是抛错，每月清一次这类孤儿记录。
+- **现象**：同一用户收到两封开通邮件 → **原因**：幂等写在应用层，两个并发事件都通过了 if 判断 → **对策**：唯一索引 + `on conflict do nothing`，用插入行数决定是否发信。
+- **现象**：对账批量差一分钱 → **原因**：金额用浮点或字符串存，比较时又做了一次四舍五入 → **对策**：统一存整数最小货币单位，只在一个地方做单位换算。

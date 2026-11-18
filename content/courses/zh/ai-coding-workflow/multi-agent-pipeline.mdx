@@ -1,0 +1,97 @@
+---
+title: "多智能体协作实战：一个功能从需求到 PR 的完整流水线"
+summary: "以文件为交接物，把需求、实现、测试、评审串成可停顿、可重跑的流水线"
+module: 3
+lesson: 5
+duration: 10
+free: false
+objectives:
+  - "能为一条流水线定义四个阶段的输入、输出文件与完成判据"
+  - "能用一条命令启动整条流水线，并在规格阶段强制停下等人确认"
+  - "能让单个阶段独立重跑，不必从头再做一遍"
+---
+
+多智能体流水线失败的原因很少是模型不够强，而是交接靠上下文记忆：规划阶段的结论没落盘，实现阶段就开始猜，评审阶段只能评「代码写得像不像」。上下文一长，前面说过的话就被挤掉了。
+
+把「结论必须写进文件」当成硬约束之后，流水线才从一段长对话变成一个有状态、可重跑的系统。
+
+## 交接物是文件，不是对话
+
+每个阶段只做一件事，产出一个固定路径的文件，下一个阶段只读这个文件。这样做的直接好处是：任一阶段失败，你可以只重跑那一段。
+
+| 阶段 | 输入 | 输出 | 完成判据 |
+| --- | --- | --- | --- |
+| 规格 | 需求原文 | `docs/specs/<slug>.md` | 验收标准逐条可判定真假 |
+| 实现 | 规格文件 | 代码 + `docs/specs/<slug>.implement.md` | 测试命令与输出都在文件里 |
+| 测试 | 代码 + 规格 | `docs/specs/<slug>.test.md` | 失败项带精确断言，无新增失败 |
+| 评审 | diff + 规格 | `docs/specs/<slug>.review.md` | blocker 清零，未验证项列明 |
+| 交付 | 以上四份 | PR 描述 | 不提交、不推送 |
+
+每份输出末尾强制写一段「我无法验证的部分」。没有这一段，下游会把猜测当事实，错误会一路放大到 PR。
+
+## 一条命令拉起整条流水线
+
+编排角色本身不该写代码。把它的 `edit` 关掉，只留子智能体调度权，它就无法既当裁判又当运动员。
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agents": {
+    "orchestrator": {
+      "mode": "primary",
+      "steps": 30,
+      "permissions": [
+        { "action": "edit", "resource": "*", "effect": "deny" },
+        { "action": "subagent", "resource": "*", "effect": "deny" },
+        { "action": "subagent", "resource": "implementer", "effect": "allow" },
+        { "action": "subagent", "resource": "tester", "effect": "allow" },
+        { "action": "subagent", "resource": "reviewer", "effect": "allow" }
+      ]
+    }
+  }
+}
+```
+
+`steps` 是模型步骤上限，到达上限时 OpenCode 会移除工具、要求以文本收尾。给 30 这种够跑完一条流水线的值，比给无限预算更能暴露「某一段在原地打转」。
+
+```md title=".opencode/commands/feature.md"
+---
+description: Run spec, implement, test and review for one feature
+agent: orchestrator
+---
+
+Feature: $1. Slug: $2.
+
+Pipeline. Stop after step 1 and wait for my approval.
+
+1. Write `docs/specs/$2.md`: acceptance criteria as testable statements, explicit non-goals, files expected to change. Read `AGENTS.md` first.
+2. Hand the spec to `implementer`. Require the test command and its raw output in `docs/specs/$2.implement.md`.
+3. Hand the diff to `tester`. Failures go to `docs/specs/$2.test.md` with the exact failing assertion.
+4. Hand spec and diff to `reviewer`. Findings go to `docs/specs/$2.review.md`, blockers first.
+5. Write the PR body from those four files. Do not commit, do not push.
+```
+
+## 闸门：什么时候必须停下来
+
+只有两个地方值得强制停：规格产出之后，以及推送之前。前者返工成本最高，后者不可撤销。其余阶段可以连续跑，但要有明确判据，否则「跑完了」只是模型的自述。
+
+- 测试红灯不停：直接回到实现，让 `implementer` 拿到失败断言原文。
+- 评审出 blocker：停下来让人判断，不要让它自己改。编排角色一旦开始修 findings，评审就退化成自我背书。
+- 两个只读阶段可以并行：`tester` 与 `reviewer` 都只读 diff，让它们同时跑，父会话等结果合并。
+- 推送永远人工：`git push` 在 `policies` 里硬拒，流水线只负责产出 PR 描述。
+
+允许清单按角色逐个放行，宽泛的 `deny` 放最前面。放行一个 `*`，等于前面的角色划分白做。
+
+## 落地动作
+
+1. 建目录：`mkdir -p .opencode/agents .opencode/commands docs/specs`。
+2. 先只写规格阶段：`.opencode/commands/feature.md` 里只保留第 1 步，用 `/feature "支持导出 CSV" export-csv` 验证它会停下等你。
+3. 在 `opencode.jsonc` 里给 `orchestrator` 设 `steps: 30`，并按角色逐个放行 `subagent`。
+4. 补上 `implementer` 与 `reviewer`，暂时不接 `tester`，先跑通「规格 → 实现 → 评审」三段。
+5. 第三次跑同一条流水线时，检查四份产物是否齐全；缺哪份，就说明那个阶段在靠上下文糊弄。
+
+## 常见坑
+
+- **现象**：评审说通过，CI 却红了。 → **原因**：完成判据是「模型说它跑过测试」，没有原始输出。 → **对策**：要求把命令与输出写进阶段产物，缺输出即视为未完成。
+- **现象**：改了一行代码，整条流水线要重跑。 → **原因**：产物没有按阶段和 slug 落盘，只能靠对话历史回溯。 → **对策**：固定 `docs/specs/<slug>.<stage>.md` 命名，单阶段重跑只读上游文件。
+- **现象**：编排智能体自己改代码并宣布通过。 → **原因**：没关掉它的 `edit`，也没设阶段闸门。 → **对策**：`edit` 全禁，只保留 `subagent` 调度，编辑交给 `implementer`。

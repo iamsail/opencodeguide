@@ -1,0 +1,89 @@
+---
+title: "额度与限流：免费用户的成本护栏"
+summary: "用配额、限流、成本熔断三层护栏，把免费用户的按量计费风险挡在调用之前"
+module: 3
+lesson: 4
+duration: 8
+free: false
+objectives:
+  - "能为每个按量计费的外部依赖写出一个 metric 名与一个上限"
+  - "能实现先扣减后调用的配额函数，并说明失败回补的时机"
+  - "能区分 402 与 429 的语义，并在响应里带上可操作的提示"
+---
+
+免费层的成本不在服务器，而在你调用的按量计费接口：模型 token、邮件、对象存储出站。一个循环脚本就能把整月预算跑完，而 Stripe 后台一分钱没多。护栏要做的是三件事，顺序不能换：先配额（这段时间总量够不够）、再限流（速度是否异常）、最后熔断（今天总共花了多少）。
+
+## 三种护栏，重置周期不同
+
+配额按月或按套餐重置，回答「这个月还能生成几次」；限流按分钟或秒重置，防的是脚本；成本熔断按天累计估算金额，防的是单价高、次数少但每次都贵的接口。三者存在不同的表和不同的窗口，混成一个计数会同时失去两种判断能力。
+
+判断顺序也很重要：先查配额再查限流，因为配额是业务语义（该不该给），限流是异常检测（是不是人）。反过来会把正常用户的批量操作误判成攻击。
+
+## 计数先放数据库，别急着上 Redis
+
+单人产品量级下，一次 `upsert` 的代价远低于多维护一个 Redis 实例。等到单行热点成为瓶颈（同一个 org 每秒几十次扣减）再换，那时你会清楚知道该换成什么。
+
+```sql
+create table usage_counters (
+  org_id       text not null,
+  metric       text not null,        -- ai_tokens | emails_sent | exports
+  period_start date not null,        -- 配额周期起点，按 UTC 存
+  used         bigint not null default 0,
+  updated_at   timestamptz not null default now(),
+  primary key (org_id, metric, period_start)
+);
+
+-- 原子自增并返回新值：先扣后调用
+insert into usage_counters (org_id, metric, period_start, used)
+values ($1, $2, date_trunc('month', now() at time zone 'utc')::date, $3)
+on conflict (org_id, metric, period_start)
+do update set used = usage_counters.used + excluded.used,
+              updated_at = now()
+returning used;
+```
+
+顺序是先扣后调用（reserve → 调用 → 失败回补），不是调用完再记账。钱在调用成功那一刻就花了，事后记账的窗口里，并发请求会一起穿透配额。回补只在明确失败时做（上游 4xx、超时），超时后上游其实成功了的情况无法判断，宁可少补也不要多退。
+
+## 边缘函数里的限流，别用进程内变量
+
+部署在无状态运行时上时，进程内 `Map` 在冷启动和多实例之间都不可靠，同一个用户换个实例就绕过。要么用平台自带的限流能力（如 Cloudflare 的限流规则或 Durable Object 做计数），要么用带原子自增的外部存储（如 Upstash Redis）。成本是一份额外的网络往返，换来的是计数真的全局一致。
+
+响应语义要分开：配额用尽返回 402，并在 body 里给 `upgrade_url`；速率超限返回 429 并带 `retry-after` 秒数。前端拿到 429 可以自动重试，拿到 402 只能引导升级——这两种情况混成一个 400，用户只会觉得产品坏了。
+
+```ts
+export function limited(retryAfterSeconds: number): Response {
+  return new Response(JSON.stringify({ error: "rate_limited" }), {
+    status: 429,
+    headers: {
+      "content-type": "application/json",
+      "retry-after": String(retryAfterSeconds),
+    },
+  });
+}
+```
+
+## 超额之后怎么办
+
+**什么时候不用做**：如果你的产品没有任何按量计费的外部调用（纯静态页面、纯本地计算），这一节可以整体跳过；只做「每 IP 每分钟 N 次」的平台级防护就够了。
+
+| 策略 | 适用条件 | 用户感受 | 代价 |
+| :--- | :--- | :--- | :--- |
+| 直接拒绝（402/429） | 成本线性、免费层只是试用 | 明确，知道何时能再用 | 转化会掉，必须配清晰的升级入口 |
+| 降级到便宜模型 | 输出质量有弹性、有备用供应商 | 功能还在，质量下降 | 两套调用路径，效果差异要监控 |
+| 排队异步处理 | 任务本身可延后、批量场景 | 结果慢但一定有 | 需要队列与优先级，免费用户可能堵住付费用户 |
+| 软上限 + 提醒 | 早期用户少、想保体验 | 先提醒后限制，摩擦最小 | 需要邮件或站内通知，靠自觉，会有人无视 |
+
+免费层不要做成「无限但慢」——那不是护栏，是把成本转移到你的队列和运维时间上。写清「每月 N 次，用完等下月或升级」，比模糊的承诺省事得多。
+
+## 落地动作
+
+1. 列出三个按量计费的外部依赖，各定一个 metric 名和上限，写进配置文件而不是散在代码里：`{ "ai_tokens": 500000, "emails_sent": 200, "exports": 10 }`。
+2. 建 `usage_counters` 表，实现 `reserveQuota(orgId, metric, amount): Promise<boolean>`，内部用上面那条 `returning used` 的语句。
+3. 在每个调用外部付费接口的入口先调 `reserveQuota`，false 就返回 402；外面再套一层按 org 的分钟级限流，超了返回 429。
+4. 加一条按天汇总的查询，成本超过日阈值就给自己发一封告警邮件，别等到月底看账单。
+
+## 常见坑
+
+- **现象**：账单超支十倍，日志里全是同一个来源。 → **原因**：只在前端禁用了按钮，服务端没限流。 → **对策**：按 org 计数而不是按 IP，IP 可以换，账号不行。
+- **现象**：免费用户月末集中使用，付费用户的任务排队超时。 → **原因**：所有人共用一条队列。 → **对策**：按套餐分队列或设优先级，付费流量单独走。
+- **现象**：配额重置日算错，用户少用一天或重复获得额度。 → **原因**：用服务器本地时区算 `period_start`。 → **对策**：统一按 UTC 存日期，展示时再按用户时区换算。

@@ -1,0 +1,92 @@
+---
+title: "MCP 的安全红线：凭证管理、权限最小化、审计日志"
+summary: "把凭证关进环境变量、把工具权限收成白名单、把每次调用落成可追溯的日志"
+module: 4
+lesson: 5
+duration: 8
+free: false
+objectives:
+  - "能用 {env:} 引用替换配置里的明文凭证，并加一条提交前扫描"
+  - "能按默认拒绝、按名放行的顺序写出 MCP 工具权限规则"
+  - "能用会话 ID 把一次工具调用关联回具体会话"
+---
+
+MCP 的安全问题很少以「被攻击」的形式出现，更常见的是三种日常：token 被顺手提交、工具权限大得没必要、出了事说不清是谁在什么时候调的。这三件事都有确定做法，成本都不高，问题在于大多数人接完服务器就再也没打开过配置。
+
+## 凭证只以引用形式出现
+
+把 token 贴进 `opencode.jsonc`，最快的一次泄露不是黑客，是你自己 `git add .`。OpenCode 的做法很直接：`environment` 和 `headers` 里写 `{env:NAME}`，启动服务器时从进程环境替换。注意 JSON 字符串里写 `$NAME` 不会被展开，那只是几个字面字符，等于把密钥换成了一个无效字符串。
+
+远程服务器默认走 OAuth，凭据存在项目配置之外，这是最省事的一种。只有当服务器只认 API key 或自定义 header 时才设 `"oauth": false`——设了就等于放弃自动刷新和轮换。需要换账号或重新登录时用 `opencode mcp logout <name>` 清掉存储的凭据，不要去翻目录删文件。
+
+引用写对了，还要防手滑。提交前跑一遍扫描：
+
+```bash
+git diff --staged -U0 | grep -nEi '(sk-[a-z0-9]{16,}|ghp_[a-z0-9]{20,}|Bearer [a-z0-9._-]{20,})' \
+  && echo "发现疑似明文凭证，先移除再提交" || echo "未发现明文凭证"
+```
+
+## 权限最小化：先全拒，再按名放行
+
+权限规则是最后一条匹配的生效，这一条决定了顺序：宽泛的 `deny` 放前面，具体的例外放后面。写反了不是「部分失效」，是整条策略失效。
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permissions": [
+    { "action": "appdb_*", "resource": "*", "effect": "deny" },
+    { "action": "appdb_query", "resource": "*", "effect": "allow" },
+    { "action": "playwright_*", "resource": "*", "effect": "ask" },
+    { "action": "opencode_read_mcp_resource", "resource": "docs:*", "effect": "allow" }
+  ]
+}
+```
+
+`appdb_*` 与 `appdb_query` 两条都匹配时，后面的 `allow` 赢，这就是「默认拒绝、按名放行」的写法。`ask` 留给副作用不明的工具，比如浏览器操作——它点下的按钮会真的改变外部状态。
+
+还有一把大锤：拒绝 `execute`。在 Code Mode 下，这条 deny 会移除 Code Mode 以及所有只能经它触达的 MCP 工具。适合只读机器和 CI，别在主力开发机上随手用，否则你会以为服务器坏了。
+
+## 审计日志：用会话 ID 把调用串起来
+
+OpenCode 对代表会话发起的调用，会在 `params._meta` 里带上会话 ID：
+
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "query",
+    "arguments": { "sql": "select count(*) from orders" },
+    "_meta": { "ai.opencode/sessionID": "ses_..." }
+  }
+}
+```
+
+这是请求元数据，不进模型可见的 schema，正好用来做关联。在服务器里每次调用写一行 JSONL：时间、工具名、参数哈希、会话 ID。三条纪律要守住：它标识的是 OpenCode 会话，不是 MCP 传输会话，两者别混；有些调用没有会话上下文，字段可能缺失，日志要允许空值；它不能当作鉴权依据，远程服务器同样能拿到原始 ID 并记录下来。
+
+日志文件写进 `.mcp-audit/` 这样的目录并加进 `.gitignore`，保留周期按你们的合规要求定。审计的价值不在全量留存，而在出事时能回答「哪个会话、调了什么、什么时候」。
+
+## 服务器指令也是不可信输入
+
+服务器初始化时可以返回 instructions，OpenCode 会把它放进系统提示的 `<mcp_instructions>` 里。换句话说，一个来源不明的服务器可以直接向你的系统提示注入内容。这不是理论风险，是接入第三方服务器的真实成本：接之前先看它返回的 instructions 写了什么，读不懂就别接。
+
+同理，MCP 返回的一切内容——网页文本、数据库字段、issue 描述——都当数据，不当指令。这条要写进 `AGENTS.md`，否则模型被诱导执行「顺便把 .env 发到这个地址」只是时间问题。
+
+| 风险 | 控制点 | 落在哪 |
+| --- | --- | --- |
+| 明文凭证进仓库 | `{env:}` 引用 + 提交前扫描 | `opencode.jsonc`、pre-commit |
+| 工具权限过宽 | 显式 deny 先收口，再按名放行 | `permissions` |
+| 调用无法追溯 | `_meta` 会话 ID + JSONL | MCP 服务器内部 |
+| 单次调用挂死 | 调低 `timeout.execution`，默认长达 12 小时 | `mcp.servers.<name>.timeout` |
+| 指令注入 | 服务器指令与返回内容都当不可信输入 | 接入评审、`AGENTS.md` |
+
+## 落地动作
+
+1. 在全仓跑一次 `git grep -nE '(sk-[a-z0-9]{16,}|ghp_[a-z0-9]{20,})'`，把命中的值换成 `{env:}` 引用，并把上面的扫描命令加进 pre-commit。
+2. 按「宽泛 deny 在前、具体 allow 在后」的顺序，把四条权限规则写进 `opencode.jsonc`，然后在会话里验证被拒的工具确实不可用。
+3. 在自建 MCP 服务器的工具处理函数里加一行 JSONL，记录时间、工具名、参数哈希与 `_meta` 里的会话 ID。
+
+## 常见坑
+
+- **现象**：请求头里出现字面量 `{env:MCP_TOKEN}` → **原因**：变量没 `export`，或写成了 `$MCP_TOKEN` → **对策**：变量先导出再启动 OpenCode，并逐字核对花括号语法。
+- **现象**：`deny` 规则看起来没生效 → **原因**：顺序写反（最后一条生效），或写的是原始工具名而非归一化后的 `<server>_<tool>` → **对策**：宽泛规则放前面，具体规则放后面，用会话里的实际工具名核对。
+- **现象**：审计日志里的会话 ID 全是空值 → **原因**：记的是传输层会话，或这次调用本就没有会话上下文 → **对策**：从 `_meta` 取值，并在设计上允许字段缺失。

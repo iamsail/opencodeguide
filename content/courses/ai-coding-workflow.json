@@ -6,8 +6,8 @@
   "status": "live",
   "icon": "Bot",
   "accent": "from-indigo-500 via-violet-500 to-fuchsia-500",
-  "durationHours": 12,
-  "lessonCount": 24,
+  "durationHours": 4,
+  "lessonCount": 27,
   "lastUpdated": "2026-11",
   "plans": [
     {
@@ -17,13 +17,13 @@
       "compareAtUSD": 129,
       "features": {
         "zh": [
-          "24 节视频课 + 全部课件（永久观看）",
+          "27 节图文课 + 全部课件（永久观看）",
           "3 套可运行的项目模板（AGENTS.md / skills / MCP）",
           "课程更新免费同步",
           "7 天无理由退款"
         ],
         "en": [
-          "24 video lessons + all courseware (lifetime access)",
+          "27 article lessons + all courseware (lifetime access)",
           "3 runnable project templates (AGENTS.md / skills / MCP)",
           "Free updates for the life of the course",
           "7-day no-questions refund"
@@ -35,7 +35,10 @@
       "priceUSD": 149,
       "priceCNYRef": 1079,
       "compareAtUSD": 229,
-      "badge": { "zh": "推荐", "en": "Recommended" },
+      "badge": {
+        "zh": "推荐",
+        "en": "Recommended"
+      },
       "features": {
         "zh": [
           "包含「单课版」全部内容",
@@ -157,8 +160,8 @@
           "a": "建议准备一个 Anthropic 或 OpenAI 的 API Key，课程也会演示完全本地、零 API 成本的 Ollama 方案，方便你先试再决定。"
         },
         {
-          "q": "课程是视频还是文档？",
-          "a": "视频为主（每节 8-15 分钟），配可复制的文字版步骤、命令清单与模板仓库。所有代码模板随课程更新。"
+          "q": "课程是视频还是图文？",
+          "a": "全部为图文文章：每节 8–12 分钟读完，配可直接复制的命令、配置与检查清单，可永久回看并随课程更新。Pro 版另有模板仓库、社群与 1:1 诊断。"
         },
         {
           "q": "购买后如何交付？",
@@ -282,8 +285,8 @@
           "a": "A key from Anthropic or OpenAI is recommended, but the course also covers a fully local Ollama setup with zero API cost so you can try first."
         },
         {
-          "q": "Video or text?",
-          "a": "Mostly video (8-15 minutes per lesson) plus copy-paste steps, command references and template repos that get updated."
+          "q": "Video or article format?",
+          "a": "Article-based: every lesson is an 8–12 minute read with copy-paste commands, configs and checklists, plus lifetime access and updates. Pro adds the template repo, community and 1:1 reviews."
         },
         {
           "q": "How do I get access after buying?",

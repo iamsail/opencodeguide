@@ -1,0 +1,125 @@
+---
+title: "AGENTS.md 的分层写法：项目级 / 目录级 / 任务级"
+summary: "按目录分层放置 AGENTS.md，让每份规则只覆盖它该管的代码"
+module: 2
+lesson: 1
+duration: 8
+free: false
+objectives:
+  - "能在仓库里写出全局、项目根、子目录三层 AGENTS.md"
+  - "能说清 OpenCode 加载与合并 AGENTS.md 的顺序"
+  - "能把只对单次任务生效的约束移出 AGENTS.md"
+---
+
+把所有规则堆进根目录的 `AGENTS.md`，是这套流程里最先崩掉的一环：文件长到两百行，每次会话模型都要读完，其中一半规则只对一个子包有效，另一半在别处正好相反。另一个常见错误是只放一份根目录文件，于是 `packages/web` 和 `packages/api` 的差异全靠模型自己猜。
+
+`AGENTS.md` 的作用域由它所在的目录决定，OpenCode 会按层级加载多份并合并。分层的意义在于让每份文件只回答一个问题：在这个目录里干活，什么是你必须知道的。
+
+## 加载顺序：全局先行，越近越靠后
+
+OpenCode 先读全局文件 `~/.config/opencode/AGENTS.md`，再从当前工作区目录向 home 方向逐级向上加载。以工作区 `packages/web` 为例：
+
+```text
+~/.config/opencode/AGENTS.md        ← 全局，总是加载
+~/code/my-project/AGENTS.md         ← 项目根
+~/code/my-project/packages/AGENTS.md
+~/code/my-project/packages/web/AGENTS.md   ← 当前工作区
+```
+
+这四个文件全部生效，合并顺序是：全局 → `packages/web` → `packages` → 项目根。OpenCode 只合并、不解析冲突：两份文件对同一件事说法不同时，没有机制替你裁决，模型只能自己挑。所以近处文件应写成补充而非否定：根目录说“接口返回 `Result`”，子目录补“本包的 `Result` 来自 `@acme/result`”，叠加才安全。
+
+另外两点容易踩：V2 只认 `AGENTS.md`，不会回退读 `CLAUDE.md`；`OPENCODE_DISABLE_PROJECT_CONFIG=1` 只跳过项目内 `AGENTS.md` 的发现，全局文件仍会加载。
+
+四层职责收成一张表，写规则前先确认该放哪一行：
+
+| 层级 | 位置 | 写什么 | 何时进入上下文 |
+| --- | --- | --- | --- |
+| 全局 | `~/.config/opencode/AGENTS.md` | 跨项目的个人习惯 | 每次会话 |
+| 项目级 | 仓库根 `AGENTS.md` | 命令、目录职责、红线 | 每次会话 |
+| 目录级 | 子目录 `AGENTS.md` | 该子包的例外规则 | 探索到该目录时 |
+| 任务级 | `.opencode/commands/*.md` | 只对本次任务成立的约束 | 运行该命令时 |
+
+## 项目级：只写跨目录都成立的事实
+
+根目录的 `AGENTS.md` 回答“这个仓库怎么跑、哪里不能碰”。它进入每个会话，所以只放三类内容：可执行命令、目录职责、硬性禁区。
+
+```md
+# Project instructions
+
+## Commands
+- Install: `bun install`
+- Typecheck: `bun typecheck`
+- Test one file: `bun test <path>`
+- Lint: `bun lint`
+
+## Layout
+- `apps/web`: Next.js 应用，路由在 `app/`
+- `packages/core`: 纯 TS 业务逻辑，不得依赖 React
+- `packages/db`: 数据库访问层，唯一允许写 SQL 的地方
+
+## Hard rules
+- 不直接编辑 `packages/core/src/generated/`，改 schema 后重新生成。
+- 提交前必须 `bun typecheck && bun test` 通过。
+```
+
+写出能复制粘贴就跑的命令，比写“注意代码质量”有用。整份控制在四五十行以内，超出部分通常是目录级内容放错了位置。
+
+## 目录级：把例外下沉到子包
+
+子目录的 `AGENTS.md` 不会预先拼进提示词，智能体探索到该区域时才加载：读取文件或列目录时，该目录到工作区之间的 `AGENTS.md` 都会被读入。
+
+```md
+<!-- packages/api/AGENTS.md -->
+
+# API package
+
+- 路由文件放 `src/routes/<resource>.ts`，一个资源一个文件。
+- 所有 handler 必须显式标注返回类型。
+- 集成测试放 `test/integration/`，跑 `bun test test/integration/<name>.test.ts`。
+- 本包不使用 `packages/core` 的缓存层，直接调 `packages/db`。
+```
+
+两条约束必须记住。一是嵌套文件加载后再编辑不会自动生效，要开新会话；二是它“用到才加载”，所以红线与合规要求不能只写在子目录，否则在根目录改代码时它根本不存在。
+
+## 任务级：用 commands 和 instructions 承载一次性约束
+
+有些约束只对一次任务成立，比如“这次迁移只动 `users` 表，别碰其他 schema”。把它写进 `AGENTS.md` 会长期污染每个会话，正确位置是自定义命令。
+
+```md
+<!-- .opencode/commands/migrate.md -->
+
+---
+description: Plan a database migration for one table
+agent: plan
+---
+
+为 `$ARGUMENTS` 表设计迁移方案。约束：只改这一张表，不改其他 schema，
+不写数据回填脚本。输出改动文件清单和回滚步骤，不要修改任何文件。
+```
+
+运行 `/migrate users` 时，这段约束只属于该次会话。任务周期更长、还需要附带脚本或参考资料时，用 `.opencode/skills/<skill-id>/SKILL.md` 承载，把短提示词留给命令。
+
+如果某份规范文档不适合塞进 `AGENTS.md`，可以在 `opencode.jsonc` 的 `instructions` 数组里登记，它会在所有 `AGENTS.md` 之后按列出顺序加载：
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": ["CONTRIBUTING.md", "docs/guidelines/*.md"],
+}
+```
+
+相对路径会从工作区到项目根逐级查找，也接受 `~/`、绝对路径和 HTTP(S) URL。但它仍是“每会话都加载”的一层，别把一次性任务写进去。
+
+## 落地动作
+
+1. 盘点现状，确认没有重复和遗漏：`find . -name AGENTS.md -not -path "*/node_modules/*" -not -path "*/.git/*"`
+2. 重写根目录 `AGENTS.md`，只保留命令、目录职责、硬性禁区三块，删掉所有形容词。
+3. 给规则明显不同的子包补一份：`mkdir -p packages/api && $EDITOR packages/api/AGENTS.md`，注意写成补充而非否定。
+4. 把 backlog 里的一次性约束搬进命令：`mkdir -p .opencode/commands && $EDITOR .opencode/commands/migrate.md`，用 `/migrate users` 验证它生效。
+5. 改完嵌套文件后开新会话复验，旧会话看不到新内容。
+
+## 常见坑
+
+- **现象**：改了 `packages/api/AGENTS.md`，当前会话里模型仍按旧规则写代码。 → **原因**：嵌套文件加载后不再自动检测变更。 → **对策**：开新会话，或把该规则临时贴进当前提示。
+- **现象**：根目录与子目录两份规则打架，模型的产出时对时错。 → **原因**：OpenCode 合并多份 `AGENTS.md` 但不解析冲突，选择权落到了模型身上。 → **对策**：改为“根定通用、子目录补充”的写法，删掉互相否定的句子。
+- **现象**：子包里的红线（禁止直连生产库）在根目录改代码时被无视。 → **原因**：目录级文件只有探索到该区域才加载。 → **对策**：红线一律上提到根目录或全局文件。

@@ -1,0 +1,120 @@
+---
+title: "风控与拒付预防：地址校验、风险规则、人工审核阈值"
+summary: "风控只能治 fraudulent 那一类拒付：先量自己的分布，再用信号分档、规则兜底、人工兜最后一道"
+module: 3
+lesson: 5
+duration: 9
+free: false
+objectives:
+  - "用订单数据算出自己的拒付分布，指出风险集中在哪个国家、客单价与新老客组合"
+  - "读懂 address_line1_check、postal_code_check、cvc_check 的组合，为每种组合指定动作"
+  - "写出带退出条件的审核阈值与人工队列 SLA，说明每条规则的误杀代价"
+---
+
+把风控理解成「打开 Radar、把风险规则全开」，是很多店上线第二周做的事。结果通常是真实订单被砍掉一批，拒付率几乎没有变化。原因是拒付的原因分布里，`fraudulent` 只是一部分，`product_not_received`、`product_unacceptable`、`unrecognized` 这三类风控规则根本管不着，它们只能靠履约、文案与账单名解决。
+
+## 先画自己的欺诈分布，再谈规则
+
+别人的阈值对你没有意义：品类、客单价、目标市场、是否卖转运仓地址，任一项不同，画像就不同。先跑一次分布：
+
+```sql
+-- 近 90 天，按国家看拒付率与客单价，样本太小的分组先别看
+select coalesce(country, 'unknown')                             as country,
+       count(*)                                                 as orders,
+       count(*) filter (where status = 'disputed')              as disputes,
+       round(count(*) filter (where status = 'disputed')::numeric
+             / count(*), 4)                                     as dispute_rate,
+       round(avg(amount_cents))                                 as avg_amount
+from orders
+where created_at > now() - interval '90 days'
+group by 1
+having count(*) >= 20
+order by dispute_rate desc;
+```
+
+结果一般只有两种形状：集中在某个国家或某种地址类型（转运仓、酒店、礼品直寄），或集中在某个客单价区间。前者收紧该市场的验证与配送要求，后者给高客单订单加人工复核——都不是「多开几条 block 规则」。
+
+几十单时分组统计全是噪声，别拿它做决定；这个阶段只需三件事：账单名用品牌、退款入口显眼、每天看一眼争议列表。
+
+## AVS / CVV 是信号，不是判决
+
+地址校验返回三个值：`address_line1_check`、`postal_code_check`、`cvc_check`，每个是 `pass`、`fail` 或 `unavailable`。组合起来才有意义：
+
+| 组合 | 常见解释 | 动作 |
+| :--- | :--- | :--- |
+| 三项全 pass | 正常 | 放行 |
+| CVC fail，地址 pass | 输入错误居多，也可能是盗刷 | 走 3DS，通过即放行 |
+| 地址 fail，CVC pass | 跨境转运、礼品地址、地址格式差异 | 人工看一眼，不要直接拒 |
+| 两项地址都 fail，CVC unavailable | 非美卡常见，AVS 数据本身缺失 | 以历史行为与邮箱为主，补一次验证 |
+| 三项全 fail 且首单高客单 | 高风险 | 取消或要求补材料 |
+
+AVS 只有部分国家与发卡行会返回，跨境订单天生大量 `unavailable`。把「AVS 不匹配」当判决，砍掉的多是真实订单，每单都是全价损失，比一次拒付贵。
+
+## 能改履约就别加规则，加也只加一条
+
+规则的价值在拦截，成本在误杀。每条规则上线前先跑影子模式：只记日志不拦截，两周后看命中订单里有多少最终正常成交。真实订单占多数，说明这条阈值不合格。
+
+阈值写成相对量，客单价调整时不用重算；优先级上 `review` 永远高于 `block`，因为前者可挽回，后者不可：
+
+```yaml
+# 审核阈值表（策略定义，不是 Radar 语法；变量名以规则编辑器的属性列表为准）
+review:
+  when:
+    - first_order: true
+      amount_gt: "3 * aov"
+    - country_mismatch: ["ip", "billing", "shipping"]
+    - avs: "partial"
+    - email: "disposable_or_new"
+  sla_hours: 12
+  on_timeout: "capture_low_risk_else_cancel"
+block:
+  when:
+    - amount_gt: "6 * aov"
+      cvc: "fail"
+      first_order: true
+  review_weekly: true   # 连续两周误杀明显，降级为 review
+```
+
+一条规则解决一个问题。同时加三条，两周后你无法判断是哪一条起了作用。
+
+比规则更便宜的是履约侧的改动，它们没有误杀：
+
+| 动作 | 压住哪类拒付 | 代价 |
+| :--- | :--- | :--- |
+| `statement_descriptor` 用品牌名 | `unrecognized` | 一次配置 |
+| 追踪号回传支付记录 | `product_not_received` | 对接物流 API |
+| 发货、签收各发一封邮件 | `product_not_received` 与客服量 | 一次模板 |
+| 高客单要求签收 | `product_not_received` | 每单履约成本 |
+
+这几项都是确定性收益，不需要判断；规则才需要判断，所以留到最后。
+
+## 人工审核：队列、顺序与截止时间
+
+人工审核不是「有空看看」，它有硬截止：未 capture 的授权会过期作废，时长按卡组织与支付方式不同，看那笔 PaymentIntent 的过期时间字段，别记固定天数。队列按剩余时间排序，不按下单时间。
+
+每单只看四项，看完就下结论：
+
+| 检查项 | 异常信号 | 动作 |
+| :--- | :--- | :--- |
+| 地域三角 | IP、账单国、收货国互不一致 | 发确认邮件，不直接取消 |
+| 邮箱 | 一次性域名、注册当天、无历史订单 | 提高审核优先级 |
+| 账号与卡 | 同一设备或卡关联多个账号 | 取消并全额退款 |
+| 商品 | 易转卖、无个性化、单价高 | 补收货信息或要求签收 |
+
+两人以内的团队按固定时间点处理即可：超 SLA 的低风险单自动放行，高风险单自动取消并退款。宁可少赚一单，不要留一笔无法举证的争议。
+
+## 什么时候可以不做
+
+拒付里 `fraudulent` 占比很低、客单价不高、每周争议只有零星几笔的店，把上面这些规则全部关掉也不会出事。判断信号很明确：出现第二笔同样特征的拒付，再针对那一个特征加一条规则。在此之前，把时间花在发货时效和商品页描述上，收益高得多。
+
+## 落地动作
+
+1. 跑上面那段 SQL，把分布存成 `docs/fraud-profile.md`，每个月覆写一次。
+2. 选一条你最有把握的规则，先开影子模式记录两周命中样本，再决定要不要真的拦。
+3. 用一笔测试单手动 capture 一次，确认账户确实开了手动捕获，否则审核队列没有意义。
+
+## 常见坑
+
+- **现象**：风控上线后营收掉了一截，拒付率没变 → **原因**：`block` 命中的是转运仓地址与老客，而他们本来不会拒付 → **对策**：`block` 全部降级为 `review`，把历史无拒付的邮箱与卡指纹加入白名单。
+- **现象**：欧洲订单在 AVS 上大面积不匹配，按规则几乎全被拦 → **原因**：非美卡的 AVS 数据覆盖差，`unavailable` 被当成了 `fail` → **对策**：把 `unavailable` 与 `fail` 分开处理，欧洲订单以 3DS 结果为主判据。
+- **现象**：审核队列越积越多，钱被授权过期吃掉了 → **原因**：没有 SLA、没有 owner，也没按剩余时间排序 → **对策**：定一个每日固定处理时间，超时低风险自动 capture，高风险自动取消并全额退款。

@@ -1,0 +1,92 @@
+---
+title: "实战 B：一次性完成「注册 → 支付 → 邮件」全栈功能"
+summary: "先定契约再切纵切，用只读子智能体校验，把三层改动压成一次可验收的交付"
+module: 5
+lesson: 2
+duration: 9
+free: false
+objectives:
+  - "能先写出支付链路的接口与事件契约，再让 AI 写实现"
+  - "能把功能拆成四个可独立验证的纵切，每片结束提交一次"
+  - "能用权限规则与子智能体隔离真实支付、邮件等外部副作用"
+---
+
+让 AI 一次把注册、支付、邮件三层写完，是最省事也最容易翻车的委托方式：任何一层对契约的猜测错了，另外两层会一起错，而且错在三个位置。可交付的做法是把这条链切成四个能独立验收的纵切，每个纵切都有一条手动走得通的路径。
+
+## 先写契约，再写实现
+
+契约指的是请求字段、响应字段、错误码、webhook 事件载荷，写成文件放进仓库，不要留在聊天记录里。让 Plan Mode 先对着现有代码挑毛病，比让它直接生成实现便宜得多。
+
+```bash
+mkdir -p docs/specs
+opencode run --agent plan "阅读 docs/specs/signup-payment.md 与 src/api 下的现有路由，指出契约与实现的冲突、缺失的错误码、无法幂等的写入。只输出问题清单，不写代码。"
+```
+
+契约里每个字段都要能回答三个问题：谁写入、谁读取、为空时怎么办。答不上来的字段，实现阶段一定会出现两套语义。
+
+## 按纵切排期，不按技术层排期
+
+反模式是先写完后端全部接口，再写前端，最后接线——任何一处契约漂移都要在三个地方返工。纵切是每完成一片就有一条能手动走通的路径。
+
+| 切片 | 完成判据 | 验证方式 |
+| --- | --- | --- |
+| 注册落库 | 新用户可登录，重复邮箱返回 409 | 手动注册一次，再用同一邮箱注册一次 |
+| 支付会话 | 下单返回结账页链接，金额由服务端决定 | 测试密钥走一遍，核对订单金额 |
+| webhook 落账 | 同一事件重放两次只记一次 | 重放同一事件，查订单表行数 |
+| 邮件送达 | 支付成功后发一次，失败可重试 | 本地邮件捕获工具查看收件箱 |
+
+每片结束时做同一套动作：跑针对性测试、提交、更新契约文件。契约文件变了就说明这一片没做完。
+
+## 用子智能体分工，只留一个写权限
+
+三件事可以并行：按契约实现、只读校验测试覆盖、只读跑端到端。后两个都该被限制成只读，否则它们会把「发现问题」变成「顺手改掉」，评审与改动混在一起就失去可回溯性。
+
+```md
+---
+description: Verifies signup and payment flows against the spec without editing files
+mode: subagent
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: shell
+    resource: "npm test *"
+    effect: allow
+---
+Run the targeted tests, then compare actual request and response payloads with docs/specs/signup-payment.md. Report mismatches with file and line references.
+```
+
+不要在 `opencode run` 上加 `--auto` 来省确认。它会自动批准所有未被显式拒绝的操作，在这个流程里等于允许模型直接打到真实支付接口。
+
+## 把「不能碰真实副作用」写进配置
+
+`*.env` 的读取默认是 `ask`，但写入没有默认保护。显式加规则，顺便堵掉推送：
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permissions": [
+    { "action": "edit", "resource": ".env*", "effect": "deny" },
+    { "action": "edit", "resource": "secrets/*", "effect": "deny" },
+    { "action": "shell", "resource": "git push *", "effect": "deny" }
+  ]
+}
+```
+
+再在 AGENTS.md 里写死：支付相关代码只用沙箱密钥；webhook 用已有事件重放，不新造生产事件；金额计算只能有一个来源，前端不得新增计算逻辑。
+
+## 上线前留一次手动走查
+
+测试全绿不等于能收钱。留一次人工验收：注册新账号、用测试卡下单、确认收到邮件、在数据库里核对订单与用户的关联、退款回到初始状态。把这次走查写成清单放进 PR 描述，它比再写十个单测更能暴露接线问题。
+
+## 落地动作
+
+1. 用 `git switch -c feat/signup-payment` 开分支，先把契约写进 `docs/specs/signup-payment.md` 再动代码。
+2. 建 `.opencode/agents/flow-checker.md`，用 `edit: deny` 约束，先让它对着现有代码跑一遍，拿到问题清单。
+3. 在 `opencode.jsonc` 加 deny 规则，确认生效后再开始第一个纵切。
+
+## 常见坑
+
+- **现象**：webhook 处理完邮件重复发了好几封 → **原因**：以「事件到达」为触发点，没有落幂等键 → **对策**：先插入事件 ID 的唯一记录，成功后再发邮件，失败只重试发送。
+- **现象**：AI 改完金额计算，测试全绿但金额错了 → **原因**：前后端各算一次，测试只覆盖了其中一侧 → **对策**：服务端为唯一来源，前端只展示服务端返回值，并给两侧各一条断言。
+- **现象**：模型在无人值守时调了真实接口 → **原因**：用了自动批准，且没有显式 deny → **对策**：去掉 `--auto`，加 deny 规则，本地只用沙箱密钥。

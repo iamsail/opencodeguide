@@ -6,8 +6,8 @@
   "status": "live",
   "icon": "Layers",
   "accent": "from-slate-900 via-slate-800 to-indigo-900",
-  "durationHours": 56,
-  "lessonCount": 110,
+  "durationHours": 18,
+  "lessonCount": 123,
   "lastUpdated": "2026-11",
   "plans": [
     {
@@ -15,7 +15,10 @@
       "priceUSD": 399,
       "priceCNYRef": 2879,
       "compareAtUSD": 486,
-      "badge": { "zh": "最省", "en": "Best value" },
+      "badge": {
+        "zh": "最省",
+        "en": "Best value"
+      },
       "features": {
         "zh": [
           "4 门课程全部内容（110 节课，永久观看）",
@@ -51,7 +54,7 @@
         "建立可持续的搜索流量获客系统"
       ],
       "deliverables": [
-        "四门课程全部视频与课件",
+        "四门课程全部图文课与课件",
         "全部模板仓库（AI 工作流、SaaS 启动、独立站、SEO 检查脚本）",
         "统一的学习路径：建议按 AI 编程 → 独立开发 → 出海 SEO → 跨境电商 的顺序推进",
         "1 年社群与更新"
@@ -60,22 +63,53 @@
         {
           "title": "包含课程 1 · AI 编程实战（24 节）",
           "summary": "规则工程、子智能体、MCP 与真实项目交付。",
-          "lessons": ["环境与心智模型", "规则工程", "智能体编排", "MCP 工程化", "真实项目实战", "团队落地与治理"]
+          "lessons": [
+            "环境与心智模型",
+            "规则工程",
+            "智能体编排",
+            "MCP 工程化",
+            "真实项目实战",
+            "团队落地与治理"
+          ]
         },
         {
           "title": "包含课程 2 · 独立开发者出海（30 节）",
           "summary": "从选题验证到 Stripe 收款与首批用户。",
-          "lessons": ["选题与需求验证", "最小技术架构", "多租户与权限", "Stripe 收款与定价", "上线清单", "首批用户与增长", "运营与合规"]
+          "lessons": [
+            "选题与需求验证",
+            "最小技术架构",
+            "多租户与权限",
+            "Stripe 收款与定价",
+            "上线清单",
+            "首批用户与增长",
+            "运营与合规"
+          ]
         },
         {
           "title": "包含课程 3 · 跨境电商独立站（32 节，2027-01 上线）",
           "summary": "建站、支付风控、物流、税务合规与 AI 素材。",
-          "lessons": ["选品与市场", "建站选型", "支付与风控", "物流与履约", "合规与税务", "AI 内容生产", "广告与转化", "数据与复购"]
+          "lessons": [
+            "选品与市场",
+            "建站选型",
+            "支付与风控",
+            "物流与履约",
+            "合规与税务",
+            "AI 内容生产",
+            "广告与转化",
+            "数据与复购"
+          ]
         },
         {
           "title": "包含课程 4 · 出海网站 SEO（24 节）",
           "summary": "多语言架构、技术 SEO、内容流水线与度量。",
-          "lessons": ["出海 SEO 判断", "多语言架构", "技术 SEO", "内容生产系统", "外链与分发", "度量与迭代"]
+          "lessons": [
+            "出海 SEO 判断",
+            "多语言架构",
+            "技术 SEO",
+            "内容生产系统",
+            "外链与分发",
+            "度量与迭代"
+          ]
         }
       ],
       "faq": [
@@ -119,7 +153,7 @@
         "A search-driven acquisition system that compounds"
       ],
       "deliverables": [
-        "All four courses' videos and courseware",
+        "All four courses' article lessons and courseware",
         "Every template repo: AI workflow, SaaS starter, storefront, SEO audit script",
         "A suggested learning path: AI coding → indie SaaS → global SEO → cross-border commerce",
         "One year of community access and updates"
@@ -128,22 +162,53 @@
         {
           "title": "Included · AI Coding in Practice (24 lessons)",
           "summary": "Rules, subagents, MCP and shipping real projects.",
-          "lessons": ["Setup and mental model", "Rule engineering", "Agent orchestration", "MCP in production", "Real projects", "Team rollout"]
+          "lessons": [
+            "Setup and mental model",
+            "Rule engineering",
+            "Agent orchestration",
+            "MCP in production",
+            "Real projects",
+            "Team rollout"
+          ]
         },
         {
           "title": "Included · Indie SaaS Launch (30 lessons)",
           "summary": "Validation through Stripe and first customers.",
-          "lessons": ["Idea and validation", "Minimal architecture", "Multi-tenancy", "Stripe and pricing", "Launch", "First users", "Operations"]
+          "lessons": [
+            "Idea and validation",
+            "Minimal architecture",
+            "Multi-tenancy",
+            "Stripe and pricing",
+            "Launch",
+            "First users",
+            "Operations"
+          ]
         },
         {
           "title": "Included · Cross-border Commerce (32 lessons, launching Jan 2027)",
           "summary": "Storefronts, payments, risk, logistics, tax compliance, AI creative.",
-          "lessons": ["Product and market", "Storefront build", "Payments and risk", "Logistics", "Compliance and tax", "AI content", "Ads and conversion", "Data and retention"]
+          "lessons": [
+            "Product and market",
+            "Storefront build",
+            "Payments and risk",
+            "Logistics",
+            "Compliance and tax",
+            "AI content",
+            "Ads and conversion",
+            "Data and retention"
+          ]
         },
         {
           "title": "Included · Global Site SEO (24 lessons)",
           "summary": "Multilingual architecture, technical SEO, content pipeline, measurement.",
-          "lessons": ["SEO fit", "Multilingual architecture", "Technical SEO", "Content system", "Links and distribution", "Measurement"]
+          "lessons": [
+            "SEO fit",
+            "Multilingual architecture",
+            "Technical SEO",
+            "Content system",
+            "Links and distribution",
+            "Measurement"
+          ]
         }
       ],
       "faq": [

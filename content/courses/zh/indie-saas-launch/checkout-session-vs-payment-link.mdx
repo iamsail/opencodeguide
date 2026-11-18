@@ -1,0 +1,89 @@
+---
+title: "Checkout Session vs Payment Link vs 自建表单：怎么选"
+summary: "按服务端边界和价格是否随用户变化来选结账方式，并给日后迁移留好复用点"
+module: 4
+lesson: 2
+duration: 8
+free: false
+objectives:
+  - "能用两个问题判定自己的产品该走 Payment Link 还是 Checkout Session"
+  - "能写出一个只在服务端创建会话、只接受 slug 与 plan 的结账接口"
+  - "能说明从 Payment Link 迁移到 Checkout Session 时哪些资产可以复用、哪些必须替换"
+---
+
+三种结账方式都能收到钱，差别不在界面，而在价格、密钥和幂等被你放在了哪一侧。选错的代价很少是当天报错，而是三个月后要做订阅、要按组织绑权益时，发现整条链路得重写。
+
+## 真正的分界线是谁持有价格
+
+Payment Link 把产品、价格、优惠码、跳转地址都放在 Stripe 侧配置，你的站点只输出一个 `https://buy.stripe.com/...` 链接，静态 HTML 可以直出。Checkout Session 每次由服务端按当前用户创建，价格、币种、预填邮箱、`client_reference_id`、`metadata` 都能在请求里决定，返回 `session.url` 给前端跳转。自建表单是 Payment Intents 加 Elements，卡字段由 Stripe 的组件收集，但表单、校验、错误处理与退款界面都得你写。
+
+| 维度 | Payment Link | Checkout Session | 自建表单（Payment Intents + Elements） |
+| --- | --- | --- | --- |
+| 需要服务端 | 否 | 是 | 是，而且更多 |
+| 价格能否运行时决定 | 否，链接建好即固定 | 是 | 是 |
+| 绑定登录用户 | 只能靠 `client_reference_id` 事后对账 | 可预填 `customer` 与 `client_reference_id` | 可完全内嵌 |
+| 优惠码与税务 | Dashboard 开关即可 | 请求参数控制 | 自行拼装 |
+| 单人上线量级 | 半天 | 一两天 | 一周以上，之后持续维护 |
+| 主要代价 | 改价要新建链接，跳转地址只有一个 | 必须引入服务端 | 3DS、失败重试、发票收据、退款界面都要自己维护 |
+
+## 先看托管模型，再看要不要绑用户
+
+第一道筛子是托管方式。`output: 'export'` 的纯静态站没有 API Route 与 Edge Function，浏览器里也不能出现 `sk_` 密钥，所以要么用 Payment Link，要么把结账请求打到另一个部署单元（Worker 或函数）。
+
+第二道筛子是权益绑定。只要需要「登录后按订单开通」「按组织席位计价」「试用期」，价格就得在运行时按用户算，Payment Link 撑不住。这时代码要守住一条边界：前端只传 slug 与 plan，价格由服务端映射。
+
+```ts
+// POST /api/checkout —— 只在服务端运行，密钥不进浏览器
+import Stripe from "stripe";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const PRICE_BY_PLAN: Record<string, string> = {
+  "indie-saas-launch:single": "price_xxx",
+  "indie-saas-launch:pro": "price_yyy",
+};
+
+export async function POST(request: Request) {
+  const { slug, plan, locale } = await request.json();
+  const priceId = PRICE_BY_PLAN[`${slug}:${plan}`];
+  if (!priceId) return new Response("unknown plan", { status: 400 });
+
+  const session = await stripe.checkout.sessions.create({
+    mode: "payment",
+    line_items: [{ price: priceId, quantity: 1 }],
+    client_reference_id: `${slug}:${plan}`,
+    allow_promotion_codes: true,
+    success_url: `${process.env.SITE_URL}/${locale}/courses/thank-you/?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${process.env.SITE_URL}/${locale}/courses/${slug}`,
+  });
+
+  return Response.json({ url: session.url });
+}
+```
+
+金额一旦由客户端决定，等于把改价权限公开了。价格表放服务端的另一个好处是灰度：同一份映射表按用户返回不同 `priceId`，不用为每种组合单独建链接。
+
+## 迁移路径：链接先上线，会话后替换
+
+先收钱再优化架构是更常见的选择。静态站加一段脚本批量创建 Product、Price、Payment Link，把链接写进 `content/courses/stripe-links.json` 随仓库提交，页面构建时直出。优惠码与退款规则在 Dashboard 改，不用发版；改价要新建 Price 与新链接再重建，因为价格对象不可修改。
+
+```bash
+# 测试模式先跑通，再换 sk_live_ 生成正式链接
+STRIPE_SECRET_KEY=sk_test_xxx npm run courses:stripe -- --only=indie-saas-launch
+```
+
+升级到 Session 时，Product 与 Price 是同一套资产，直接引用同一个 `priceId` 即可，历史链接继续服务已投放的广告；两种入口写同一张订单表，靠 `client_reference_id` 统一口径。这也是把迁移成本压到最低的做法：先保证老链接不断，再切新流量。
+
+什么时候不用做自建表单：除非要完全内嵌的品牌收银台、要对同一张卡做 off-session 后续扣款，或要做 Connect 分账。其余情况 Checkout 已经处理了 3DS、本地支付方式、发票与收据，自建只是把这些工作搬回自己身上。
+
+## 落地动作
+
+1. 打开 `next.config.mjs` 确认 `output` 是否为 `export`；是就先让 Payment Link 跑到能收款，不要为了结账去改托管架构。
+2. 回答两个问题：价格是否随用户或组织变化、是否需要登录后绑定权益。任一为「是」就走 Checkout Session，否则留在 Payment Link。
+3. 走 Session 时建一个 `POST /api/checkout`，只接受 `slug`、`plan`、`locale`，`priceId` 由服务端映射表给出。
+4. 在 `success_url` 里只带 `session_id={CHECKOUT_SESSION_ID}`，不要在 URL 里拼金额或订单号。
+
+## 常见坑
+
+- **现象**：迁移到 Session 后，老订单在后台查不到 → **原因**：老链接把商品信息写在 Payment Link 的 metadata，新链路查 Session 的字段，两边命名不一致 → **对策**：统一用 `client_reference_id = slug:plan`，两种入口都写同一套 `metadata`。
+- **现象**：改一下请求体就能自定价购买 → **原因**：把 `price` 或 `amount` 交给了客户端 → **对策**：服务端只认 slug 与 plan，价格与币种都从服务端表里取。
+- **现象**：成功页显示了订单，用户刷新后却什么都没有 → **原因**：把跳转页当成了订单凭证 → **对策**：成功页只拿 `session_id` 到服务端核对，渲染自信任来源。

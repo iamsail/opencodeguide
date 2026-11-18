@@ -1,0 +1,118 @@
+---
+title: "组织 / 成员 / 邀请：最小可用的团队模型"
+summary: "用三张表和一次事务实现组织、成员与邀请，并说清每个建模决策的长期代价"
+module: 3
+lesson: 2
+duration: 8
+free: false
+objectives:
+  - "能画出 orgs、memberships、invites 三张表并写出各自的唯一约束"
+  - "能把「接受邀请」实现成一个幂等事务，覆盖重复点击与链接转发两种情况"
+  - "能判断哪些团队功能（多组织、SSO、域自动加入）现在不该做"
+---
+
+团队功能最容易做过头：一上来就设计 workspace、team、organization 三层，再加域名自动加入和 SSO。第一批用户真正需要的只有一条——第二个人能进同一个空间干活，且你事后能说清他是被谁拉进来的。三张表加一次事务就够，剩下的等有人付费要求。
+
+## 三张表：把身份和成员拆开
+
+认证系统管的是「这个人是谁」，成员关系管的是「他属于哪个组织、是什么角色」。把 `org_id` 写进 `users` 表是最常见的偷懒，代价是永久假设一个人只属于一个组织——而几乎所有 SaaS 后来都要支持「同一个邮箱属于多个工作区」，那时改表要把用户复制成多行，历史数据全要重写。
+
+```sql
+create table orgs (
+  id         text primary key,
+  name       text not null,
+  created_at timestamptz not null default now()
+);
+
+create table memberships (
+  org_id     text not null references orgs(id) on delete cascade,
+  user_id    text not null,
+  role       text not null default 'member',   -- owner | admin | member
+  created_at timestamptz not null default now(),
+  primary key (org_id, user_id)
+);
+
+create table invites (
+  id          text primary key,
+  org_id      text not null references orgs(id) on delete cascade,
+  email       text not null,
+  role        text not null default 'member',
+  token_hash  text not null,
+  invited_by  text not null,
+  expires_at  timestamptz not null,
+  accepted_at timestamptz,
+  created_at  timestamptz not null default now()
+);
+
+create unique index invites_pending_email_idx
+  on invites (org_id, lower(email))
+  where accepted_at is null;
+```
+
+那个带 `where accepted_at is null` 的部分索引是关键：同一个人可以有一条历史邀请和一条新邀请，但只能有一条待接受。没有它，重复点「邀请」会生成多条待处理记录，对方点哪个链接都像在进一个不确定的状态。
+
+## 邀请按邮箱还是按链接
+
+按邮箱：唯一性可控，能对上「先付款后注册」的订单。本仓库的订单以 `email` 为自然键，用户注册时用邮箱认领历史订单，邀请也应该走同一条路——同一个邮箱既是收款凭据，也是成员凭据。代价是邮箱拼错就卡住，且对方用另一个邮箱注册时你无法自动接纳。
+
+按纯链接：转化高，谁点谁进。代价是没法审计「邀请的是谁」，且链接一定会被转发到群里。
+
+单人产品的折中：仍然按邮箱建邀请，但把同一个 token 链接给 owner 自己转发。凭据只有一个，语义仍然是「邀请某个邮箱」。
+
+另一个决策是注册时是否自动建 personal org。建议自动建，让 `org_id 永不为空` 成为不变量，所有查询不必处理空值分支；代价是以后团队化时，要么支持把 personal org 转成 team，要么复制资源迁移。
+
+## 接受邀请必须是一个事务
+
+两个并发请求、一个人反复点、链接过期、成员已存在——这四种情况都会在真实用户手里出现，靠 if 判断串起来必然漏。**什么时候不用做**：如果你只有个人用户、没有任何共享数据的场景，跳过整个模块，只需要 `user_id` 一列。
+
+```ts
+export async function acceptInvite(token: string, user: { id: string; email: string }) {
+  const hash = sha256(token);
+  return db.transaction(async (tx) => {
+    const invite = await tx.query(
+      `select * from invites where token_hash = $1 for update`,
+      [hash],
+    );
+    const row = invite.rows[0];
+    if (!row) throw new HttpError(404, "invite_not_found");
+    if (row.accepted_at) return { orgId: row.org_id };      // 重复点击视为成功
+    if (row.expires_at < new Date()) throw new HttpError(410, "invite_expired");
+    if (row.email.toLowerCase() !== user.email.toLowerCase()) {
+      throw new HttpError(403, "invite_email_mismatch");
+    }
+
+    await tx.query(
+      `insert into memberships (org_id, user_id, role) values ($1, $2, $3)
+       on conflict (org_id, user_id) do nothing`,
+      [row.org_id, user.id, row.role],
+    );
+    await tx.query(
+      `update invites set accepted_at = now() where id = $1 and accepted_at is null`,
+      [row.id],
+    );
+    return { orgId: row.org_id };
+  });
+}
+```
+
+`for update` 锁住这一行，`on conflict do nothing` 保证幂等，`and accepted_at is null` 保证只有一个请求真正写入。
+
+| 决策 | 选项 A | 选项 B | 什么时候选 B | 代价 |
+| :--- | :--- | :--- | :--- | :--- |
+| 身份与组织 | `users.org_id` 单组织 | `memberships` 关联表 | 出现「一个人属于多个工作区」的需求 | 每个查询都要先确定当前 org |
+| 组织创建 | 注册即建 personal org | 显式创建团队 | 只服务个人、且确定不做协作 | 所有 `org_id` 都要处理空值 |
+| 邀请凭据 | 邮箱 + token | 纯链接谁点谁进 | 面向社区或引流场景，不介意匿名加入 | 无法审计邀请人，链接会外流 |
+| 移除成员 | 直接删行 | 写 `left_at` 软删 | 需要保留「他建过什么」的审计 | 所有成员查询都要过滤 `left_at is null` |
+
+## 落地动作
+
+1. 写 `migrations/0002_orgs.sql`，建三张表和上面的部分唯一索引，然后跑一次迁移确认语法通过。
+2. 注册成功后的回调里，用 `lower(email)` 查待接受邀请，命中就把 `accepted_at` 置为当前时间并写入 membership——这一步是「先付款后注册」权益不丢的关键。
+3. 加一条应用层约束：退出或删除成员时在事务内 `count` owner，为 0 就回滚，避免组织失去唯一可管付款的人。
+4. 邀请 token 只在生成时明文出现一次，库里只存 sha256；有效期写死 7 天，过期重发而不是延长。
+
+## 常见坑
+
+- **现象**：同一个人被邀请两次，成员列表出现两行。 → **原因**：唯一约束建在 `(org_id, email)` 但大小写不同，或成员表主键用了自增 id。 → **对策**：索引用 `lower(email)`，写入用 `on conflict do nothing`。
+- **现象**：owner 离职后没人能改付款方式。 → **原因**：owner 唯一且没有转移动作。 → **对策**：提供「转移所有权」接口，并在退出时校验至少剩一个 owner。
+- **现象**：成员被移除后，他创建的项目变成孤儿，列表页报错。 → **原因**：外键级联删除或用户行被删。 → **对策**：成员关系软删，`user_id` 与资源的所有权分开存。

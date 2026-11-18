@@ -1,0 +1,110 @@
+---
+title: "代码评审自动化：让 AI 按团队 checklist 出评审意见"
+summary: "把评审者做成只读子智能体，用技能固化 checklist，让每条意见可定位、可判定"
+module: 5
+lesson: 4
+duration: 9
+free: false
+objectives:
+  - "能配置一个 edit 被拒绝的只读评审子智能体，并验证它改不了文件"
+  - "能把团队 checklist 写成技能，让评审输出带阻断级别与文件行号"
+  - "能把评审步骤接进 CI，先以非阻断方式跑满一周"
+---
+
+「帮我评审一下这个 PR」通常得到两种无用输出：一堆风格意见，或者它顺手把代码改了还宣称修好了。评审自动化的前提是两件事——评审者不能写，标准不能由模型当场发挥。这两件事都是配置问题，不是提示词问题。
+
+## 评审者必须是只读的
+
+评审者的价值在于给出可反驳的判断；一旦它能改代码，就会把「发现问题」变成「顺手修掉」，意见和改动混在一起，事后无法回溯是哪个判断导致了哪行修改。用文件型子智能体把它钉死：
+
+```md
+---
+description: Reviews the current diff against the team checklist
+mode: subagent
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: shell
+    resource: "*"
+    effect: deny
+  - action: shell
+    resource: "git diff *"
+    effect: allow
+  - action: shell
+    resource: "git log *"
+    effect: allow
+---
+Review only. Report findings with file and line references, ordered by severity. Never modify files.
+```
+
+注意规则顺序：最后一条匹配的规则生效，所以窄的 `allow` 必须放在宽的 `shell: deny` 之后。建好后做一次验证：让它改任意一个文件，应该被拒绝。
+
+## 把 checklist 做成技能，而不是长提示词
+
+checklist 会变、会加、会按团队调整，写进技能只需要维护一份，而且只在相关时才被加载，不占用每次对话的上下文。技能 ID 由目录名决定，frontmatter 里的 `name` 只是显示名。
+
+```md
+---
+name: Team Review Checklist
+description: Blocking and advisory checks for every pull request
+---
+按顺序检查，每条输出 [blocker] / [major] / [nit] + 文件:行 + 为什么 + 怎么改。
+
+- 新增分支路径是否有测试，失败是否附上命令输出。
+- 公开接口、schema、事件载荷变更是否同 PR 更新文档。
+- 错误路径是否处理，外部调用是否有超时与重试上限。
+- 是否有密钥、令牌、连接串被写进代码或日志。
+```
+
+判定标准要写成可反驳的句子，否则模型只能给感觉：
+
+| 检查项 | 级别 | 常见误报 |
+| --- | --- | --- |
+| 新增分支无测试 | blocker | 测试在另一个已合并 PR 里 |
+| 公开接口字段变更未更新文档 | blocker | 内部函数签名调整 |
+| 外部调用无超时 | major | 该客户端库已内置默认超时 |
+| 命名与风格 | nit | 无需复核，批量采纳即可 |
+
+## 用 /review 固定输入
+
+宽度决定质量。让评审者只看 diff，而不是整仓，意见会集中得多。用自定义命令把输入固定下来：
+
+```md
+---
+description: Review staged and unstaged changes against the team checklist
+agent: plan
+subagent: false
+---
+用 team-review 技能评审以下改动：
+
+!`git diff --stat && git diff`
+```
+
+反引号里的 shell 代码块在提交提示词之前执行，位于工具权限流程之外，所以只放 `git diff` 这类只读命令，不要把用户输入拼进去。要看某个分支的改动，把命令换成 `git diff main...HEAD`。
+
+## 进 CI 之前先本地跑满一周
+
+先在一周内的每个 PR 上手动跑 `/review`，记录误报；误报率降下来再进 CI，并且第一步只做非阻断。CI 里用独立模式并在 workflow 里传入密钥，模型固定，输出走 JSON 便于归档：
+
+```yaml
+# 加在现有 workflow 的 job 里
+- name: AI review
+  run: opencode run --standalone --model anthropic/claude-sonnet-5-5 --format json "Review the diff against .opencode/skills/team-review/SKILL.md and output severity, file, line, reason."
+  env:
+    ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+```
+
+前三周只有 blocker 允许阻断合并，major 与 nit 只写评论。等你能说清每条 blocker 都命中了真问题，再考虑扩大阻断范围。
+
+## 落地动作
+
+1. 建 `.opencode/agents/reviewer.md`，配好 `edit: deny`，然后用一句「改一下这个文件」验证它确实被拒绝。
+2. 把现有 PR 模板里的检查项抄成 `.opencode/skills/team-review/SKILL.md`，逐条补上阻断级别。
+3. 加 `.opencode/commands/review.md`，接下来一周每个 PR 都跑一次，把误报记在同一个文档里。
+
+## 常见坑
+
+- **现象**：评审意见全是风格问题，没有一句能拦合并 → **原因**：checklist 没写「什么情况算 blocker」 → **对策**：每条检查项补一句可反驳的判定标准，并给出文件行号要求。
+- **现象**：评审者擅自改了几个文件 → **原因**：没配 `edit: deny`，或此前点过「始终允许」留下了持久批准 → **对策**：显式拒绝编辑，并检查项目里已保存的批准条目。
+- **现象**：CI 里的评审把密钥贴进了评论 → **原因**：diff 含 `.env`，或原始日志未脱敏就上传 → **对策**：把 `.env*` 加入评审排除范围，日志先脱敏再归档。

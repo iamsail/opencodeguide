@@ -1,0 +1,81 @@
+---
+title: "权限与沙箱：哪些目录绝不允许 AI 写入"
+summary: "用 permissions 收窄可写范围，用 policies 把 .git、凭证、CI 配置钉成硬禁区"
+module: 3
+lesson: 4
+duration: 9
+free: false
+objectives:
+  - "能列出本项目里三类目录：可自主写、需批准、绝不写"
+  - "能写出 permissions 与 policies 两层规则，并说清它们分别在什么时候生效"
+  - "能解释为什么 edit 的 deny 规则挡不住 shell 里的 rm"
+---
+
+默认策略是「允许一切」，只对读取 `.env` 询问，`external_directory` 也默认不询问。也就是说 AI 第一次跑起来就能改项目外的文件，拦它的只有它自己的判断力。
+
+沙箱不是靠提示词建立的。它来自两层配置：一层决定要不要问你，另一层决定无论你怎么点都拒绝。
+
+## 先给目录分三档
+
+| 目标 | 规则 | 理由 |
+| --- | --- | --- |
+| `.git/*` | 永不写 | hooks 与 config 可执行任意代码，污染一次就长期存在 |
+| `*.env`、`*.env.*` | 读取需批准，写入永不 | 凭证一旦进上下文或进 diff，等于泄露 |
+| `.github/workflows/*` | 永不写 | CI 配置是权限提升的常规入口 |
+| `node_modules/*`、`dist/*` | 永不写 | 产物和依赖，改了只会让下一次安装覆盖 |
+| `migrations/*` | 写入需批准 | 不可逆，且通常带数据风险 |
+| `src/*` | 可自主写 | 真正要交付的代码，逐条审批准只会让人盲目点同意 |
+
+分档的意义是让每条 `allow` 都有明确理由。把所有目录都设成 `ask`，结果是审批疲劳：一天点两百次同意之后，你会无条件通过任何弹窗。
+
+## permissions 管弹窗，policies 管硬拒绝
+
+`permissions` 是每个智能体的工具规则，效果有 `allow`、`ask`、`deny`，最后一条匹配的规则生效。它的弱点在批准环节：选择「始终允许」会生成一条项目级、持久的 `allow` 规则，之后同类操作不再问你。
+
+`policies` 是二元的，从不弹窗，且只会收紧权限。它以 `tool.use` 加 `<action>:<value>` 的资源格式工作，在智能体规则和已保存的批准之后生效，被拒的操作会直接以 `Blocked by configuration policy` 失败。所以红线写这里，日常摩擦写 `permissions`。
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permissions": [
+    { "action": "external_directory", "resource": "*", "effect": "ask" },
+    { "action": "edit", "resource": "*", "effect": "ask" },
+    { "action": "edit", "resource": "src/*", "effect": "allow" },
+    { "action": "shell", "resource": "*", "effect": "ask" },
+    { "action": "shell", "resource": "git status *", "effect": "allow" },
+    { "action": "shell", "resource": "git diff *", "effect": "allow" }
+  ],
+  "policies": [
+    { "action": "tool.use", "resource": "edit:.git/*", "effect": "deny" },
+    { "action": "tool.use", "resource": "edit:*.env", "effect": "deny" },
+    { "action": "tool.use", "resource": "edit:*.env.*", "effect": "deny" },
+    { "action": "tool.use", "resource": "edit:.github/workflows/*", "effect": "deny" },
+    { "action": "tool.use", "resource": "shell:git push *", "effect": "deny" },
+    { "action": "tool.use", "resource": "shell:sudo *", "effect": "deny" }
+  ]
+}
+```
+
+宽泛规则在前、例外在后，这条顺序对两层都成立。反过来的话，`*` 的 `ask` 会盖掉你精心写的 `deny`。
+
+## shell 不是沙箱，只有窄白名单才算边界
+
+`edit` 规则只约束编辑、写入和补丁工具。`shell` 以主机用户的文件系统、进程和网络权限跑命令，目录推断只是尽力而为。所以 `edit:.git/*` 的 deny 挡不住 `rm -rf .git`，也挡不住 `curl` 把文件写到任意路径。
+
+可行的做法是把 shell 反过来配置：默认 `ask`，只把确定只读的命令前缀加成 `allow`，危险前缀用 `policies` 硬拒。不要试图用模式匹配枚举所有危险命令，那条路走不通。
+
+另外两个常见误解值得写进团队规范：`hidden: true` 只控制智能体在列表里的可见性，不是安全边界；子智能体用的是自身配置的权限，而不是父级权限的子集，收紧父智能体不会自动约束子智能体。
+
+## 落地动作
+
+1. 先加一条 `{ "action": "external_directory", "resource": "*", "effect": "ask" }`，让越界访问在日志里变得可见，再决定拒绝哪些。
+2. 用 `policies` 的 `tool.use` 钉三条红线：`edit:.git/*`、`edit:*.env*`、`shell:git push *`，逐条验证是否报 `Blocked by configuration policy`。
+3. 把 `shell` 默认改成 `ask`，只白名单 `git status *`、`git diff *` 和测试命令。
+4. 清点已保存的批准：项目级的持久 `allow` 会一直生效，尤其要删掉范围是 `*` 的条目。
+5. 团队层面把 `policies` 放进全局配置或由 OpenCode Console 下发，因为仓库无法重新启用你在全局拒绝的提供商与工具。
+
+## 常见坑
+
+- **现象**：写了 `deny` 但 AI 照样改 `.env`。 → **原因**：宽泛的 `allow` 或 `ask` 排在 `deny` 之后，最后一条匹配的规则生效。 → **对策**：把 `deny` 移到列表末尾，红线改用 `policies` 的 `tool.use`。
+- **现象**：编辑工具被挡住了，AI 用 shell 重定向照样写进同一目录。 → **原因**：`edit` 规则不管 shell 内部动作，shell 以主机权限运行。 → **对策**：收窄 shell 白名单，用 `policies` 拒绝危险命令前缀。
+- **现象**：把子智能体设成 `hidden: true`，以为它就改不了东西。 → **原因**：`hidden` 只影响可见性，且子智能体使用自身权限。 → **对策**：在该子智能体的 `permissions` 里显式写 `edit` 的 `deny`。

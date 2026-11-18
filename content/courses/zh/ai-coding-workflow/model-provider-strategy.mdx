@@ -1,0 +1,118 @@
+---
+title: "模型提供商配置：Anthropic、OpenAI、DeepSeek、Ollama 的组合策略"
+summary: "按角色接入四家提供商，用一份配置固定主力、审查与离线兜底模型"
+module: 1
+lesson: 3
+duration: 9
+free: false
+objectives:
+  - "能用 /connect 与 auth login 接入至少两家提供商并确认账户状态"
+  - "能写出带别名、变体与智能体级模型的 opencode.jsonc"
+  - "能接入 Ollama 本地模型，并说出它适合承担哪类子任务"
+---
+
+把四家提供商全接上、每个都试一遍，是最容易做也最没用的配置。真正的选择发生在任务层：日常改代码、跨文件审查、批量生成测试、处理不能出网的仓库，这四件事对模型的要求完全不同。先定角色，再谈谁接谁。
+
+## 先分配角色，再挑模型
+
+| 角色 | 提供商 | 典型任务 | 需要留意 |
+| --- | --- | --- | --- |
+| 主力编辑 | Anthropic | 多文件重构、按规则改代码 | 上下文与缓存行为稳定，适合做默认 |
+| 长上下文审查 | OpenAI | 大仓库通读、迁移方案评估 | ChatGPT 登录会压低上下文上限 |
+| 批量低成本 | DeepSeek | 补测试、写注释、初筛 diff | 复杂重构仍需人工复核 |
+| 离线兜底 | Ollama | 敏感代码、无网环境、检索类子任务 | 受本机显存限制，工具调用能力有限 |
+
+角色定下来，配置才有意义：默认模型是谁、审查用谁、什么情况下强制本地，都是可以写进文件的决策，而不是每次打开会话再想一遍。
+
+## 连接：账户、环境变量、别写进仓库
+
+交互式接入分两步，`/connect` 选提供商、完成认证，然后 `/models` 挑一个模型。不开 TUI 时用 `auth` 系列命令做同样的事。
+
+```bash
+# 交互式选择提供商与认证方式
+opencode auth login
+
+# 直接指定提供商与 API 密钥方式
+opencode auth login anthropic --method key
+
+# 查看已保存账户与来自环境变量的连接
+opencode auth list
+
+# 同一提供商有多个账户时切换
+opencode auth switch anthropic work
+```
+
+密钥有两条路径：保存为账户（存在本地 SQLite 里），或由服务器进程的环境变量提供。共享后台服务读的是服务进程的环境，所以在自己 shell 里 export 往往不生效。
+
+```bash
+# 写入共享服务的受管环境，会重启该服务
+opencode service set env ANTHROPIC_API_KEY sk-ant-...
+
+# 或者只给这一次运行用私有服务
+ANTHROPIC_API_KEY=sk-ant-... opencode --standalone
+```
+
+DeepSeek 同样走 `/connect`，连上后在 `/models` 里会看到它可用的模型，把显示的 `provider/model` 原文抄下来即可，不要凭印象拼模型 ID。`opencode.jsonc` 里永远不出现明文密钥，需要时用 `{env:VAR_NAME}` 或 `{file:~/.secrets/key}` 引用。
+
+## 用一个配置文件描述组合
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "anthropic/claude-sonnet-5-5",
+  "providers": {
+    "openai": {
+      "models": {
+        "deep-review": {
+          "modelID": "gpt-6.1-sol",
+          "name": "长上下文审查",
+          "limit": { "context": 200000, "output": 32000 }
+        }
+      }
+    }
+  },
+  "agents": {
+    "review": {
+      "description": "只读审查，不改文件",
+      "mode": "subagent",
+      "model": "openai/deep-review",
+      "permissions": [{ "action": "edit", "resource": "*", "effect": "deny" }]
+    }
+  }
+}
+```
+
+三个细节值得记：`models` 的键是 OpenCode 里的模型 ID，`modelID` 才是发给提供商的真实 ID，换模型只改后者；`limit` 要按真实能力填，模型不在目录里时 OpenCode 会假定 200k 上下文、32k 输出；根级 `model` 不保留变体，`#high` 这类变体要写在智能体、命令或单次运行上，例如 `opencode run --model openai/gpt-6.1-sol#high`。绑一个只读的审查智能体到另一家提供商，还有个附带好处：审查者不会沿用编辑者的思路。
+
+## Ollama：不用写配置的本地模型
+
+```bash
+ollama serve
+ollama pull qwen3:8b
+```
+
+Ollama 监听 `http://127.0.0.1:11434` 时不需要任何配置，OpenCode 会自动发现模型并把它们列进 `/models`，默认模型直接写 `"model": "ollama/qwen3:8b"` 就能用。换了端口或指向远程机器时，把 OpenAI 兼容地址写进 `settings.baseURL`，注意带上 `/v1`，发现机制会在同一前缀下走原生接口。
+
+不想让发现机制加载这些模型，可以用 `"plugins": ["-opencode.provider.ollama"]` 关掉。同理，LM Studio 与 vLLM 的默认端点也能被自动发现，vLLM 的发现结果不包含工具调用能力，需要工具的任务别指望它。
+
+## 按任务切换，而不是改默认值
+
+```bash
+opencode run --model anthropic/claude-sonnet-5-5 "Refactor parseToken"
+opencode run --model openai/gpt-6.1-sol#high "Review this migration plan"
+opencode run --model ollama/qwen3:8b "Summarize the TODO comments under src/"
+```
+
+优先级是：会话中临时选择的模型 > 配置里的根级 `model` > 回退到最新的可用受支持模型。团队场景再加一层 `policies`，把允许使用的提供商写成白名单，配置文件里出现白名单外的 provider 就该在评审时被拦下。
+
+## 落地动作
+
+1. 连接两个云端提供商，`opencode auth list` 确认状态，再在 `/models` 里各选一次并记录完整引用。
+2. 把主力模型写进 `opencode.jsonc` 的 `model`，给审查单独建一个只读智能体，绑定另一家提供商。
+3. 本地跑起 Ollama，加一条 `alias oc-local='opencode run --model ollama/qwen3:8b'`，用于不方便出网的任务。
+
+## 常见坑
+
+- **现象**：`Model unavailable: provider/model`。 → **原因**：提供商未激活、模型 ID 不存在或已被 `disabled`，也可能是动态发现没返回该模型。 → **对策**：在 `/models` 里复制原文，别手打；用自定义别名时检查 `models` 的键，而不是 `modelID`。
+- **现象**：本机测试通过，CI 里却报没有凭据。 → **原因**：模型请求由服务器进程发出，环境变量必须在那条进程上。 → **对策**：用 `opencode service set env` 写入受管环境，或在 `--standalone` 启动时带上变量。
+- **现象**：接入 ChatGPT 登录后，长文件分析总在固定长度处被截断。 → **原因**：OpenCode 对这类登录默认压低上下文上限，GPT-6.1 Sol 及更新版本为 500k，更早的模型为 272k。 → **对策**：需要完整窗口时改用 API 密钥，或禁用该插件 `"plugins": ["-opencode.provider.openai-context-caps"]` 并接受用量消耗的变化。

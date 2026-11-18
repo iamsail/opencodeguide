@@ -1,0 +1,102 @@
+---
+title: "退款、拒付（chargeback）与风控处理流程"
+summary: "把拒付当作有截止日的时间线，用交付时留下的证据和三条风控闸门应对"
+module: 7
+lesson: 1
+duration: 9
+free: false
+objectives:
+  - "区分退款、inquiry 与 chargeback 三种资金动作，并说出各自的处理入口与时限"
+  - "在订单写入的那一刻记下举证所需的四类字段，而不是等拒付发生再翻日志"
+  - "用 Radar 默认规则加一条自定义规则处理高风险订单，并说明为什么不装全套风控"
+---
+
+退款是你按一下按钮就结束的事，拒付是发卡行先把钱划走、再给你一次解释机会的事。贵的地方不在那一笔本金：拒付率一旦被卡组织盯上，受影响的是整个账户的收款能力，不只是争议的那一单。
+
+## 拒付的时间线比金额更值得盯
+
+拒付从 `charge.dispute.created` 开始，`status` 为 `needs_response`；如果是 `warning_needs_response`，表示这只是一次 inquiry，钱还没被划走，但同样需要回应。chargeback 成立时，争议金额会立刻从余额里扣除，`evidence_details.due_by` 是举证截止时间，过期视为放弃。提交后进入 `under_review`，最终落到 `won` 或 `lost`，`closed` 之后没有任何补救入口。
+
+接受拒付也是一个决定，不是认输：Dashboard 里点 Accept dispute，或调用 `POST /v1/disputes/{id}/close`。一旦接受就不能再提交证据，本金与拒付费全部认下。拒付费按笔收取、输赢都收，金额以 Stripe 官网当期 pricing 为准；它通常远高于一笔订单的手续费，所以在证据还算完整时，「争一下」在钱上是划算的，成本是你的时间。
+
+## 数字商品能交的证据，只在交付那一刻存在
+
+举证表单的字段是固定的：`evidence[access_activity_log]`、`evidence[service_documentation]`、`evidence[customer_communication]`、`evidence[refund_policy]` 都在其列。它们有一个共同点——只能在事情发生时记录，事后拼出来的材料，审核方一眼就能看出时间戳不对齐。
+
+| 拒付原因 | 持卡人实际在说什么 | 最有力的证据 |
+| :--- | :--- | :--- |
+| `fraudulent` | 这笔不是我刷的 | 登录 IP、时间、设备的访问日志，收据邮件，客户邮箱 |
+| `product_not_received` | 说没收到东西 | 交付邮件的消息 ID 与发送时间、首次登录时间、交付文档 |
+| `product_unacceptable` | 说与页面描述不符 | 购买时的页面快照、条款版本、`refund_policy` 与勾选记录 |
+| `duplicate` | 说被扣了两次 | 两笔 `charge` 的 `id`、时间差与已退款记录 |
+| `subscription_canceled` | 说早就取消了 | 取消操作日志、取消页的确认截图、`cancellation_policy` |
+| `unrecognized` | 账单上不认识这笔 | `statement_descriptor` 与品牌名是否一致、收据邮件 |
+
+争议里最弱的一环几乎总是「条款有没有在付款前被看到」。Checkout Session 的 `consent_collection[terms_of_service]` 会把同意动作留在 session 记录上，这比事后截一张政策页可信得多。同样的道理，`statement_descriptor` 上写品牌名而不是公司全称，能直接减少 `unrecognized` 这一类。
+
+## 风控只在三个位置装闸
+
+结账页这一层做三件事：`statement_descriptor` 用品牌名且不超过 22 字符、强制收集账单地址、3DS 保持自动。这三项都不需要写代码，收益却最大。
+
+规则层用 Radar 的默认规则，再按自己的客群加一两条：金额超过阈值转 `review`，高风险国家直接 block。Radar for Fraud Teams 是单独付费的产品，个人阶段用不上，默认规则加人工 review 队列已经够。
+
+服务层最容易被忽略：退款只损失手续费，拒付要另付拒付费还计进拒付率，所以退款通道应该比拒付通道更容易走。把退款入口写在页面上、工作日 24 小时内回邮件，大部分 `product_not_received` 与 `unrecognized` 在这一步就不会升级成争议。
+
+| 应对方式 | 适用条件 | 你付出什么 | 风险 |
+| :--- | :--- | :--- | :--- |
+| 全部接受，不举证 | 金额很小、交付记录几乎没有 | 本金加拒付费 | 拒付率累积，账户进卡组织监控名单 |
+| 有完整交付记录就举证 | 有登录日志、交付邮件、条款版本 | 每次整理半小时起 | 举证不保证赢，条款没在购买前展示的基本必输 |
+| 按金额阈值分流，小额直接退款 | 已有稳定订单量，客服时间紧 | 阈值以下的损失 | 阈值要按自己的客单价定，抄别人的会伤利润 |
+| 交给第三方代争服务 | 每周都有拒付，占满时间 | 按成功金额抽成 | 材料仍要你提供，客户沟通口径不受你控制 |
+
+订单还是个位数时，只做三件事：账单名、退款入口、每天扫一眼 Dashboard 的争议列表。自定义 Radar 规则、代争服务、风险评分，都等出现第二笔拒付再考虑——第一笔的信息量撑不起任何规则。
+
+## 落地动作
+
+1. 每工作日拉一次待回应的拒付，按截止时间排序：
+
+```bash
+set -euo pipefail
+: "${STRIPE_SECRET_KEY:?先导出正式或测试模式密钥}"
+
+curl -s -u "$STRIPE_SECRET_KEY:" "https://api.stripe.com/v1/disputes?limit=100" \
+  | jq -r '.data[]
+      | select(.status == "needs_response" or .status == "warning_needs_response")
+      | [.id, .reason, (.amount / 100 | tostring), .currency,
+         (.evidence_details.due_by | todate)] | @tsv' \
+  | sort -k5
+```
+
+2. 在订单表补四个字段，让举证不用翻日志：
+
+```sql
+alter table orders
+  add column terms_version text,         -- 下单时生效的条款版本号
+  add column delivered_at timestamptz,   -- 交付邮件实际发出的时间
+  add column first_access_at timestamptz,
+  add column delivery_email_id text;     -- 邮件服务商的消息 ID，举证时直接引用
+```
+
+3. 建 `docs/chargeback-playbook.md`，固定四段：事实时间线、交付证据清单、条款依据、结论。每份举证按这四段写，第二次处理时只要填空。
+
+4. 用测试卡 `4000 0000 0000 0259` 在测试模式走一单，在 Dashboard 里查看 dispute 的 `due_by` 与举证表单，把这次提交当作演练：
+
+```bash
+# 上传材料，purpose 必须是 dispute_evidence
+FILE_ID=$(curl -s https://files.stripe.com/v1/files \
+  -u "$STRIPE_SECRET_KEY:" \
+  -F purpose=dispute_evidence \
+  -F "file=@./evidence/login-log.png" | jq -r .id)
+
+curl -s -u "$STRIPE_SECRET_KEY:" "https://api.stripe.com/v1/disputes/$DISPUTE_ID" \
+  -d "evidence[product_description]=数字课程，付款后立即开通访问" \
+  -d "evidence[access_activity_log]=2026-11-02 21:14 UTC 首次登录，IP 与账单地址国家一致" \
+  -d "evidence[service_documentation]=$FILE_ID" \
+  -d "submit=true" | jq '{status, evidence_details}'
+```
+
+## 常见坑
+
+- **现象**：看到拒付时已经过了举证期 → **原因**：Webhook 只订阅了 `checkout.session.completed` 和 `charge.refunded`，`charge.dispute.created` 没订阅，也没人看 Dashboard → **对策**：订阅 `charge.dispute.created`、`charge.dispute.updated`、`charge.dispute.closed`，把通知推到日常会看的邮箱或群，并固定每工作日跑一次上面的排序查询。
+- **现象**：证据交了还是判负 → **原因**：材料是截图，没有时间戳、没有主体，或退款条款只写在后台页面、结账时没有让客户确认过 → **对策**：举证只用可校验的记录（邮件消息 ID、访问日志、条款版本），并在结账页开启条款同意，把同意记录与订单一起存。
+- **现象**：拒付率没降，退款率反而涨了 → **原因**：把风控当成主要矛盾，真实原因在页面承诺过度或交付太慢，`reason` 集中在 `product_not_received`、`product_unacceptable` → **对策**：按 `reason` 分类统计，交付与文案类问题回产品侧改，风控规则只处理 `fraudulent` 那一类。

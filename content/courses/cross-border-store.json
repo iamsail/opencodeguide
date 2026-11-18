@@ -7,8 +7,8 @@
   "releaseDate": "2027-01",
   "icon": "ShoppingBag",
   "accent": "from-amber-500 via-orange-500 to-rose-500",
-  "durationHours": 18,
-  "lessonCount": 32,
+  "durationHours": 5,
+  "lessonCount": 36,
   "lastUpdated": "2026-11",
   "plans": [
     {
@@ -16,16 +16,19 @@
       "priceUSD": 179,
       "priceCNYRef": 1299,
       "compareAtUSD": 249,
-      "badge": { "zh": "早鸟", "en": "Early bird" },
+      "badge": {
+        "zh": "早鸟",
+        "en": "Early bird"
+      },
       "features": {
         "zh": [
-          "32 节视频课 + 全部课件（上线后立即可看）",
+          "36 节图文课 + 全部课件（上线后立即可看）",
           "独立站建站与支付配置模板",
           "合规与物流供应商清单",
           "7 天无理由退款（正式上线后开始计算）"
         ],
         "en": [
-          "32 video lessons + all courseware at launch",
+          "36 article lessons + all courseware at launch",
           "Storefront and payment configuration templates",
           "Compliance and fulfilment vendor lists",
           "7-day refund starting from official launch"
@@ -37,7 +40,10 @@
       "priceUSD": 299,
       "priceCNYRef": 2149,
       "compareAtUSD": 399,
-      "badge": { "zh": "早鸟推荐", "en": "Early bird" },
+      "badge": {
+        "zh": "早鸟推荐",
+        "en": "Early bird"
+      },
       "features": {
         "zh": [
           "包含「单课版」全部内容",
