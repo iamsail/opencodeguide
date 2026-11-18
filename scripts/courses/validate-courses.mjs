@@ -1,0 +1,579 @@
+#!/usr/bin/env node
+/**
+ * 课程数据自检（构建前置）
+ * ------------------------------------------------------------
+ * 课程内容由 `content/courses/*.json` 驱动，改错一个字段不会报错，
+ * 而是静默降级（图标变 Layers、渐变回退默认色、支付按钮消失）。
+ * 本脚本把这类「静默失败」变成构建期可见的错误/警告。
+ *
+ * 校验范围：
+ *   1. 课程 JSON 的结构、枚举、价格、双语完整度
+ *   2. 与代码的联动：icon 是否在 CourseIcon 映射中、accent 是否在 accentClass 白名单中
+ *   3. stripe-links.json 的 key 是否指向真实存在的 课程:计划
+ *
+ * 用法：
+ *   node scripts/courses/validate-courses.mjs
+ *   node scripts/courses/validate-courses.mjs --strict   # 警告也视为失败
+ *   node scripts/courses/validate-courses.mjs --json     # 机器可读输出
+ *
+ * 退出码：0 通过（可能带警告） / 1 有错误
+ */
+
+import fs from "node:fs";
+import path from "node:path";
+
+const ROOT = process.cwd();
+const COURSE_DIR = path.join(ROOT, "content/courses");
+const LINKS_FILE = path.join(COURSE_DIR, "stripe-links.json");
+const VISUALS_FILE = path.join(ROOT, "components/courses/course-visuals.tsx");
+
+/** 与 lib/courses.ts 的 TRACKS 保持一致；bundle 单独处理 */
+const TRACKS = ["ai-coding", "indie", "ecommerce", "global-seo"];
+const KINDS = ["course", "bundle"];
+const STATUSES = ["live", "preorder", "coming-soon"];
+const LEVELS = ["beginner", "intermediate", "advanced", "mixed"];
+const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+const diagnostics = [];
+
+function add(level, file, field, message) {
+  diagnostics.push({ level, file, field, message });
+}
+const error = (file, field, message) => add("error", file, field, message);
+const warn = (file, field, message) => add("warn", file, field, message);
+
+function parseArgs(argv) {
+  const args = { strict: false, json: false };
+  for (const raw of argv) {
+    const key = raw.replace(/^--/, "");
+    if (key === "strict") args.strict = true;
+    else if (key === "json") args.json = true;
+  }
+  return args;
+}
+
+function readJson(file) {
+  const text = fs.readFileSync(file, "utf8");
+  return JSON.parse(text);
+}
+
+const isString = (value) => typeof value === "string" && value.trim().length > 0;
+const isStringArray = (value) =>
+  Array.isArray(value) && value.length > 0 && value.every(isString);
+const isPositiveInt = (value) => Number.isInteger(value) && value > 0;
+
+/**
+ * 从 course-visuals.tsx 抽出 icon 映射与 accent 白名单，
+ * 避免把这两份清单在本脚本里再抄一遍（抄了就会不同步）。
+ */
+function readVisuals() {
+  try {
+    const source = fs.readFileSync(VISUALS_FILE, "utf8");
+    const iconsBlock = source.match(/const ICONS[^{]*\{([\s\S]*?)\};/);
+    const icons = iconsBlock
+      ? [...iconsBlock[1].matchAll(/^\s*([A-Za-z0-9_]+)\s*,/gm)].map((m) => m[1])
+      : null;
+    const allowedBlock = source.match(/const allowed = \[([\s\S]*?)\];/);
+    const accents = allowedBlock
+      ? [...allowedBlock[1].matchAll(/"([^"]+)"/g)].map((m) => m[1])
+      : null;
+    return { icons, accents };
+  } catch {
+    return { icons: null, accents: null };
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* 课程 JSON                                                            */
+/* ------------------------------------------------------------------ */
+
+function validatePlans(file, slug, course) {
+  const plans = course.plans;
+  if (!Array.isArray(plans) || plans.length === 0) {
+    error(file, "plans", "必须是非空数组");
+    return;
+  }
+
+  const seen = new Set();
+  for (const [index, plan] of plans.entries()) {
+    const at = `plans[${index}]`;
+    if (!plan || typeof plan !== "object") {
+      error(file, at, "必须是对象");
+      continue;
+    }
+    if (!isString(plan.id)) error(file, `${at}.id`, "缺少计划 id");
+    else {
+      if (!KEBAB.test(plan.id)) error(file, `${at}.id`, `计划 id 必须是 kebab-case：${plan.id}`);
+      if (seen.has(plan.id)) error(file, `${at}.id`, `计划 id 重复：${plan.id}`);
+      seen.add(plan.id);
+    }
+
+    if (!isPositiveInt(plan.priceUSD)) {
+      error(file, `${at}.priceUSD`, "必须是大于 0 的整数（美元，不带小数）");
+    } else if (plan.priceUSD > 10000) {
+      warn(file, `${at}.priceUSD`, `价格偏高（$${plan.priceUSD}），请确认不是分位录入错误`);
+    }
+
+    if (plan.compareAtUSD !== undefined) {
+      if (!isPositiveInt(plan.compareAtUSD)) {
+        error(file, `${at}.compareAtUSD`, "必须是大于 0 的整数");
+      } else if (isPositiveInt(plan.priceUSD) && plan.compareAtUSD <= plan.priceUSD) {
+        warn(file, `${at}.compareAtUSD`, "划线价不高于售价，用户会看出「假折扣」");
+      }
+    }
+
+    if (plan.priceCNYRef !== undefined) {
+      if (!isPositiveInt(plan.priceCNYRef)) {
+        error(file, `${at}.priceCNYRef`, "必须是大于 0 的整数");
+      } else if (isPositiveInt(plan.priceUSD)) {
+        const ratio = plan.priceCNYRef / plan.priceUSD;
+        if (ratio < 5.5 || ratio > 8.5) {
+          warn(
+            file,
+            `${at}.priceCNYRef`,
+            `人民币参考价偏离汇率区间（1 USD ≈ ${ratio.toFixed(1)} CNY），当前 ${plan.priceUSD} → ${plan.priceCNYRef}`,
+          );
+        }
+      }
+    }
+
+    if (plan.badge !== undefined) {
+      if (!plan.badge || !isString(plan.badge.zh) || !isString(plan.badge.en)) {
+        error(file, `${at}.badge`, "需要同时提供 zh 与 en 文案");
+      }
+    }
+
+    const features = plan.features;
+    if (!features || !isStringArray(features.zh) || !isStringArray(features.en)) {
+      error(file, `${at}.features`, "zh 与 en 都必须是非空字符串数组");
+    } else if (features.zh.length !== features.en.length) {
+      error(
+        file,
+        `${at}.features`,
+        `中英条目数不一致（zh ${features.zh.length} / en ${features.en.length}）：文案会错位`,
+      );
+    }
+  }
+
+  if (course.kind === "bundle" && !seen.has("all-access")) {
+    warn(file, "plans", "全站通的计划 id 建议为 all-access（目录页与文案层按此约定）");
+  }
+}
+
+function validateLocaleContent(file, slug, locale, content) {
+  const at = `locales.${locale}`;
+  if (!content || typeof content !== "object") {
+    error(file, at, "缺少该语言版本");
+    return;
+  }
+
+  for (const field of ["title", "subtitle", "tagline"]) {
+    if (!isString(content[field])) error(file, `${at}.${field}`, "必须是非空字符串");
+  }
+
+  for (const field of ["audience", "outcomes", "deliverables"]) {
+    if (!isStringArray(content[field])) {
+      error(file, `${at}.${field}`, "必须是非空字符串数组（详情页会逐条渲染）");
+    }
+  }
+
+  if (!Array.isArray(content.modules) || content.modules.length === 0) {
+    error(file, `${at}.modules`, "必须是非空数组");
+  } else {
+    const titles = new Set();
+    for (const [index, module] of content.modules.entries()) {
+      const mAt = `${at}.modules[${index}]`;
+      if (!module || typeof module !== "object") {
+        error(file, mAt, "必须是对象");
+        continue;
+      }
+      if (!isString(module.title)) error(file, `${mAt}.title`, "缺少章节标题");
+      else if (titles.has(module.title)) warn(file, `${mAt}.title`, `章节标题重复：${module.title}`);
+      else titles.add(module.title);
+
+      if (!isStringArray(module.lessons)) {
+        error(file, `${mAt}.lessons`, "必须是非空字符串数组");
+      }
+      if (module.free !== undefined && typeof module.free !== "boolean") {
+        error(file, `${mAt}.free`, "必须是布尔值");
+      }
+    }
+  }
+
+  if (!Array.isArray(content.faq) || content.faq.length === 0) {
+    error(file, `${at}.faq`, "必须是非空数组");
+  } else {
+    const questions = new Set();
+    for (const [index, item] of content.faq.entries()) {
+      const fAt = `${at}.faq[${index}]`;
+      if (!item || !isString(item.q) || !isString(item.a)) {
+        error(file, fAt, "需要非空的 q 与 a");
+        continue;
+      }
+      if (questions.has(item.q)) warn(file, fAt, `FAQ 问题重复：${item.q}`);
+      questions.add(item.q);
+    }
+  }
+
+  const seo = content.seo;
+  if (!seo || !isString(seo.title) || !isString(seo.description)) {
+    error(file, `${at}.seo`, "需要非空的 title 与 description");
+  } else {
+    if (seo.title.length > 60) {
+      warn(file, `${at}.seo.title`, `长度 ${seo.title.length}，超过 Google 标题展示上限（~60）`);
+    }
+    if (seo.description.length > 160) {
+      warn(
+        file,
+        `${at}.seo.description`,
+        `长度 ${seo.description.length}，超过建议上限（160），移动端会被截断`,
+      );
+    } else if (seo.description.length < 60) {
+      warn(file, `${at}.seo.description`, `长度 ${seo.description.length}，偏短（建议 60-160）`);
+    }
+  }
+
+  if (content.instructor !== undefined) {
+    if (
+      !content.instructor ||
+      !isString(content.instructor.name) ||
+      !isString(content.instructor.role) ||
+      !isString(content.instructor.bio)
+    ) {
+      error(file, `${at}.instructor`, "需要 name / role / bio 三个非空字段");
+    }
+  }
+
+  if (content.guarantee !== undefined && !isString(content.guarantee)) {
+    error(file, `${at}.guarantee`, "必须是非空字符串");
+  }
+}
+
+function validateCourse(file, course, visuals, ctx) {
+  if (!course || typeof course !== "object") {
+    error(file, "-", "顶层必须是 JSON 对象");
+    return;
+  }
+
+  const slug = course.slug;
+  if (!isString(slug)) {
+    error(file, "slug", "缺少 slug");
+  } else {
+    if (!KEBAB.test(slug)) error(file, "slug", `必须是 kebab-case：${slug}`);
+    if (path.basename(file, ".json") !== slug) {
+      error(file, "slug", `与文件名不一致（${path.basename(file, ".json")}）：路由与静态生成会错位`);
+    }
+    if (ctx.slugs.has(slug)) error(file, "slug", `与其他文件重复：${slug}`);
+    ctx.slugs.add(slug);
+  }
+
+  if (!KINDS.includes(course.kind)) {
+    error(file, "kind", `必须是 ${KINDS.join(" / ")} 之一`);
+  }
+  if (!STATUSES.includes(course.status)) {
+    error(file, "status", `必须是 ${STATUSES.join(" / ")} 之一`);
+  }
+  if (!LEVELS.includes(course.level)) {
+    error(file, "level", `必须是 ${LEVELS.join(" / ")} 之一`);
+  }
+
+  const expectedTrack = course.kind === "bundle" ? "bundle" : TRACKS;
+  if (!expectedTrack.includes(course.track)) {
+    error(
+      file,
+      "track",
+      course.kind === "bundle"
+        ? 'kind 为 bundle 时 track 必须是 "bundle"'
+        : `必须是 ${TRACKS.join(" / ")} 之一（目录页按此分组）`,
+    );
+  }
+
+  if (!isString(course.icon)) {
+    error(file, "icon", "缺少图标名");
+  } else if (visuals.icons && !visuals.icons.includes(course.icon)) {
+    warn(
+      file,
+      "icon",
+      `不在 CourseIcon 映射中（${visuals.icons.join(", ")}），将回退为 Layers 图标`,
+    );
+  }
+
+  if (!isString(course.accent)) {
+    error(file, "accent", "缺少渐变类名");
+  } else if (visuals.accents && !visuals.accents.includes(course.accent)) {
+    warn(
+      file,
+      "accent",
+      "不在 accentClass 白名单中，将回退为默认渐变（新增配色需同时改 course-visuals.tsx）",
+    );
+  }
+
+  if (!isPositiveInt(course.durationHours)) error(file, "durationHours", "必须是大于 0 的整数");
+  if (!isPositiveInt(course.lessonCount)) error(file, "lessonCount", "必须是大于 0 的整数");
+  if (!isString(course.lastUpdated) || !MONTH.test(course.lastUpdated ?? "")) {
+    error(file, "lastUpdated", "格式必须是 YYYY-MM");
+  }
+
+  if (course.releaseDate !== undefined) {
+    if (!isString(course.releaseDate) || !MONTH.test(course.releaseDate)) {
+      error(file, "releaseDate", "格式必须是 YYYY-MM");
+    }
+    if (course.status === "live") {
+      warn(file, "releaseDate", "已上线课程仍带 releaseDate，详情页会显示预售时间");
+    }
+  } else if (course.status !== "live") {
+    warn(file, "releaseDate", "预售/制作中的课程建议填写 releaseDate（详情页会展示）");
+  }
+
+  validatePlans(file, slug, course);
+
+  const locales = course.locales;
+  if (!locales || typeof locales !== "object") {
+    error(file, "locales", "必须包含 zh 与 en");
+    return;
+  }
+  for (const locale of ["zh", "en"]) {
+    if (!locales[locale]) error(file, `locales.${locale}`, "缺少该语言版本（详情页会回退到中文）");
+    else validateLocaleContent(file, slug, locale, locales[locale]);
+  }
+
+  if (locales.zh && locales.en) {
+    for (const field of ["audience", "outcomes", "deliverables", "modules", "faq"]) {
+      const zhLen = Array.isArray(locales.zh[field]) ? locales.zh[field].length : 0;
+      const enLen = Array.isArray(locales.en[field]) ? locales.en[field].length : 0;
+      if (zhLen > 0 && enLen > 0 && zhLen !== enLen) {
+        warn(file, `locales.${field}`, `中英条目数不一致（zh ${zhLen} / en ${enLen}），像是漏翻了`);
+      }
+    }
+  }
+
+  if (course.kind === "bundle" && course.status === "live" && isPositiveInt(course.lessonCount)) {
+    ctx.bundleLessonCount = course.lessonCount;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* 支付链接                                                             */
+/* ------------------------------------------------------------------ */
+
+function validateLinks(coursesBySlug, args) {
+  if (!fs.existsSync(LINKS_FILE)) {
+    warn("content/courses/stripe-links.json", "-", "文件不存在，所有购买按钮都会降级为等待名单");
+    return;
+  }
+
+  let links;
+  try {
+    links = readJson(LINKS_FILE);
+  } catch (err) {
+    error("content/courses/stripe-links.json", "-", `JSON 解析失败：${err.message}`);
+    return;
+  }
+
+  if (!links || typeof links !== "object") {
+    error("content/courses/stripe-links.json", "-", "顶层必须是对象");
+    return;
+  }
+
+  if (links.mode === "test") {
+    warn(
+      "content/courses/stripe-links.json",
+      "mode",
+      "当前是 test 模式链接，正式上线前必须用 sk_live_ 重新生成，否则真实用户无法付款",
+    );
+  }
+
+  const plans = links.plans;
+  if (plans === undefined) return;
+  if (!plans || typeof plans !== "object") {
+    error("content/courses/stripe-links.json", "plans", "必须是对象");
+    return;
+  }
+
+  for (const [key, url] of Object.entries(plans)) {
+    const at = `plans["${key}"]`;
+    const [slug, planId, ...rest] = key.split(":");
+    if (!slug || !planId || rest.length > 0) {
+      error(
+        "content/courses/stripe-links.json",
+        at,
+        '格式必须是 "课程 slug:计划 id"，例如 "ai-coding-workflow:pro"',
+      );
+      continue;
+    }
+
+    const course = coursesBySlug.get(slug);
+    if (!course) {
+      error(
+        "content/courses/stripe-links.json",
+        at,
+        `课程不存在：${slug}（课程改名/删除后要同步清理链接，否则该条配置静默失效）`,
+      );
+    } else if (!course.plans.some((plan) => plan.id === planId)) {
+      error(
+        "content/courses/stripe-links.json",
+        at,
+        `课程 ${slug} 没有计划 ${planId}（现有：${course.plans.map((p) => p.id).join(", ")}）`,
+      );
+    } else if (course.status !== "live") {
+      warn(
+        "content/courses/stripe-links.json",
+        at,
+        `课程 ${slug} 状态为 ${course.status}，详情页仍会显示等待名单，链接不会生效`,
+      );
+    }
+
+    if (!isString(url)) {
+      error("content/courses/stripe-links.json", at, "链接必须是非空字符串");
+      continue;
+    }
+    let parsed;
+    try {
+      parsed = new URL(url);
+    } catch {
+      error("content/courses/stripe-links.json", at, `不是合法 URL：${url}`);
+      continue;
+    }
+    if (parsed.protocol !== "https:") {
+      error("content/courses/stripe-links.json", at, "必须是 https 链接");
+    } else if (!/(^|\.)stripe\.com$/.test(parsed.hostname)) {
+      warn("content/courses/stripe-links.json", at, `非 Stripe 域名：${parsed.hostname}`);
+    }
+  }
+
+  // 有正式链接但页面仍是等待名单，是上线前最常见的漏配
+  for (const course of coursesBySlug.values()) {
+    if (course.status !== "live") continue;
+    const hasAny = course.plans.some((plan) => Boolean(plans[`${course.slug}:${plan.id}`]));
+    if (!hasAny) {
+      warn(
+        "content/courses/stripe-links.json",
+        course.slug,
+        `已上线但没有任何支付链接，详情页会显示等待名单（若是有意预售可忽略）`,
+      );
+    }
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* 主流程                                                               */
+/* ------------------------------------------------------------------ */
+
+function main() {
+  const args = parseArgs(process.argv.slice(2));
+
+  if (!fs.existsSync(COURSE_DIR)) {
+    error("content/courses", "-", "目录不存在");
+    return report(args, 0);
+  }
+
+  const visuals = readVisuals();
+  const files = fs
+    .readdirSync(COURSE_DIR)
+    .filter((file) => file.endsWith(".json") && !file.startsWith("stripe-"))
+    .sort();
+
+  if (files.length === 0) {
+    error("content/courses", "-", "没有任何课程 JSON");
+    return report(args, 0);
+  }
+
+  const ctx = { slugs: new Set(), bundleLessonCount: null };
+  const coursesBySlug = new Map();
+
+  for (const name of files) {
+    const file = `content/courses/${name}`;
+    let course;
+    try {
+      course = readJson(path.join(COURSE_DIR, name));
+    } catch (err) {
+      error(file, "-", `JSON 解析失败：${err.message}`);
+      continue;
+    }
+    validateCourse(file, course, visuals, ctx);
+    if (isString(course?.slug)) coursesBySlug.set(course.slug, course);
+  }
+
+  const bundles = [...coursesBySlug.values()].filter((course) => course.kind === "bundle");
+  if (bundles.length === 0) {
+    warn("content/courses", "-", "没有 bundle（全站通）课程，目录页的「全站通」区块会缺失");
+  } else if (bundles.length > 1) {
+    error("content/courses", "-", `存在 ${bundles.length} 个 bundle，只能有一个全站通`);
+  }
+
+  const singlePrices = [...coursesBySlug.values()]
+    .filter((course) => course.kind !== "bundle")
+    .flatMap((course) => course.plans.filter((plan) => plan.id === "single"))
+    .map((plan) => plan.priceUSD)
+    .filter((price) => isPositiveInt(price));
+  const bundle = bundles[0];
+  if (bundle && singlePrices.length > 0) {
+    const bundleSingle = bundle.plans?.find((plan) => plan.id === "all-access") ?? bundle.plans?.[0];
+    const total = singlePrices.reduce((sum, price) => sum + price, 0);
+    if (bundleSingle && isPositiveInt(bundleSingle.priceUSD) && bundleSingle.priceUSD >= total) {
+      warn(
+        "content/courses/all-access.json",
+        "plans.all-access.priceUSD",
+        `全站通 $${bundleSingle.priceUSD} 不低于单课合计 $${total}，打包没有折扣说服力`,
+      );
+    }
+  }
+
+  validateLinks(coursesBySlug, args);
+  return report(args, files.length);
+}
+
+function report(args, fileCount) {
+  let errors = diagnostics.filter((item) => item.level === "error");
+  const warnings = diagnostics.filter((item) => item.level === "warn");
+  if (args.strict) {
+    errors = [...errors, ...warnings];
+  }
+
+  if (args.json) {
+    console.log(
+      JSON.stringify(
+        {
+          files: fileCount,
+          errors: errors.length,
+          warnings: warnings.length,
+          diagnostics,
+        },
+        null,
+        2,
+      ),
+    );
+  } else {
+    console.log(`课程数据校验 · ${fileCount} 个文件`);
+    const byFile = new Map();
+    for (const item of diagnostics) {
+      if (!byFile.has(item.file)) byFile.set(item.file, []);
+      byFile.get(item.file).push(item);
+    }
+    for (const [file, items] of byFile) {
+      console.log(`\n  ${file}`);
+      for (const item of items) {
+        const mark = item.level === "error" ? "✖" : "⚠";
+        console.log(`    ${mark} [${item.field}] ${item.message}`);
+      }
+    }
+    console.log(
+      `\n${errors.length === 0 ? "✔" : "✖"} ${errors.length} 个错误 · ${warnings.length} 个警告${
+        args.strict && warnings.length > 0 ? "（--strict 下警告视为失败）" : ""
+      }`,
+    );
+  }
+
+  if (errors.length > 0) {
+    if (!args.json) {
+      console.log(
+        "\n修复后重试：node scripts/courses/validate-courses.mjs\n" +
+          "说明见 docs/courses/02-feature-design.md 第 5 节（数据模型）。",
+      );
+    }
+    process.exit(1);
+  }
+}
+
+main();

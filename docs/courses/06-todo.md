@@ -1,6 +1,6 @@
 # 06 · TODO 与进度看板
 
-> 更新时间：2026-11-18 · 分支 `dev`
+> 更新时间：2026-11-18（P1 代码落地）· 分支 `dev`
 > 状态图例：`[x]` 已完成 · `[ ]` 未开始 · `[~]` 进行中 · `[!]` 需外部输入
 
 ## 0. 总览
@@ -8,7 +8,7 @@
 | 阶段 | 范围 | 状态 | 完成度 |
 | :--- | :--- | :--- | :--- |
 | P0 基建与预售 | 课程页、数据层、Stripe 接入、文档 | 已完成 | 100% |
-| P1 首发成交 | 正式收款、优惠码、邮件交付、发票 | 未开始（需密钥与交付物） | 0% |
+| P1 首发成交 | 正式收款、优惠码、邮件交付、发票 | 进行中（代码已就绪，等密钥与交付物） | 45% |
 | P2 会员中心 | 登录、权益、播放页、Webhook | 未开始（方案已定） | 0% |
 | P3 规模化 | 订阅、企业采购、联盟、训练营 | 未开始 | 0% |
 
@@ -48,15 +48,16 @@
 - [ ] 用真实小额订单跑通「支付 → 回执 → 邮件 → 退款」全链路
 - [ ] 配置 Statement descriptor（银行账单可识别，降低拒付）
 - [ ] 生成早鸟优惠码（限时 + 限量），在详情页展示入口
-- [ ] 对账脚本：导出 Stripe Payments（按 `client_reference_id` 分组）与课程维度的订单表
+- [~] 对账脚本：导出 Stripe Payments（按 `client_reference_id` 分组）与课程维度的订单表
+  - [x] Worker 侧提供按课程/计划汇总与漏发清单的 SQL（见 `workers/course-delivery/README.md` 运营 SOP）
 
 ### 3.2 交付自动化
 
-- [ ] Cloudflare Worker（或 Vercel Function）：接收 `checkout.session.completed` Webhook
-- [ ] 校验 `Stripe-Signature`，按 `event.id` 幂等
-- [ ] Resend / Postmark 发送开通邮件（观看链接 + 模板仓库邀请 + 社群邀请）
-- [ ] 退款（`charge.refunded`）时发送通知并标记订单
-- [ ] 邮件模板中英双语，含 7 天退款说明与客服邮箱
+- [x] Cloudflare Worker（或 Vercel Function）：接收 `checkout.session.completed` Webhook → `workers/course-delivery`
+- [x] 校验 `Stripe-Signature`，按 `event.id` 幂等（WebCrypto，5 分钟容差）
+- [x] Resend / Postmark 发送开通邮件（观看链接 + 模板仓库邀请 + 社群邀请）
+- [x] 退款（`charge.refunded`）时发送通知并标记订单（全额退款写 `revoked_at`）
+- [x] 邮件模板中英双语，含 7 天退款说明与客服邮箱
 
 ### 3.3 页面与内容
 
@@ -68,7 +69,8 @@
 
 ### 3.4 运营
 
-- [ ] 订单检查 SOP（每日）：新订单 → 交付确认 → 异常跟进
+- [~] 订单检查 SOP（每日）：新订单 → 交付确认 → 异常跟进
+  - [x] 漏发排查 SQL + `POST /admin/resend` 补发接口
 - [ ] 客服话术库（付款失败、未收到邮件、退款、发票）
 - [ ] 首月复盘：退款率、支付成功率、详情页转化率
 
@@ -95,12 +97,13 @@
 
 ## 6. 技术债与优化（随时可做）
 
-- [ ] 课程 JSON 的 schema 校验脚本（构建前校验必填字段、价格、slug 唯一性）
+- [x] 课程 JSON 的 schema 校验脚本（`npm run courses:validate`，已接入 build；校验结构、枚举、价格、双语完整度、`stripe-links.json` 有效性）
 - [ ] 课程页视觉回归截图（当前手动用 Chrome headless 抽查）
 - [ ] 把 `lib/course-copy.ts` 的文案抽成 JSON（与课程内容同构，便于翻译外包）
 - [ ] 详情页价格支持多币种展示（USD 主价 + CNY/EUR 参考）
 - [ ] 为课程页增加 OG 图片（当前复用站点默认）
 - [ ] 课程卡片的「2026 版」徽章改为数据字段（`edition`），避免硬编码
+- [ ] 英文化课程页 SEO 描述超长（5 条 >160 字符，详情页 meta 会被截断）：等英文文案校对时一并收敛
 
 ## 7. 下一步建议（优先级排序）
 

@@ -142,6 +142,14 @@
 - **MDX 修复**: 解决了由于 `mdxRs` 编译器限制导致的 Markdown 表格渲染异常，通过 HTML 兼容方案修复了中英文核心页面的表格样式。
 - **新增内容 (En)**: 完成 `/en/oh-my-opencode` 社区工作流枢纽页面，针对 "Oh My OpenCode" 及 "OpenCode Workflows" 进行 SEO 优化 ([TASK063])。
 
+## 课程板块 P1 交付自动化 (2026-11-18)
+- **交付 Worker**: 新增 `workers/course-delivery`（Cloudflare Worker，零运行时依赖）：`POST /stripe/webhook` 校验 `Stripe-Signature`（WebCrypto HMAC-SHA256 + 5 分钟容差 + 定长比较）→ `processed_events` 按 `event.id` 幂等 → `orders` 落库（`session_id` 唯一）→ Resend 发中英双语开通邮件；`charge.refunded` 标记退款并回收权益，`charge.dispute.created` 标记拒付并告警举证。
+- **失败策略**: 邮件失败不阻断 Webhook（订单已落库，改用 `POST /admin/resend` 补发）；无邮箱/识别不出课程/交付链接未配 → `needs_manual_delivery` + 运营告警，不给买家发半成品邮件；只有 D1 写失败才返回 500 让 Stripe 重试（并撤销幂等标记）。
+- **存储**: D1 `orders` / `processed_events`，字段对齐 `docs/courses/02` 的 `orders` 定义，含 `email_status` / `delivery_note` 便于排查漏发。
+- **数据自检**: 新增 `scripts/courses/validate-courses.mjs` 并接入 `npm run build`（`courses:validate`）：校验结构/枚举/价格/双语完整度/`stripe-links.json` 指向有效性，并从 `components/courses/course-visuals.tsx` 反查 icon 与 accent 白名单，把静默降级变成构建期警告。
+- **测试**: `npm run workers:test` 40/40 通过（验签、幂等、退款、拒付、邮件模板、路由、补发）；`npm run build` 与 `tsc --noEmit` 全绿。
+- **待办**: 校验脚本首次运行报 12 条警告（英文化 SEO 描述 5 条超 160 字符 + 尚未配置正式支付链接），已登记 `docs/courses/06-todo.md`。
+
 ## 课程板块 (2026-11-18)
 - **功能**: 新增课程售卖板块（中英双语）：`/zh/courses`、`/en/courses` 目录页，`[slug]` 详情页（4 门课 + 全站通），`thank-you` 付款回执页。课程内容由 `content/courses/*.json` 驱动，新增课程无需改代码。
 - **支付**: 因站点为静态导出，采用 Stripe Payment Link；`scripts/courses/stripe-payment-links.mjs` 幂等创建 Product/Price/Link 并写入 `stripe-links.json`；购买按钮带 `client_reference_id` 与 utm 跟踪；GA4 `begin_checkout` 埋点。未配置链接时自动降级为等待名单/联系。

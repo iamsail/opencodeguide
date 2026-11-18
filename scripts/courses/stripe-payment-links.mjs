@@ -193,7 +193,13 @@ async function main() {
             type: "redirect",
             redirect: { url: redirectUrl },
           },
-          metadata: { course_slug: course.slug, plan_id: plan.id },
+          metadata: {
+            course_slug: course.slug,
+            plan_id: plan.id,
+            // 交付 Worker 用它渲染邮件标题，避免把 slug 直接写进用户邮箱
+            course_title_zh: course.locales.zh.title.slice(0, 500),
+            course_title_en: course.locales.en.title.slice(0, 500),
+          },
         },
         secretKey,
       );
