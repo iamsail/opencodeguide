@@ -24,6 +24,7 @@ import { buildGrantEmail } from "./templates.js";
 import { verifyStripeSignature } from "./stripe.js";
 import { handleAccountPage } from "./routes/account.js";
 import { handleAuthRoutes } from "./routes/auth.js";
+import { handleBuyPage, handleCheckout } from "./routes/buy.js";
 
 const WEBHOOK_PATH = "/stripe/webhook";
 const RESEND_PATH = "/admin/resend";
@@ -60,6 +61,16 @@ export default {
     //   decision.allowed ? env.ASSETS.fetch(request) : 登录/购买页
     const authRoute = await handleAuthRoutes(request, env);
     if (authRoute) return authRoute;
+
+    // 购买回路：/buy 要求登录，/checkout 由服务端创建 Stripe 会话
+    if (url.pathname.startsWith("/buy/") && request.method === "GET") {
+      const buyPage = await handleBuyPage(request, env);
+      if (buyPage) return buyPage;
+    }
+    if (url.pathname === "/checkout" && request.method === "POST") {
+      return handleCheckout(request, env);
+    }
+
     if (url.pathname === "/account" && request.method === "GET") return handleAccountPage(request, env);
 
     return json({ error: "not found" }, 404);
@@ -79,6 +90,9 @@ function handleHealth(env) {
       deliveryMap: Boolean(env.COURSE_DELIVERY),
       sessionSecret: Boolean(env.SESSION_SECRET),
       learnUrl: Boolean(env.LEARN_URL),
+      googleOauth: Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET),
+      stripeKey: Boolean(env.STRIPE_SECRET_KEY),
+      catalog: Boolean(env.COURSE_CATALOG),
       dryRun: env.EMAIL_DRY_RUN === "1",
     },
   });

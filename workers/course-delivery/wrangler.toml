@@ -5,11 +5,18 @@ name = "course-delivery"
 main = "src/index.js"
 compatibility_date = "2025-11-01"
 
+# 成员站域名（P2.3）。zone opencodeguide.com 已在同一 Cloudflare 账号下，
+# custom_domain = true 会自动创建 DNS 记录并签发证书。
+# 这样会员入口不依赖 workers.dev（那个域名在国内被污染，无法访问）。
+routes = [
+  { pattern = "learn.opencodeguide.com", custom_domain = true }
+]
+
 # 订单存储（D1）
 [[d1_databases]]
 binding = "DB"
 database_name = "course-delivery"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "c31ee524-4a47-4482-86c0-c93d8be925c6"
 
 [observability]
 enabled = true
@@ -21,6 +28,12 @@ BRAND_NAME = "OpenCode Guide"
 MAIL_FROM = "OpenCode Guide <courses@opencodeguide.com>"
 SUPPORT_EMAIL = "support@opencodeguide.com"
 REFUND_DAYS = "7"
+# 成员站地址：登录邮件里的链接用它拼接，避免依赖 request origin
+LEARN_URL = "https://learn.opencodeguide.com"
+
+# 交付入口（P1）：文章版课程没有视频，watch 直接指向成员站对应课程。
+# 邮件模板用它渲染「开始学习」按钮；repo/community 需要时再补。
+COURSE_DELIVERY = '{"ai-coding-workflow:*":{"watch":"https://learn.opencodeguide.com/courses/ai-coding-workflow"},"indie-saas-launch:*":{"watch":"https://learn.opencodeguide.com/courses/indie-saas-launch"},"cross-border-store:*":{"watch":"https://learn.opencodeguide.com/courses/cross-border-store"},"global-site-seo:*":{"watch":"https://learn.opencodeguide.com/courses/global-site-seo"},"all-access:*":{"watch":"https://learn.opencodeguide.com/account"}}'
 
 # 权益（P2.1）：全站通展开为哪些课程。新增课程时必须同步这里，
 # 否则「全站通」买家会看到新课但不能读。留空则使用 src/config.js 里的默认四门课。

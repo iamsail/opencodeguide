@@ -91,7 +91,11 @@ async function onCheckoutCompleted(event, context) {
     return { outcome: "ignored", reason: `payment not settled (payment_status=${session.payment_status})` };
   }
 
-  const email = normalizeEmail(session.customer_details?.email || session.customer_email);
+  // 服务端创建的 Checkout Session 会把「登录邮箱」写进 metadata，优先用它：
+  // 这样权益归属与登录身份始终一致，不受买家在 Stripe 页面改动的影响。
+  const email =
+    normalizeEmail(session.metadata?.email) ||
+    normalizeEmail(session.customer_details?.email || session.customer_email);
   const { courseSlug, planId } = resolvePurchase(session);
   const locale = resolveLocale(session);
   const timestamp = new Date(now()).toISOString();

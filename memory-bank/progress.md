@@ -172,6 +172,14 @@
 - **设计文档**: `docs/courses/`（市场分析、功能设计、课程内容、Stripe 方案、分期路线图、`06-todo` 进度看板）。
 - **验证**: `next build` 静态导出通过（158 页）；`tsc --noEmit` 通过；sitemap 收录 30 条课程 URL 且排除感谢页；`Course` JSON-LD、canonical、hreflang 输出正确；用临时 Stripe 链接构建验证过 `client_reference_id`/utm 参数与未配置时的降级行为。
 - **待办**: P1（正式收款 + 邮件交付）见 `docs/courses/06-todo.md` 与 `TASK105`；阻塞项为 Stripe 密钥、等待名单端点、视频/模板/社群交付物。
+## 登录改 Google + 先登录再买 (2026-11-19)
+- **登录**: Google OAuth（授权码 + PKCE + state cookie），只接受 `email_verified`；会话仍是 HS256 JWT（30 天）。magic link 代码与 `magic_links`/`auth_attempts` 一并删除（迁移 0003）。
+- **购买**: `/buy/<slug>/<plan>` 要求登录 → `POST /checkout` 用登录邮箱创建/复用 Stripe Customer（`customer` 锁死邮箱）→ Checkout Session，metadata 带 email/course_slug/plan_id。
+- **授权**: handler 优先用 `metadata.email` 写权益，付款人与阅读身份不再依赖「买家在 Stripe 页面填的邮箱」。
+- **配置**: `GOOGLE_CLIENT_ID/SECRET`、`STRIPE_SECRET_KEY`、`COURSE_CATALOG`（`scripts/courses/sync-worker-catalog.mjs --apply`）。
+- **测试**: 101/101（OAuth state/PKCE、未验证邮箱、buy 需登录、checkout 锁邮箱都有覆盖）。
+- **未完成**: 凭证未配、worker 未重新部署、公开站购买按钮仍指向 Payment Link。
+
 ## 课程登录与门禁 P2.2 (2026-11-19)
 - **登录**: 邮箱 magic link。令牌 32 字节、只存 sha256、15 分钟、单次使用（`update ... where used_at is null` 抢占防并发）；限流邮箱 60s / IP 每小时 5 封，计数 24 小时自动清理。
 - **会话**: HS256 JWT（`sub/iat/exp/jti`），30 天，`HttpOnly; Secure; SameSite=Lax`；缺 `SESSION_SECRET` 一律 fail closed。

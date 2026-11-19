@@ -150,45 +150,5 @@ export function createStore(db) {
       return result?.results ?? [];
     },
 
-    /* ---------------- 登录令牌与限流（P2.2） ---------------- */
-
-    /** 只存 sha256(token)；ip 仅用于排查 */
-    async insertMagicLink(link) {
-      await run(
-        "insert into magic_links (token_hash, email, expires_at, created_at, ip) values (?, ?, ?, ?, ?)",
-        [link.tokenHash, link.email, link.expiresAt, link.createdAt, link.ip ?? null],
-      );
-    },
-
-    async findMagicLink(tokenHash) {
-      const statement = db.prepare("select * from magic_links where token_hash = ?");
-      return (await statement.bind(tokenHash).first()) ?? null;
-    },
-
-    /** 单次使用：只有第一次 update 会命中 used_at is null，天然防并发重放 */
-    async markMagicLinkUsed(tokenHash, usedAt) {
-      const result = await run(
-        "update magic_links set used_at = ? where token_hash = ? and used_at is null",
-        [usedAt, tokenHash],
-      );
-      return (result?.meta?.changes ?? 0) > 0;
-    },
-
-    /** 固定窗口计数，返回自增后的次数 */
-    async incrementAttempt(key, at) {
-      await run(
-        `insert into auth_attempts (key, count, updated_at) values (?, 1, ?)
-         on conflict(key) do update set count = count + 1, updated_at = excluded.updated_at`,
-        [key, at],
-      );
-      const statement = db.prepare("select count from auth_attempts where key = ?");
-      const row = await statement.bind(key).first();
-      return Number(row?.count ?? 1);
-    },
-
-    /** 清掉过期窗口，避免计数表无限增长 */
-    async pruneAttempts(before) {
-      await run("delete from auth_attempts where updated_at < ?", [before]);
-    },
   };
 }

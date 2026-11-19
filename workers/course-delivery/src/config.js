@@ -30,6 +30,13 @@ export function getSettings(env = {}) {
     sessionSecret: env.SESSION_SECRET || null,
     /** 成员站地址；未配置时用请求 origin（本地开发更省事） */
     learnUrl: env.LEARN_URL || null,
+    /** 服务端创建 Checkout Session 用（wrangler secret put STRIPE_SECRET_KEY） */
+    stripeSecretKey: env.STRIPE_SECRET_KEY || null,
+    /** Google OAuth 客户端 */
+    googleClientId: env.GOOGLE_CLIENT_ID || null,
+    googleClientSecret: env.GOOGLE_CLIENT_SECRET || null,
+    /** 固定回调地址；不配则用 LEARN_URL 推导（必须与 Google 控制台一致） */
+    googleRedirectUri: env.GOOGLE_REDIRECT_URI || null,
   };
 }
 

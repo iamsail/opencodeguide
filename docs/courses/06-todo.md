@@ -112,15 +112,18 @@
   - `migrations/0002_entitlements.sql`、`src/entitlements.js`、`store.js` 三个方法、`handlers.js` 接线
   - 全站通展开 4 门课 + bundle；部分退款保留访问；拒付默认不回收（`REVOKE_ON_DISPUTE=1` 可改）
   - 回填：`node scripts/courses/backfill-entitlements.mjs [--execute --remote]`
-- [x] 鉴权 Worker：magic link 登录（复用 Resend + D1）、会话 JWT、限流、`/account`（P2.2，2026-11-19）
-  - 端点：`/login`、`POST /auth/magic`、`GET /auth/verify`、`/auth/logout`、`/account`
+- [x] 鉴权 Worker：**Google OAuth 登录**（替代 magic link）+ 会话 JWT + `/account`（P2.2，2026-11-19 改造）
+  - 端点：`/login`、`GET /auth/google`、`GET /auth/google/callback`、`/auth/logout`、`/account`
+  - 删除 magic link 与 `magic_links` / `auth_attempts`（迁移 0003）
   - `src/gate.js` 默认拒绝门禁已实现并有单测；**接线到静态资源**在 P2.3
-  - 令牌只存 sha256、15 分钟单次使用；邮箱 60s / IP 每小时 5 封限流
+- [x] **先登录再买**：`/buy/<slug>/<plan>`（需登录）+ `POST /checkout` 服务端创建 Checkout Session，用 Stripe Customer 锁死登录邮箱（2026-11-19）
+  - 权益归属改为 `metadata.email`（登录邮箱），不再依赖 Stripe 页面收集的邮箱
+  - 待办：公开站购买按钮改指向 `learn./buy/...` 并重新部署
 - [ ] 成员站部署：成员构建 + Cloudflare Worker 静态资源 + `learn.opencodeguide.com` + noindex（P2.3）
 - [x] 基础设施：D1 `orders`（0001）/ `entitlements` / `magic_links` / `auth_attempts`（0002，不需要 Supabase）
-- [ ] Checkout Session 接口替换 Payment Link（新流量），保留旧链接兼容
+- [~] Checkout Session 接口替换 Payment Link：Worker 端已完成（`/checkout`），公开站按钮待切换，旧链接保留兼容
 - [x] Webhook 入库：`checkout.session.completed`、`charge.refunded`、`charge.dispute.created`（`invoice.paid` 属订阅，P3）
-- [x] Magic Link 登录（自建，复用 Resend + D1；已放弃 Supabase Auth 方案）
+- [x] 登录方案定稿：Google OAuth（放弃 magic link 与 Supabase Auth）
 - [ ] 课程播放页：视频托管 + 防盗链 + 章节导航
 - [ ] 学习进度记录与「继续上次学习」
 - [~] 退款自动回收权益：数据层已回收（P2.1），读取侧「每次都查权益」的门禁在 P2.2 生效
