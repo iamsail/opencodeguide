@@ -6,8 +6,8 @@
   "status": "live",
   "icon": "Globe2",
   "accent": "from-sky-500 via-blue-500 to-indigo-500",
-  "durationHours": 10,
-  "lessonCount": 24,
+  "durationHours": 4,
+  "lessonCount": 27,
   "lastUpdated": "2026-11",
   "plans": [
     {
@@ -35,7 +35,10 @@
       "priceUSD": 179,
       "priceCNYRef": 1299,
       "compareAtUSD": 249,
-      "badge": { "zh": "推荐", "en": "Recommended" },
+      "badge": {
+        "zh": "推荐",
+        "en": "Recommended"
+      },
       "features": {
         "zh": [
           "包含「单课版」全部内容",

@@ -109,32 +109,37 @@ function collectLessons() {
  * （这些在 HTML 里会变成标签或实体，导致匹配不上，产生假阴性）。
  */
 function buildProbes(body, max = 2) {
+  // 探针取「渲染成 HTML 后仍然连续」的纯文本片段：
+  //   - 跳过代码块 / 表格行 / 图片；
+  //   - 行内代码与加粗会把段落切成多段，所以按它们切开，取其中足够长的一段；
+  //   - 含 & < > " ' 的片段在 HTML 里会变成实体，直接排除（否则必然匹配不上）。
   const candidates = [];
   let inFence = false;
 
   for (const raw of body.split("\n")) {
     const line = raw.trim();
-    // 代码块里的命令行会与 /zh/docs 的示例重合（例如 `opencode mcp add ...`），
-    // 用它当探针会误报；只取正文段落。
     if (line.startsWith("```")) {
       inFence = !inFence;
       continue;
     }
     if (inFence || !line) continue;
-    if (line.startsWith("|")) continue; // 表格行渲染后结构会变
-    if (line.startsWith("![")) continue; // 图片
+    if (line.startsWith("|") || line.startsWith("![")) continue;
 
-    const text = line
+    const withoutMarker = line
       .replace(/^#{1,6}\s*/, "")
       .replace(/^[-*+]\s+/, "")
       .replace(/^\d+\.\s+/, "")
       .replace(/^>\s*/, "");
 
-    // 含 * ` [ ] & < > " ' 的段落渲染后会变标签/实体，匹配不上，直接跳过
-    if (/[*`[\]&<>"']/.test(text)) continue;
-
-    const normalized = text.replace(/\s+/g, " ").trim();
-    if (normalized.length >= 40) candidates.push(normalized);
+    for (const piece of withoutMarker.split(/`[^`]*`|\*\*[^*]*\*\*/)) {
+      const normalized = piece
+        .replace(/[*`[\]]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      if (normalized.length < 40) continue;
+      if (/[&<>"']/.test(normalized)) continue;
+      candidates.push(normalized);
+    }
   }
 
   if (candidates.length === 0) return [];
