@@ -22,6 +22,8 @@ import { processEvent } from "./handlers.js";
 import { createStore } from "./store.js";
 import { buildGrantEmail } from "./templates.js";
 import { verifyStripeSignature } from "./stripe.js";
+import { handleAccountPage } from "./routes/account.js";
+import { handleAuthRoutes } from "./routes/auth.js";
 
 const WEBHOOK_PATH = "/stripe/webhook";
 const RESEND_PATH = "/admin/resend";
@@ -53,6 +55,13 @@ export default {
     if (url.pathname === WEBHOOK_PATH && request.method === "POST") return handleWebhook(request, env);
     if (url.pathname === RESEND_PATH && request.method === "POST") return handleResend(request, env);
 
+    // P2.2 登录与账户。P2.3 会把成员站静态资源接在这里之后：
+    //   const decision = await authorizeRequest({ request, env, store });
+    //   decision.allowed ? env.ASSETS.fetch(request) : 登录/购买页
+    const authRoute = await handleAuthRoutes(request, env);
+    if (authRoute) return authRoute;
+    if (url.pathname === "/account" && request.method === "GET") return handleAccountPage(request, env);
+
     return json({ error: "not found" }, 404);
   },
 };
@@ -68,6 +77,8 @@ function handleHealth(env) {
       adminToken: Boolean(env.ADMIN_TOKEN),
       supportEmail: Boolean(env.SUPPORT_EMAIL),
       deliveryMap: Boolean(env.COURSE_DELIVERY),
+      sessionSecret: Boolean(env.SESSION_SECRET),
+      learnUrl: Boolean(env.LEARN_URL),
       dryRun: env.EMAIL_DRY_RUN === "1",
     },
   });

@@ -14,6 +14,7 @@ import {
 } from "@/lib/courses";
 import type { CourseLesson, CurriculumModule } from "@/lib/course-lessons";
 import { LessonJsonLd } from "@/components/courses/lesson-jsonld";
+import { LockedLesson } from "@/components/courses/locked-lesson";
 
 function lessonHref(locale: Locale, courseSlug: string, lessonSlug: string) {
   return `${coursePath(locale, courseSlug)}/${lessonSlug}`;
@@ -26,6 +27,7 @@ export function LessonView({
   curriculum,
   previous,
   next,
+  locked = false,
 }: {
   course: Course;
   locale: Locale;
@@ -33,6 +35,8 @@ export function LessonView({
   curriculum: CurriculumModule[];
   previous: CourseLesson | null;
   next: CourseLesson | null;
+  /** true = 公开构建里的付费节：正文不渲染，改为锁定页 */
+  locked?: boolean;
 }) {
   const content = getCourseContent(course, locale);
   const components = useMDXComponents({});
@@ -54,6 +58,7 @@ export function LessonView({
           objectives: "本节目标",
           minutes: "分钟阅读",
           free: "免费试听",
+          paid: "付费内容",
           previous: "上一节",
           next: "下一节",
           progress: "已完成正文",
@@ -66,6 +71,7 @@ export function LessonView({
           objectives: "What you'll be able to do",
           minutes: "min read",
           free: "Free preview",
+          paid: "Paid lesson",
           previous: "Previous",
           next: "Next",
           progress: "lessons written",
@@ -136,15 +142,16 @@ export function LessonView({
                               {item.free ? (
                                 <PlayCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                               ) : (
-                                <span className="mt-0.5 w-3.5 shrink-0 text-center text-[10px] opacity-60">
-                                  {index + 1}
-                                </span>
+                                <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-70" />
                               )}
                               <span className="line-clamp-2">{item.title}</span>
                             </Link>
                           ) : (
                             <span className="flex items-start gap-1.5 px-2 py-1.5 text-[13px] leading-snug text-gray-400 dark:text-gray-600">
-                              <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                              <span
+                                aria-hidden="true"
+                                className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full border border-gray-300 dark:border-gray-700"
+                              />
                               <span className="line-clamp-2">
                                 {item.title}
                                 <span className="ml-1 text-[11px]">({copy.notReady})</span>
@@ -171,6 +178,11 @@ export function LessonView({
               {lesson.free && (
                 <span className="rounded-full bg-emerald-50 px-2.5 py-1 font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
                   {copy.free}
+                </span>
+              )}
+              {locked && (
+                <span className="rounded-full bg-gray-900 px-2.5 py-1 font-medium text-white dark:bg-gray-100 dark:text-gray-900">
+                  {copy.paid}
                 </span>
               )}
               <span className="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400">
@@ -214,18 +226,22 @@ export function LessonView({
             </section>
           )}
 
-          <article className="prose prose-gray mt-8 max-w-none dark:prose-invert prose-headings:scroll-mt-24">
-            <MDXRemote
-              source={lesson.content}
-              components={components}
-              options={{
-                mdxOptions: {
-                  remarkPlugins: [remarkGfm],
-                  rehypePlugins: [rehypeSlug, [rehypePrettyCode, { theme: "github-dark-dimmed" }]],
-                },
-              }}
-            />
-          </article>
+          {locked ? (
+            <LockedLesson course={course} locale={locale} lesson={lesson} curriculum={curriculum} />
+          ) : (
+            <article className="prose prose-gray mt-8 max-w-none dark:prose-invert prose-headings:scroll-mt-24">
+              <MDXRemote
+                source={lesson.content}
+                components={components}
+                options={{
+                  mdxOptions: {
+                    remarkPlugins: [remarkGfm],
+                    rehypePlugins: [rehypeSlug, [rehypePrettyCode, { theme: "github-dark-dimmed" }]],
+                  },
+                }}
+              />
+            </article>
+          )}
 
           {/* 上一篇 / 下一篇 */}
           <nav className="mt-12 grid gap-3 border-t border-gray-200 pt-6 sm:grid-cols-2 dark:border-gray-800">

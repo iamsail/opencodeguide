@@ -23,10 +23,14 @@ import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 
+import { getAccessMode, isFreeLesson, readAccessConfig } from "./access.mjs";
+
 const ROOT = process.cwd();
 const COURSE_DIR = path.join(ROOT, "content/courses");
 const LINKS_FILE = path.join(COURSE_DIR, "stripe-links.json");
 const VISUALS_FILE = path.join(ROOT, "components/courses/course-visuals.tsx");
+const ACCESS_FILE = path.join(COURSE_DIR, "access.json");
+const accessConfig = readAccessConfig();
 
 /** 与 lib/courses.ts 的 TRACKS 保持一致；bundle 单独处理 */
 const TRACKS = ["ai-coding", "indie", "ecommerce", "global-seo"];
@@ -461,7 +465,7 @@ function validateLinks(coursesBySlug, args) {
 /* 课时正文（文章版 MDX）                                                */
 /* ------------------------------------------------------------------ */
 
-const lessonStats = { total: 0, ready: 0, missing: 0 };
+const lessonStats = { total: 0, ready: 0, missing: 0, free: 0, gated: 0 };
 
 function normalizeTitle(value) {
   return String(value ?? "")
@@ -498,6 +502,7 @@ function validateLessons(coursesBySlug) {
         .sort();
 
       const usedSlots = new Map();
+      const fileData = new Map();
 
       for (const file of files) {
         const fileRel = `${rel}/${file}`;
@@ -513,6 +518,7 @@ function validateLessons(coursesBySlug) {
         }
 
         const data = parsed.data ?? {};
+        fileData.set(file, data);
         const body = parsed.content.trim();
         lessonStats.ready += 1;
 
@@ -586,6 +592,38 @@ function validateLessons(coursesBySlug) {
         }
       }
 
+      // 免费边界（与 lib/course-lessons.ts 同口径）：按 模块 → 节 排序后前 N 节公开，
+      // frontmatter 的 free: true 可额外开放一节。这里统计公开/锁定节数并提示越界。
+      const orderedFiles = files
+        .filter((file) => fileData.has(file))
+        .sort((a, b) => {
+          const aData = fileData.get(a);
+          const bData = fileData.get(b);
+          const aModule = Number(aData.module) || 0;
+          const bModule = Number(bData.module) || 0;
+          const aLesson = Number(aData.lesson) || 0;
+          const bLesson = Number(bData.lesson) || 0;
+          return aModule - bModule || aLesson - bLesson || a.localeCompare(b);
+        });
+
+      const { freeLessonLimit } = accessConfig;
+      const courseFree = orderedFiles.filter((file, index) =>
+        isFreeLesson({ index, frontmatterFree: fileData.get(file).free === true }),
+      ).length;
+
+      orderedFiles.forEach((file, index) => {
+        if (fileData.get(file).free === true && index >= freeLessonLimit) {
+          warn(
+            `${rel}/${file}`,
+            "free",
+            `frontmatter 标了免费试听，但它是课表第 ${index + 1} 节，超出免费额度 ${freeLessonLimit} 节：公开站仍按付费节锁定`,
+          );
+        }
+      });
+
+      lessonStats.free += courseFree;
+      lessonStats.gated += orderedFiles.length - courseFree;
+
       const missing = [...slots.keys()].filter((slot) => !usedSlots.has(slot));
       lessonStats.missing += missing.length;
       if (missing.length > 0) {
@@ -594,17 +632,6 @@ function validateLessons(coursesBySlug) {
           "-",
           `还有 ${missing.length}/${slots.size} 节没有正文（课表里显示为「制作中」，无法点击）`,
         );
-      }
-
-      const freeCount = files.filter((file) => {
-        try {
-          return matter(fs.readFileSync(path.join(dir, file), "utf8")).data?.free === true;
-        } catch {
-          return false;
-        }
-      }).length;
-      if (freeCount > 3) {
-        warn(rel, "-", `有 ${freeCount} 节标了免费试听，建议控制在 1–2 节`);
       }
     }
   }
@@ -625,12 +652,26 @@ function main() {
   const visuals = readVisuals();
   const files = fs
     .readdirSync(COURSE_DIR)
-    .filter((file) => file.endsWith(".json") && !file.startsWith("stripe-"))
+    .filter(
+      (file) => file.endsWith(".json") && !file.startsWith("stripe-") && file !== path.basename(ACCESS_FILE),
+    )
     .sort();
 
   if (files.length === 0) {
     error("content/courses", "-", "没有任何课程 JSON");
     return report(args, 0);
+  }
+
+  // 访问控制配置：免费节数直接决定公开站能看到多少正文，配错等于白送内容
+  const rawLimit = accessConfig.raw?.freeLessonLimit;
+  if (!accessConfig.exists) {
+    warn(
+      "content/courses/access.json",
+      "-",
+      `缺少访问控制配置，按默认 ${accessConfig.freeLessonLimit} 节免费处理`,
+    );
+  } else if (!Number.isInteger(rawLimit) || rawLimit < 0 || rawLimit > 5) {
+    error("content/courses/access.json", "freeLessonLimit", "必须是 0–5 的整数（每门课免费开放的节数）");
   }
 
   const ctx = { slugs: new Set(), bundleLessonCount: null };
@@ -701,7 +742,9 @@ function report(args, fileCount) {
     );
   } else {
     console.log(
-      `课程数据校验 · ${fileCount} 个课程 · 课时正文 ${lessonStats.ready}/${lessonStats.ready + lessonStats.missing} 节`,
+      `课程数据校验 · ${fileCount} 个课程 · 课时正文 ${lessonStats.ready}/${
+        lessonStats.ready + lessonStats.missing
+      } 节 · 公开 ${lessonStats.free} 节 / 锁定 ${lessonStats.gated} 节（COURSE_ACCESS=${getAccessMode()}）`,
     );
     const byFile = new Map();
     for (const item of diagnostics) {

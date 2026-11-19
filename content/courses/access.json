@@ -1,0 +1,10 @@
+{
+  "freeLessonLimit": 2,
+  "updatedAt": "2026-11-19",
+  "note": "每门课在公开站免费开放的节数（按课表顺序计）。这个数字同时决定课时页是否渲染正文、sitemap 收录范围、搜索索引内容与 CI 断言基线，改动后必须重新构建。",
+  "decisions": {
+    "freeLessons": "每门前 2 节（2026-11-19 确认，见 docs/courses/07-access-control.md）",
+    "membersHost": "待定：learn.opencodeguide.com 是否托管在 Cloudflare",
+    "auth": "待定：自建 magic link（推荐）或 Supabase Auth"
+  }
+}

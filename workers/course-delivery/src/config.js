@@ -24,7 +24,75 @@ export function getSettings(env = {}) {
     webhookSecret: env.STRIPE_WEBHOOK_SECRET || null,
     refundDays: Number(env.REFUND_DAYS || 7),
     dryRun: env.EMAIL_DRY_RUN === "1",
+    /** 拒付时是否立刻收回权益（默认否：先守住访问、同时举证，避免误伤正常争议） */
+    revokeOnDispute: env.REVOKE_ON_DISPUTE === "1",
+    /** 会话 JWT 的 HMAC 密钥（wrangler secret put SESSION_SECRET） */
+    sessionSecret: env.SESSION_SECRET || null,
+    /** 成员站地址；未配置时用请求 origin（本地开发更省事） */
+    learnUrl: env.LEARN_URL || null,
   };
+}
+
+/**
+ * 课程展示名（账户页、登录后列表用）。
+ * Worker 运行时读不到 content/courses/*.json，所以这里维护一份短名；
+ * 新增课程用 COURSE_NAMES 环境变量覆盖（JSON），不用改代码。
+ */
+export const COURSE_DISPLAY_NAMES = {
+  "ai-coding-workflow": { zh: "AI 编程实战", en: "AI Coding in Practice" },
+  "indie-saas-launch": { zh: "独立开发者出海", en: "Indie SaaS Launch" },
+  "cross-border-store": { zh: "跨境电商独立站", en: "Cross-border Commerce" },
+  "global-site-seo": { zh: "出海网站 SEO", en: "Global Site SEO" },
+  "all-access": { zh: "全站通", en: "All-Access" },
+};
+
+export function displayCourseName(slug, locale = "zh", env = {}) {
+  let overrides = {};
+  if (typeof env.COURSE_NAMES === "string" && env.COURSE_NAMES.trim()) {
+    try {
+      const parsed = JSON.parse(env.COURSE_NAMES);
+      if (parsed && typeof parsed === "object") overrides = parsed;
+    } catch {
+      // 配置写错就退回默认名字，不影响登录
+    }
+  }
+
+  const entry = overrides[slug] || COURSE_DISPLAY_NAMES[slug];
+  if (entry) return entry[locale] || entry.en || entry.zh || slug;
+
+  return String(slug ?? "")
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+/**
+ * 全站通（bundle）展开的目标课程。
+ *
+ * 为什么要在这里维护一份：Worker 运行时读不到仓库里的 content/courses/*.json，
+ * 但「全站通」买家必须一次拿到所有课程的阅读权。新增课程时改这里
+ * （或用 ALL_ACCESS_COURSES 环境变量覆盖），否则新课会上架但老 bundle 用户读不到。
+ */
+export const DEFAULT_ALL_ACCESS_COURSES = [
+  "ai-coding-workflow",
+  "indie-saas-launch",
+  "cross-border-store",
+  "global-site-seo",
+];
+
+export function allAccessCourses(env = {}) {
+  const raw = env.ALL_ACCESS_COURSES;
+  if (typeof raw !== "string" || !raw.trim()) return [...DEFAULT_ALL_ACCESS_COURSES];
+  const list = raw
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  return list.length > 0 ? list : [...DEFAULT_ALL_ACCESS_COURSES];
+}
+
+/** 这笔购买是不是「全站通」：bundle 课程（slug=all-access）或 all-access 计划 */
+export function isAllAccessPurchase(courseSlug, planId) {
+  return courseSlug === "all-access" || planId === "all-access";
 }
 
 export function planLabel(planId, locale) {

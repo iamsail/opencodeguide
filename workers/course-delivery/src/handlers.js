@@ -21,6 +21,7 @@ import {
   resolvePurchase,
 } from "./config.js";
 import { buildGrantEmail, buildOpsAlert, buildRefundEmail } from "./templates.js";
+import { grantEntitlements, normalizeEmail, revokeEntitlements } from "./entitlements.js";
 
 const DELIVERABLE_EVENTS = new Set([
   "checkout.session.completed",
@@ -32,12 +33,6 @@ function idOf(value) {
   if (typeof value === "string") return value;
   if (typeof value === "object" && typeof value.id === "string") return value.id;
   return null;
-}
-
-function normalizeEmail(value) {
-  if (typeof value !== "string") return null;
-  const email = value.trim().toLowerCase();
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : null;
 }
 
 async function notifyOps(mailer, settings, { title, lines }, logger) {
@@ -83,7 +78,7 @@ export async function processEvent(event, deps) {
 }
 
 async function onCheckoutCompleted(event, context) {
-  const { store, mailer, settings, logger, now, idFactory } = context;
+  const { store, mailer, settings, logger, now, idFactory, env } = context;
   const session = event?.data?.object ?? {};
 
   if (session.mode && session.mode !== "payment") {
@@ -131,9 +126,25 @@ async function onCheckoutCompleted(event, context) {
   });
 
   if (!inserted) {
-    // session 已处理过：可能是同一笔付款的重复事件，直接跳过，避免重复发信
+    // session 已处理过：可能是同一笔付款的重复事件，直接跳过，避免重复发信。
+    // 但上一轮可能「订单落库成功、写权益失败」（D1 抖动时 Stripe 会重投），
+    // 这里就是唯一的补偿点：补一次幂等授权再返回。
+    const existing = await store.findBySession(session.id);
+    if (existing && !existing.revoked_at) {
+      await grantEntitlements({ store, order: existing, env, logger, now });
+    }
     return { outcome: "duplicate", reason: `session ${session.id} already recorded` };
   }
+
+  // 权益先写：邮件发不出去可以补发，但「已付款却没有阅读权」必须让 Stripe 重试
+  //（这里的异常会冒泡到 index.js，返回 500 并撤销幂等标记）。
+  const entitlement = await grantEntitlements({
+    store,
+    order: { id: orderId, email, course_slug: courseSlug, plan_id: planId },
+    env,
+    logger,
+    now,
+  });
 
   if (deliveryNote) {
     const lines = [
@@ -150,7 +161,12 @@ async function onCheckoutCompleted(event, context) {
       { title: "有订单需要人工交付", lines },
       logger,
     );
-    return { outcome: "needs_manual_delivery", orderId, reason: deliveryNote };
+    return {
+      outcome: "needs_manual_delivery",
+      orderId,
+      reason: deliveryNote,
+      entitlements: entitlement.granted.length,
+    };
   }
 
   const title = courseTitle(session, courseSlug, locale);
@@ -175,7 +191,7 @@ async function onCheckoutCompleted(event, context) {
       idempotencyKey: `grant/${session.id}`,
     });
     await store.updateOrder(orderId, { emailStatus: "sent", updatedAt: timestamp });
-    return { outcome: "granted", orderId };
+    return { outcome: "granted", orderId, entitlements: entitlement.granted.length };
   } catch (error) {
     const message = error?.message ?? String(error);
     await store.updateOrder(orderId, {
@@ -198,7 +214,7 @@ async function onCheckoutCompleted(event, context) {
       },
       logger,
     );
-    return { outcome: "email_failed", orderId, reason: message };
+    return { outcome: "email_failed", orderId, reason: message, entitlements: entitlement.granted.length };
   }
 }
 
@@ -241,6 +257,14 @@ async function onRefund(event, context) {
     updated_at: timestamp,
   });
 
+  // 订单上的 revoked_at 只是给人看的标记；真正的门禁查 entitlements，所以必须同步回收。
+  // 部分退款保留访问（与既有「部分退款不回收」策略一致）。
+  let entitlementsRevoked = 0;
+  if (full) {
+    const revoked = await revokeEntitlements({ store, order, now });
+    entitlementsRevoked = revoked.revoked;
+  }
+
   if (order.email) {
     const template = buildRefundEmail({
       locale: order.locale || "en",
@@ -265,7 +289,11 @@ async function onRefund(event, context) {
     }
   }
 
-  return { outcome: full ? "refunded" : "partially_refunded", orderId: order.id };
+  return {
+    outcome: full ? "refunded" : "partially_refunded",
+    orderId: order.id,
+    entitlementsRevoked,
+  };
 }
 
 async function onDispute(event, context) {
@@ -294,6 +322,14 @@ async function onDispute(event, context) {
   const timestamp = new Date(now()).toISOString();
   await store.updateOrder(order.id, { status: "disputed", updated_at: timestamp });
 
+  // 拒付意味着钱可能被撤回，但客户也可能申诉成功：默认只标记 + 告警，
+  // 需要「立刻断访问」时把 REVOKE_ON_DISPUTE 设为 1。
+  let entitlementsRevoked = 0;
+  if (settings.revokeOnDispute) {
+    const revoked = await revokeEntitlements({ store, order, now });
+    entitlementsRevoked = revoked.revoked;
+  }
+
   await notifyOps(
     mailer,
     settings,
@@ -310,5 +346,5 @@ async function onDispute(event, context) {
     logger,
   );
 
-  return { outcome: "disputed", orderId: order.id };
+  return { outcome: "disputed", orderId: order.id, entitlementsRevoked };
 }
