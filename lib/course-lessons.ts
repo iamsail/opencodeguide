@@ -3,6 +3,7 @@ import path from "path";
 import matter from "gray-matter";
 
 import { getCourse, type Course, type Locale } from "./courses";
+import { getFreeLessonLimit, isPublicBuild } from "./course-access";
 
 /**
  * 课程正文（文章版）
@@ -107,12 +108,20 @@ export function getCourseLessons(courseSlug: string, locale: Locale): CourseLess
     return [];
   }
 
-  const lessons = fs
+  const sorted = fs
     .readdirSync(dir)
     .filter((file) => file.endsWith(".mdx") && !file.startsWith("_"))
     .map((file) => parseLesson(file, courseSlug, locale))
     .filter((lesson): lesson is CourseLesson => Boolean(lesson))
     .sort((a, b) => a.module - b.module || a.lesson - b.lesson || a.slug.localeCompare(b.slug));
+
+  // 免费额度按课表顺序判定：每门前 N 节免费；frontmatter 的 free: true 可额外开放某一节。
+  // 这是「哪个页面能看全文」的唯一口径，与 scripts/courses/access.mjs 保持一致。
+  const freeLimit = getFreeLessonLimit();
+  const lessons = sorted.map((lesson, index) => ({
+    ...lesson,
+    free: lesson.free || index < freeLimit,
+  }));
 
   lessonCache.set(cacheKey, lessons);
   return lessons;
@@ -124,6 +133,20 @@ export function getCourseLesson(
   locale: Locale,
 ): CourseLesson | null {
   return getCourseLessons(courseSlug, locale).find((lesson) => lesson.slug === lessonSlug) ?? null;
+}
+
+/**
+ * 该节在当前构建模式下是否需要付费才能读。
+ * public 构建里非免费节只输出锁定页；members 构建里全部可读。
+ */
+export function isLessonLocked(lesson: CourseLesson): boolean {
+  return isPublicBuild() && !lesson.free;
+}
+
+/** 当前构建模式下真正带正文的课时（public 构建只有免费的这几节） */
+export function getReadableLessons(courseSlug: string, locale: Locale): CourseLesson[] {
+  const lessons = getCourseLessons(courseSlug, locale);
+  return isPublicBuild() ? lessons.filter((lesson) => lesson.free) : lessons;
 }
 
 /** 相邻节，用于「上一篇 / 下一篇」 */

@@ -200,3 +200,155 @@ test("未知事件类型安全忽略", async () => {
   const result = await processEvent({ id: "evt_x", type: "customer.created" }, deps);
   assert.equal(result.outcome, "ignored");
 });
+
+/* ------------------------------------------------------------------ */
+/* P2.1 权益：付款写入、退款回收、拒付策略                              */
+/* ------------------------------------------------------------------ */
+
+test("付款成功即写入权益（单课一条，含规范化邮箱）", async () => {
+  const { db, deps } = setup();
+
+  const result = await processEvent(checkoutEvent({ email: "Buyer@Example.COM " }), deps);
+
+  assert.equal(result.outcome, "granted");
+  assert.equal(result.entitlements, 1);
+  assert.equal(db._entitlements.size, 1);
+
+  const row = [...db._entitlements.values()][0];
+  assert.equal(row.email, "buyer@example.com");
+  assert.equal(row.course_slug, "ai-coding-workflow");
+  assert.equal(row.plan_id, "single");
+  assert.equal(row.revoked_at, null);
+});
+
+test("全站通展开成 4 门课 + bundle 自身", async () => {
+  const { db, deps } = setup({
+    envOverrides: {
+      COURSE_DELIVERY: JSON.stringify({ "all-access:*": { watch: "https://learn.example.com" } }),
+    },
+  });
+
+  const result = await processEvent(
+    checkoutEvent({
+      reference: "all-access:all-access",
+      metadata: { course_slug: "all-access", plan_id: "all-access" },
+      amount: 19900,
+    }),
+    deps,
+  );
+
+  assert.equal(result.outcome, "granted");
+  assert.equal(result.entitlements, 5);
+
+  const slugs = [...db._entitlements.values()].map((row) => row.course_slug).sort();
+  assert.deepEqual(slugs, [
+    "ai-coding-workflow",
+    "all-access",
+    "cross-border-store",
+    "global-site-seo",
+    "indie-saas-launch",
+  ]);
+});
+
+test("重复事件不会重复写权益", async () => {
+  const { db, deps } = setup();
+
+  await processEvent(checkoutEvent(), deps);
+  await processEvent(checkoutEvent({ sessionId: "cs_test_123" }, "evt_checkout_2"), deps);
+
+  assert.equal(db._entitlements.size, 1);
+});
+
+test("全额退款：权益被回收（revoked_at 非空）", async () => {
+  const { db, deps } = setup();
+  await processEvent(checkoutEvent(), deps);
+
+  const result = await processEvent(refundEvent(), deps);
+
+  assert.equal(result.outcome, "refunded");
+  assert.equal(result.entitlementsRevoked, 1);
+  const row = [...db._entitlements.values()][0];
+  assert.ok(row.revoked_at, "权益应记录 revoked_at");
+});
+
+test("部分退款：权益保留", async () => {
+  const { db, deps } = setup();
+  await processEvent(checkoutEvent({ amount: 14900 }), deps);
+
+  const result = await processEvent(refundEvent({ amount: 14900, amountRefunded: 5000 }), deps);
+
+  assert.equal(result.outcome, "partially_refunded");
+  assert.equal(result.entitlementsRevoked, 0);
+  assert.equal([...db._entitlements.values()][0].revoked_at, null);
+});
+
+test("拒付：默认保留权益（只标记 disputed 并告警）", async () => {
+  const { db, deps } = setup();
+  await processEvent(checkoutEvent(), deps);
+
+  const result = await processEvent(
+    {
+      id: "evt_dispute_keep",
+      type: "charge.dispute.created",
+      data: { object: { id: "dp_keep", payment_intent: "pi_test_123", amount: 7900, currency: "usd" } },
+    },
+    deps,
+  );
+
+  assert.equal(result.outcome, "disputed");
+  assert.equal(result.entitlementsRevoked, 0);
+  assert.equal([...db._entitlements.values()][0].revoked_at, null);
+});
+
+test("拒付：REVOKE_ON_DISPUTE=1 时立刻回收权益", async () => {
+  const { db, deps } = setup({ envOverrides: { REVOKE_ON_DISPUTE: "1" } });
+  await processEvent(checkoutEvent(), deps);
+
+  const result = await processEvent(
+    {
+      id: "evt_dispute_revoke",
+      type: "charge.dispute.created",
+      data: { object: { id: "dp_revoke", payment_intent: "pi_test_123", amount: 7900, currency: "usd" } },
+    },
+    deps,
+  );
+
+  assert.equal(result.outcome, "disputed");
+  assert.equal(result.entitlementsRevoked, 1);
+  assert.ok([...db._entitlements.values()][0].revoked_at);
+});
+
+test("订单落库成功但写权益失败：事件重投时补齐权益，且不重复发信", async () => {
+  const { db, store, mailer, deps } = setup();
+  let failuresLeft = 1;
+  const flakyStore = {
+    ...store,
+    async grantEntitlement(ent) {
+      if (failuresLeft > 0) {
+        failuresLeft -= 1;
+        throw new Error("D1 write failed");
+      }
+      return store.grantEntitlement(ent);
+    },
+  };
+
+  await assert.rejects(
+    processEvent(checkoutEvent(), { ...deps, store: flakyStore }),
+    /D1 write failed/,
+  );
+  assert.equal(db._entitlements.size, 0, "第一次写入失败，不应留下权益");
+  assert.equal(db._orders.size, 1, "订单已经落库，重投时应能补权益");
+
+  const retry = await processEvent(
+    checkoutEvent({ sessionId: "cs_test_123" }, "evt_checkout_retry"),
+    deps,
+  );
+
+  assert.equal(retry.outcome, "duplicate");
+  assert.equal(db._entitlements.size, 1);
+  assert.equal(
+    mailer.sent.filter((mail) => mail.to === "buyer@example.com").length,
+    0,
+    "重投不应重发开通邮件",
+  );
+});

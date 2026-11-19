@@ -156,6 +156,95 @@ npx wrangler d1 execute course-delivery --remote --command \
 ## 边界与后续
 
 - 本 Worker 只做「收款 → 交付 → 退款通知」，**没有**登录、播放页、进度与自助换绑 —— 那些属于 P2 会员中心（`docs/courses/06-todo.md` 第 4 节）。
-- 退款只改订单状态，不会主动封禁视频/仓库权限；需要人工在托管侧移除，或等 P2 的权益表统一回收。
+- 全额退款会同时回收 `entitlements`（P2.1），所以 P2.2 的门禁能分钟级断开访问；部分退款保留访问。
 - 事件未覆盖：`invoice.paid`（订阅，P3）、`charge.dispute.closed`（目前靠 Stripe 后台处理）。
-- D1 只是轻量订单表；需要按邮箱做权益查询时，再引入 `entitlements` 表（schema 见 `docs/courses/02-feature-design.md` 第 5.2 节）。
+- 权益数据模型见 `migrations/0002_entitlements.sql` 与 `docs/courses/07-access-control.md` 第 6 节。
+
+## 权益表（P2.1）
+
+`orders` 记录「钱发生了什么」，`entitlements` 记录「现在谁能读哪门课」。
+付款事件会在写订单之后立刻写权益；全额退款会反向撤销。
+
+**表结构**：`migrations/0002_entitlements.sql`（`entitlements` / `magic_links` / `auth_attempts`）
+
+**应用迁移**：
+
+```bash
+cd workers/course-delivery
+npx wrangler d1 migrations apply course-delivery --remote   # 生产
+npx wrangler d1 migrations apply course-delivery --local    # 本地开发
+```
+
+**历史订单回填**（幂等，可重复执行）：
+
+```bash
+node scripts/courses/backfill-entitlements.mjs                # 生成 SQL 并打印命令
+node scripts/courses/backfill-entitlements.mjs --execute --remote
+```
+
+**自检**：
+
+```bash
+npx wrangler d1 execute course-delivery --remote --command \
+  "select course_slug, count(*) from entitlements where revoked_at is null group by 1 order by 2 desc"
+
+# 已付款却没有权益的订单，应为 0
+npx wrangler d1 execute course-delivery --remote --command \
+  "select count(*) from orders o where o.email <> '' and o.course_slug <> ''
+     and o.status in ('paid','partially_refunded')
+     and not exists (select 1 from entitlements e where e.order_id = o.id)"
+```
+
+**规则**
+
+| 场景 | 行为 |
+| :--- | :--- |
+| 单课付款 | 写 1 条 `(email, course_slug)` |
+| 全站通付款 | 写 4 门课 + `all-access` 共 5 条（课程清单见 `ALL_ACCESS_COURSES`，默认在 `src/config.js`） |
+| 重复购买 | 复活同一条记录并指向新订单（`on conflict do update`） |
+| 全额退款 | 按 `order_id` 撤销该订单名下全部权益 |
+| 部分退款 | 保留访问 |
+| 拒付 | 默认只标记 `disputed` + 告警；`REVOKE_ON_DISPUTE=1` 时立即回收 |
+
+**注意**：新增课程时必须把 slug 加进 `ALL_ACCESS_COURSES`（`wrangler.toml` 或 secret），否则「全站通」买家看不到新课。
+
+## 登录与账户（P2.2）
+
+会员站的身份层：邮箱 + 一次性链接，无密码。会话是 HMAC-SHA256 的 JWT，
+但**每次请求都查 `entitlements`**，所以退款/拒付的撤销是分钟级生效。
+
+**端点**
+
+| 端点 | 作用 |
+| :--- | :--- |
+| `GET /login` | 登录页（邮箱表单，`?next=` 回跳） |
+| `POST /auth/magic` | 签发令牌并发登录邮件；无论是否购买过响应相同（防枚举） |
+| `GET /auth/verify?t=` | 校验令牌（单次使用、15 分钟）→ 写会话 cookie → 302 回跳 |
+| `POST/GET /auth/logout` | 清 cookie → 302 `/login` |
+| `GET /account` | 我的课程（有效权益列表） |
+
+**需要的 secret / 变量**
+
+```bash
+npx wrangler secret put SESSION_SECRET      # 随机 32+ 字节，缺失时登录接口 503
+# 可选：LEARN_URL、SESSION_COOKIE_DOMAIN、COURSE_NAMES
+```
+
+**安全约束**
+
+- 令牌只存 `sha256`，明文只出现在邮件里；`update ... where used_at is null` 抢占，防并发重放；
+- 限流：同邮箱 60 秒 1 封、同 IP 每小时 5 封（`auth_attempts` 固定窗口，24 小时自动清理）；
+- cookie：`HttpOnly; Secure; SameSite=Lax; Max-Age=30d`，默认不带 Domain；
+- 回跳地址只接受站内路径（`safeNextPath`），防开放重定向；
+- 响应带 `Cache-Control: no-store`、`Referrer-Policy: no-referrer`、`X-Robots-Tag: noindex`；
+- **门禁默认拒绝**（`src/gate.js`）：只有 `/login`、`/auth/*`、`/health`、`/_next/*` 等白名单公开，
+  其余（正文、`index.txt` 这类 RSC payload、`/search.json`）都要登录并查权益。
+
+**尚未接线**：`gate.js` 已实现并有单测，但真正挂在静态资源前面属于 P2.3
+（需要 `assets` 绑定 + `learn.` 子域）。接线后的顺序是：
+
+```js
+const decision = await authorizeRequest({ request, env, store });
+if (!decision.allowed) return decision.needsLogin ? redirectLogin() : renderDenied();
+return env.ASSETS.fetch(request);
+```

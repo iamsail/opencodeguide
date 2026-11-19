@@ -27,9 +27,12 @@ jobs:
 
       - run: npm ci
 
+      # 公开构建：付费课时只输出锁定页；构建末尾的 courses:assert 会扫描 out/，
+      # 一旦发现付费正文就失败，防止把会员内容随 GitHub Pages 发出去。
       - run: npm run build
         env:
           NEXT_PUBLIC_GA_ID: ${{ secrets.NEXT_PUBLIC_GA_ID }}
+          COURSE_ACCESS: public
 
       - uses: actions/upload-pages-artifact@v3
         with:

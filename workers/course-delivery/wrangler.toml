@@ -22,9 +22,26 @@ MAIL_FROM = "OpenCode Guide <courses@opencodeguide.com>"
 SUPPORT_EMAIL = "support@opencodeguide.com"
 REFUND_DAYS = "7"
 
+# 权益（P2.1）：全站通展开为哪些课程。新增课程时必须同步这里，
+# 否则「全站通」买家会看到新课但不能读。留空则使用 src/config.js 里的默认四门课。
+# ALL_ACCESS_COURSES = "ai-coding-workflow,indie-saas-launch,cross-border-store,global-site-seo"
+
+# 权益（P2.1）：拒付时是否立刻回收权益。默认 0 = 只在订单上标记 disputed 并告警。
+# REVOKE_ON_DISPUTE = "1"
+
+# 登录（P2.2）：登录邮件里的链接前缀。未配置时用请求 origin（本地开发更省事）。
+# LEARN_URL = "https://learn.opencodeguide.com"
+# 会话 cookie 的 Domain。留空 = 只对当前子域生效（默认，最安全）；
+# 需要公开站与成员站共享登录态时设为 ".opencodeguide.com"。
+# SESSION_COOKIE_DOMAIN = ".opencodeguide.com"
+# 课程展示名覆盖（JSON，账户页用）：{"my-course":{"zh":"…","en":"…"}}
+# COURSE_NAMES = "{}"
+
+
 # 交付物映射（JSON 字符串）。示例：
 # COURSE_DELIVERY = '{"ai-coding-workflow:*":{"watch":"https://stream.example.com/ai-coding","repo":"https://github.com/you/course-ai-coding/invitations","community":"https://discord.gg/xxx"},"all-access:*":{"watch":"https://stream.example.com/all-access"}}'
 # 建议用 secret 注入而不是写在这里（链接含有邀请 token 时等于凭证）：
 #   npx wrangler secret put COURSE_DELIVERY
 # 需要注入的其它 secret：
 #   STRIPE_WEBHOOK_SECRET / RESEND_API_KEY / ADMIN_TOKEN
+#   SESSION_SECRET（P2.2 会话签名密钥，随机 32+ 字节；缺失时登录接口直接 503）

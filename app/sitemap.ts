@@ -2,7 +2,8 @@ import { MetadataRoute } from 'next'
 import { promises as fs } from 'fs'
 import path from 'path'
 import { getCourseSlugs } from '@/lib/courses'
-import { getCourseLessons } from '@/lib/course-lessons'
+import { getReadableLessons } from '@/lib/course-lessons'
+import { isMembersBuild } from '@/lib/course-access'
 
 export const dynamic = 'force-static'
 
@@ -94,39 +95,46 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ])
 
-  // 课时正文（文章版）：每节一篇，中英各自声明
-  const lessonEntries: MetadataRoute.Sitemap = getCourseSlugs().flatMap((slug) => {
-    const zhLessons = getCourseLessons(slug, 'zh')
-    const enLessons = getCourseLessons(slug, 'en')
-    const lessonSlugs = new Set([...zhLessons.map((l) => l.slug), ...enLessons.map((l) => l.slug)])
+  // 课时正文（文章版）：
+  //   public  → 只收录免费试听节（付费节渲染为锁定页，不提交给搜索引擎）
+  //   members → 成员站整体 noindex，不进 sitemap
+  const lessonEntries: MetadataRoute.Sitemap = isMembersBuild()
+    ? []
+    : getCourseSlugs().flatMap((slug) => {
+        // 公开构建只收录免费节；members 构建不收录课时（见上面的 isMembersBuild 分支）
+        const visibleLessons = (locale: 'zh' | 'en') => getReadableLessons(slug, locale)
 
-    return [...lessonSlugs].flatMap((lesson) => {
-      const zhPath = `/zh/courses/${slug}/${lesson}`
-      const enPath = `/en/courses/${slug}/${lesson}`
-      const entries: MetadataRoute.Sitemap = []
+        const zhLessons = visibleLessons('zh')
+        const enLessons = visibleLessons('en')
+        const lessonSlugs = new Set([...zhLessons.map((l) => l.slug), ...enLessons.map((l) => l.slug)])
 
-      if (zhLessons.some((l) => l.slug === lesson)) {
-        entries.push({
-          url: `${BASE_URL}${zhPath}`,
-          lastModified: new Date(),
-          changeFrequency: 'monthly' as const,
-          priority: 0.7,
-          alternates: { languages: { 'zh-CN': `${BASE_URL}${zhPath}`, en: `${BASE_URL}${enPath}` } },
+        return [...lessonSlugs].flatMap((lesson) => {
+          const zhPath = `/zh/courses/${slug}/${lesson}`
+          const enPath = `/en/courses/${slug}/${lesson}`
+          const entries: MetadataRoute.Sitemap = []
+
+          if (zhLessons.some((l) => l.slug === lesson)) {
+            entries.push({
+              url: `${BASE_URL}${zhPath}`,
+              lastModified: new Date(),
+              changeFrequency: 'monthly' as const,
+              priority: 0.7,
+              alternates: { languages: { 'zh-CN': `${BASE_URL}${zhPath}`, en: `${BASE_URL}${enPath}` } },
+            })
+          }
+          if (enLessons.some((l) => l.slug === lesson)) {
+            entries.push({
+              url: `${BASE_URL}${enPath}`,
+              lastModified: new Date(),
+              changeFrequency: 'monthly' as const,
+              priority: 0.7,
+              alternates: { languages: { 'zh-CN': `${BASE_URL}${zhPath}`, en: `${BASE_URL}${enPath}` } },
+            })
+          }
+
+          return entries
         })
-      }
-      if (enLessons.some((l) => l.slug === lesson)) {
-        entries.push({
-          url: `${BASE_URL}${enPath}`,
-          lastModified: new Date(),
-          changeFrequency: 'monthly' as const,
-          priority: 0.7,
-          alternates: { languages: { 'zh-CN': `${BASE_URL}${zhPath}`, en: `${BASE_URL}${enPath}` } },
-        })
-      }
-
-      return entries
-    })
-  })
+      })
 
   // 感谢页是 noindex 的，从 sitemap 中剔除
   const filtered = sitemapEntries.filter((entry) => !entry.url.includes('/courses/thank-you'))

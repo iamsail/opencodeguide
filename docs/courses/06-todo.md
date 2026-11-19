@@ -1,6 +1,6 @@
 # 06 · TODO 与进度看板
 
-> 更新时间：2026-11-18（文章版内容 88/123 节）· 分支 `dev`
+> 更新时间：2026-11-19（P2.0 付费墙已上线；文章版内容 88/123 节）· 分支 `dev`
 > 状态图例：`[x]` 已完成 · `[ ]` 未开始 · `[~]` 进行中 · `[!]` 需外部输入
 
 ## 0. 总览
@@ -9,7 +9,7 @@
 | :--- | :--- | :--- | :--- |
 | P0 基建与预售 | 课程页、数据层、Stripe 接入、文档 | 已完成 | 100% |
 | P1 首发成交 | 正式收款、优惠码、邮件交付、发票 | 进行中（代码已就绪，等密钥与交付物） | 45% |
-| P2 会员中心 | 登录、权益、播放页、Webhook | 未开始（方案已定） | 0% |
+| P2 会员中心 | 登录、权益、播放页、Webhook | 进行中（P2.0 分流 + P2.1 权益 + P2.2 登录已完成） | 55% |
 | 文章版内容 | 4 门课 123 节正文 + 课时阅读页 | 进行中 | 72%（88/123） |
 | P3 规模化 | 订阅、企业采购、联盟、训练营 | 未开始 | 0% |
 
@@ -24,6 +24,8 @@
 | **合计** | **88/123** | **26 万** | **158** | — | 72% |
 
 未写正文的节在课表里渲染为「制作中」并置灰，不会产生死链；`npm run courses:validate` 会把缺的节报成警告。
+
+免费边界 = **每门前 2 节**（`content/courses/access.json` 的 `freeLessonLimit`）。公开构建只渲染这 6 节正文，其余 82 节是锁定页；`npm run build` 末尾的 `courses:assert` 会断言公开产物里没有付费正文。
 
 写作规格：每节 700–1100 汉字，至少 1 个可复制产物（命令/配置/表格/公式），`## 落地动作` 3 步 + `## 常见坑` 现象→原因→对策；技术课对齐仓库内 OpenCode 文档，商业课不写死税率/费率/平台规则数字（只写判定方法与查询路径）。
 
@@ -80,9 +82,9 @@
 
 ### 3.3 页面与内容
 
-- [~] 每门课加 1 节公开试听（文章），详情页展示
-  - [x] 课程 1–3 的第 1 节已标 `free: true`，课表与侧边栏显示「试听」
-  - [ ] 课程 4 补 1 节试听
+- [x] 每门课 2 节免费试听（前 2 节），详情页课表与阅读页侧栏显示「试听」
+  - [x] 免费额度统一由 `content/courses/access.json` 控制（原 `free: true` 保留为额外开放手段）
+  - [ ] 课程 4 写正文后自动获得前 2 节试听（无需额外标记）
 - [~] 全部课程正文文章化
   - [x] 课程 1（27 节）、课程 2（33 节）
   - [~] 课程 3（28/36 节）
@@ -101,20 +103,27 @@
 
 ## 4. P2 · 会员中心（建议 6-12 周）
 
-> 方案已定稿：[`07-access-control.md`](./07-access-control.md)（只公开每门前 2–3 节，其余进会员中心）。任务：[TASK107](../memory-bank/tasks/TASK107-course-access-control.md)。
-> 待拍板：免费边界（2/3 节）、`learn.` 子域 DNS 是否交给 Cloudflare、自建 magic link 还是 Supabase Auth。
+> 方案已定稿：[`07-access-control.md`](./07-access-control.md)（只公开每门前 2 节，其余进会员中心）。任务：[TASK107](../memory-bank/tasks/TASK107-course-access-control.md)。
+> 免费边界已定（每门 2 节，P2.0 已实施）；待拍板：`learn.` 子域 DNS 是否交给 Cloudflare、自建 magic link 还是 Supabase Auth。
+> ⚠️ 在 P2.3 完成前不要开启真实收款：付费正文在公开站已读不到，成员站（`learn.`）还没部署。
 
-- [ ] 公开/付费分流：付费节在公开构建中渲染为锁定页，CI 断言产物无付费正文（P2.0）
-- [ ] 权益表 `entitlements` + Webhook 写入 + 退款即时降权 + 历史订单补齐（P2.1）
-- [ ] 鉴权 Worker：magic link 登录（复用 Resend + D1）、会话 JWT、限流、`/account`（P2.2）
+- [x] 公开/付费分流：付费节在公开构建中渲染为锁定页，CI 断言产物无付费正文（P2.0，2026-11-19）
+- [x] 权益表 `entitlements` + Webhook 写入 + 退款撤销 + 历史订单回填（P2.1，2026-11-19）
+  - `migrations/0002_entitlements.sql`、`src/entitlements.js`、`store.js` 三个方法、`handlers.js` 接线
+  - 全站通展开 4 门课 + bundle；部分退款保留访问；拒付默认不回收（`REVOKE_ON_DISPUTE=1` 可改）
+  - 回填：`node scripts/courses/backfill-entitlements.mjs [--execute --remote]`
+- [x] 鉴权 Worker：magic link 登录（复用 Resend + D1）、会话 JWT、限流、`/account`（P2.2，2026-11-19）
+  - 端点：`/login`、`POST /auth/magic`、`GET /auth/verify`、`/auth/logout`、`/account`
+  - `src/gate.js` 默认拒绝门禁已实现并有单测；**接线到静态资源**在 P2.3
+  - 令牌只存 sha256、15 分钟单次使用；邮箱 60s / IP 每小时 5 封限流
 - [ ] 成员站部署：成员构建 + Cloudflare Worker 静态资源 + `learn.opencodeguide.com` + noindex（P2.3）
-- [ ] 基础设施：D1 `orders` / `entitlements` / `magic_links` / `auth_attempts`（不需要 Supabase，除非改为托管鉴权）
+- [x] 基础设施：D1 `orders`（0001）/ `entitlements` / `magic_links` / `auth_attempts`（0002，不需要 Supabase）
 - [ ] Checkout Session 接口替换 Payment Link（新流量），保留旧链接兼容
-- [ ] Webhook 入库：`checkout.session.completed`、`invoice.paid`、`charge.refunded`、`charge.dispute.created`
-- [ ] Magic Link 登录（Supabase Auth），注册时按邮箱合并历史订单
+- [x] Webhook 入库：`checkout.session.completed`、`charge.refunded`、`charge.dispute.created`（`invoice.paid` 属订阅，P3）
+- [x] Magic Link 登录（自建，复用 Resend + D1；已放弃 Supabase Auth 方案）
 - [ ] 课程播放页：视频托管 + 防盗链 + 章节导航
 - [ ] 学习进度记录与「继续上次学习」
-- [ ] 退款自动回收权益（1 分钟内生效）
+- [~] 退款自动回收权益：数据层已回收（P2.1），读取侧「每次都查权益」的门禁在 P2.2 生效
 - [ ] 自助：重发开通邮件、换绑邮箱、申请退款
 - [ ] 管理端最小能力：按邮箱查订单、手动补发权益
 
@@ -144,7 +153,7 @@
 
 ## 7. 下一步建议（优先级排序）
 
-1. **P1 邮件交付 Worker**：投入产出最高，直接决定「付款后能不能顺利开课」。
-2. **正式 Payment Link + 早鸟码**：打通真实收款，验证转化。
-3. **试听内容**：提升详情页转化率的关键素材。
-4. P2 会员中心：等 P1 有稳定订单后再启动，避免过度建设。
+1. **P2.1 权益表 + P2.2 magic link**：这是能安全开启收款的前置条件（付费正文已从公开站下架，买家需要有地方读）。
+2. **P1 邮件交付 Worker 上线**：等 Stripe live 密钥与 Resend 域名到位（代码已就绪，40/40 测试通过）。
+3. **补内容**：课程 3 剩 8 节 + 课程 4 的 27 节；写进 `content/courses/zh/...` 后自动获得前 2 节试听。
+4. **正式 Payment Link + 早鸟码**：在 1、2 都就绪后再打通真实收款。

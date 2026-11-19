@@ -3,7 +3,9 @@
 ## Current Focus
 - **[TASK104 已完成 2026-11-18]**: 课程板块 Phase 1 完成并验证。新增 `/zh/courses` 与 `/en/courses`（目录/详情/回执），4 门课程 + 全站通由 `content/courses/*.json` 驱动；Stripe 采用 Payment Link（纯静态兼容），由 `npm run courses:stripe` 生成链接写入 `content/courses/stripe-links.json`。设计、课程大纲与进度看板见 `docs/courses/`（含 `06-todo.md`）。
 - **课程板块技术约束**: 站点是 `output: 'export'`，不要给课程页加 API Route / Server Action；需要服务端能力（会员中心/Webhook）时按 `docs/courses/04-stripe-integration.md` 的 Phase 2 方案走 Worker + Supabase。
-- **[TASK107 设计完成 2026-11-18]**: 课程访问控制定稿「只公开每门前 2–3 节，其余进会员中心」。关键结论：安全边界在构建期（公开产物不含付费正文），成员站走 `learn.` 子域 + Cloudflare Worker 静态资源 + 自建 magic link，权益从 Stripe 订单派生并随退款即时降权。设计稿 `docs/courses/07-access-control.md`，4–6 人日，待确认 3 个决策（免费节数、DNS、自建还是 Supabase Auth）。
+- **[TASK107 P2.2 已实施 2026-11-19]**: 登录与门禁落地。`src/auth.js`（32 字节令牌只存 sha256、15 分钟单次；邮箱 60s / IP 每小时 5 封限流；HS256 会话 JWT 30 天）+ `/login`、`POST /auth/magic`、`GET /auth/verify`、`/auth/logout`、`/account`；`src/gate.js` 默认拒绝（白名单只放 `/login`、`/auth/*`、`/_next/*` 等），正文按课程查权益、每次请求查库所以退款即时失效。`npm run workers:test` 100/100。**只剩 P2.3：把门禁接到 `env.ASSETS` + `learn.` 子域 + 成员构建；在这之前不要开收款。**
+- **[TASK107 P2.1 已实施 2026-11-19]**: 权益层落地。`orders` 记录钱，`entitlements` 记录「谁现在能读哪门课」：付款成功先写权益再发信（全站通展开 4 门课 + bundle），全额退款按订单撤销，部分退款保留，拒付默认只标记（`REVOKE_ON_DISPUTE=1` 才回收）。历史订单用 `scripts/courses/backfill-entitlements.mjs` 生成幂等 SQL 回填。`npm run workers:test` 62/62；SQL 在真实 SQLite 上验证过（含幂等/撤销/复活）。**下一步 P2.2：magic link、会话、`/account`、静态资源门禁。**
+- **[TASK107 P2.0 已实施 2026-11-19]**: 课程付费墙第一阶段落地——免费边界定为**每门前 2 节**（`content/courses/access.json`），公开构建里付费课时只渲染锁定页，正文不进 HTML / RSC payload / `search.json`；`npm run build` 末尾新增 `scripts/courses/assert-no-gated-content.mjs` 做双向断言（泄露检测 + 锁定标记 + 免费页对照）。实测 88 节 → 公开 6 / 锁定 82，注入正文的负向测试能被拦下。**剩余 P2.1–P2.4（权益表、magic link、成员站）完成前不要开启真实收款**，因为付费正文已从公开站下架、买家暂时没有阅读入口。
 - **[TASK106 进行中 2026-11-18]**: 课程改为**文章版**。课时正文存 `content/courses/<locale>/<courseSlug>/*.mdx`（frontmatter 用 module/lesson 指回 JSON 大纲），阅读页 `/zh/courses/<slug>/<lesson>`；课程 1（27 节）、课程 2（33 节）完成，课程 3「跨境电商独立站」28/36 节完成（合计 88/123），课程 3 剩余 8 节、课程 4 的 27 节与英文版待写。付费墙未解决：静态导出无法鉴权，正文当前公开可见。详见 `tasks/TASK106-course-articles.md`。
 - **[TASK105 进行中 2026-11-18]**: 课程 P1 的代码部分已落地——`workers/course-delivery`（Stripe 签名校验 + D1 幂等落库 + Resend 双语开通/退款邮件 + `/admin/resend` 补发）与 `scripts/courses/validate-courses.mjs`（已接入 `npm run build`），`npm run workers:test` 40/40、build/tsc 全绿。仍阻塞于真实 Stripe 密钥、`COURSE_DELIVERY` 交付物（视频/模板仓库/社群）与 Resend 域名验证；任务文件 `memory-bank/tasks/TASK105-course-platform-p1-delivery.md`。
 - **[TASK103 已完成 2026-10-26]**: OpenCode v2 文档同步 Phase 0~4 全部完成。中文文档 36→81 页，与官方 v2（opencode.ai/v2/docs）对齐；后续维护只需定期跑 `npm run docs:sync`。可选 backlog：Phase 5 GitHub Actions 周检（fetch/diff 开 issue）。详见 `tasks/TASK103-docs-sync-pipeline-v2.md`。
@@ -14,6 +16,9 @@
 - Maintaining site stability while expanding the Chinese documentation suite.
 
 ## Recent Changes
+- **课程登录与门禁 P2.2 ([TASK107], 2026-11-19)**: 自建 magic link（令牌只存哈希、单次使用、15 分钟；邮箱 60s / IP 每小时 5 封）+ 会话 JWT（HttpOnly/Secure/SameSite=Lax/30 天）+ `/login` `/auth/*` `/account` 页面；`gate.js` 默认拒绝，公开白名单只含登录、鉴权与静态产物，正文按课程 slug 查权益，`/search.json` 与 `.txt` RSC payload 一并保护；响应带 `no-store` / `no-referrer` / `noindex`。worker 测试 62 → 100。
+- **课程权益层 P2.1 ([TASK107], 2026-11-19)**: 新增 `entitlements`（0002 迁移）+ `src/entitlements.js`；`handlers.js` 在付款后写权益、全额退款撤销、拒付按开关处理，`duplicate` 分支会补写遗漏权益（D1 抖动自愈）；`store.js` 增加 upsert 复活、按订单撤销、门禁查询；新增 `courses:backfill` 生成幂等回填 SQL。worker 测试 40 → 62。
+- **课程付费墙 P2.0 ([TASK107], 2026-11-19)**: 免费边界 2 节写进 `content/courses/access.json`，`lib/course-access.ts` 与 `scripts/courses/access.mjs` 共用一套规则；课时页对锁定节只渲染 `locked-lesson.tsx`（试听 + 购买 CTA + `data-locked-lesson`），且不把正文 props 传给视图；sitemap 只收录免费节、成员模式不收录课时；`build-search.mjs` 不再把 88 节正文写进公开的 `search.json`；新增 `courses:assert` 并接进 `npm run build` 与 GitHub Actions。实测公开 6 / 锁定 82，0 泄露。
 - **课程文章化 ([TASK106], 2026-11-18)**: 四门课从「视频课」改为图文课：新增 `lib/course-lessons.ts`（MDX 课时解析/课表/上下篇）与 `components/courses/lesson-view.tsx`，课时路由 `/zh/courses/[slug]/[lesson]`；详情页课表接入课时链接并显示「文章版 · 已上线 N/M 节」；sitemap 收录课时；校验脚本扩展到课时 frontmatter 与大纲对位。课程 1 的 27 节中文正文已完成（约 7.9 万字符）。商品话术、FAQ、统计数字去掉「视频」，节数校正为 27/33/36/27=123。顺带把字体改为 `next/font/local` 自托管，修掉构建期 gstatic 超时导致的 `Can't resolve '@vercel/turbopack-next/internal/font/google/font'` 失败。
 - **课程 P1 交付自动化 ([TASK105], 2026-11-18)**: 新增 `workers/course-delivery`（Cloudflare Worker，独立部署、零运行时依赖）：`/stripe/webhook` 验签（WebCrypto）+ `event.id` 幂等 + `orders` 落库 + Resend 中英双语开通邮件，退款与拒付分别改状态、回收权益、告警举证；`/admin/resend` 支持按 session 补发。新增 `scripts/courses/validate-courses.mjs` 并接入 build 前置校验（结构/枚举/价格/双语完整度/支付链接有效性），把课程数据的静默降级变成构建期可见的警告；`npm run workers:test` 40/40 通过。
 - **课程板块 ([TASK104], 2026-11-18)**: 新增 `lib/courses.ts`（数据/定价/支付链接解析）与 `lib/course-copy.ts`（双语文案）；8 个课程路由（中英目录/详情/回执）；课程卡、购买卡、等待名单与 `Course` JSON-LD 组件；Stripe Payment Link 生成脚本（幂等/dry-run）；sitemap 收录课程页并排除感谢页；首页/导航/页脚入口；新增 `/refund-policy`、`/zh/refund-policy` 并在隐私政策补充课程购买数据说明；修复 Tailwind 未扫描课程 JSON、bundle 未进 `generateStaticParams`、移动端头部导航溢出三个问题。
@@ -305,7 +310,9 @@
 -   **Documentation Sovereignty**: The `/zh/docs/` path is now explicitly confirmed as the "Single Source of Truth" for all technical details.
 
 ## Next Steps
-1.  **课程 P1 交付链路 ([TASK105])**: 实现 Stripe Webhook + Resend 开通邮件；待密钥/交付物到位后执行 `npm run courses:stripe` 生成正式链接。清单见 `docs/courses/06-todo.md`。
-1.  **Visual Assets ([TASK023])**: 开始为"安装"和"命令行"章节制作并集成实际截图。
-2.  **Edit Links ([TASK024])**: 在所有文档页面底部添加"在 GitHub 上编辑此页"链接。
-3.  **Deployment Verification**: 监控 Vercel 构建状态，确保所有布局修改正常工作。
+1.  **课程 P2.3 ([TASK107])**: 把 `gate.js` 接到 `env.ASSETS`（保护所有文件类型）、`COURSE_ACCESS=members` 成员构建、`learn.opencodeguide.com` 子域与 noindex；这是能安全开收款的最后一步，只卡 DNS 决策。
+2.  **课程 P1 上线 ([TASK105])**: Stripe live 密钥、Resend 域名与交付物到位后跑 `npm run courses:stripe` 生成正式链接。清单见 `docs/courses/06-todo.md`。
+3.  **课程内容补全 ([TASK106])**: 课程 3 剩 8 节、课程 4 的 27 节。
+4.  **Visual Assets ([TASK023])**: 开始为"安装"和"命令行"章节制作并集成实际截图。
+5.  **Edit Links ([TASK024])**: 在所有文档页面底部添加"在 GitHub 上编辑此页"链接。
+6.  **Deployment Verification**: 监控 GitHub Pages 构建状态，确认课程锁定页与文档页正常。

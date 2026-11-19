@@ -172,6 +172,30 @@
 - **设计文档**: `docs/courses/`（市场分析、功能设计、课程内容、Stripe 方案、分期路线图、`06-todo` 进度看板）。
 - **验证**: `next build` 静态导出通过（158 页）；`tsc --noEmit` 通过；sitemap 收录 30 条课程 URL 且排除感谢页；`Course` JSON-LD、canonical、hreflang 输出正确；用临时 Stripe 链接构建验证过 `client_reference_id`/utm 参数与未配置时的降级行为。
 - **待办**: P1（正式收款 + 邮件交付）见 `docs/courses/06-todo.md` 与 `TASK105`；阻塞项为 Stripe 密钥、等待名单端点、视频/模板/社群交付物。
+## 课程登录与门禁 P2.2 (2026-11-19)
+- **登录**: 邮箱 magic link。令牌 32 字节、只存 sha256、15 分钟、单次使用（`update ... where used_at is null` 抢占防并发）；限流邮箱 60s / IP 每小时 5 封，计数 24 小时自动清理。
+- **会话**: HS256 JWT（`sub/iat/exp/jti`），30 天，`HttpOnly; Secure; SameSite=Lax`；缺 `SESSION_SECRET` 一律 fail closed。
+- **端点**: `/login`、`POST /auth/magic`（防枚举：非法/未购买邮箱响应一致）、`GET /auth/verify`、`/auth/logout`、`/account`。
+- **门禁**: `src/gate.js` 默认拒绝；公开白名单仅 `/login`、`/auth/*`、`/health`、`/_next/*`；`/courses/**` 按 slug 查权益（全站通放行），`/search.json` 也受保护。
+- **测试**: 100/100（新增 38：令牌/限流/JWT/cookie/门禁/端到端链路）。
+- **未做**: P2.3 静态资源接线 + 子域 + 成员构建；P2.4 水印与日志看板。
+
+## 课程权益层 P2.1 (2026-11-19)
+- **模型**: `orders`（钱）+ `entitlements`（谁现在能读哪门课，`revoked_at` 可撤销）。迁移 `workers/course-delivery/migrations/0002_entitlements.sql`。
+- **写入**: 付款成功先写权益再发信；单课 1 条，全站通展开 4 门课 + `all-access`；重复购买复活同一条并指向新订单。
+- **撤销**: 全额退款按 `order_id` 批量撤销；部分退款保留；拒付默认只标记（`REVOKE_ON_DISPUTE=1` 可改为立即回收）。
+- **回填**: `node scripts/courses/backfill-entitlements.mjs` 生成幂等 SQL（`--execute --remote` 执行），单课/全站通/部分退款/退款排除均在真实 SQLite 上验证。
+- **测试**: `npm run workers:test` 62/62（新增 22 个：权益单元 13 + 事件级 9）。
+- **未做**: P2.2 门禁与登录、P2.3 成员站部署。
+
+## 课程付费墙 P2.0 (2026-11-19)
+- **目标**: 静态站无法鉴权，先在构建期把付费正文从公开产物里摘掉。
+- **规则**: 每门课前 2 节免费（`content/courses/access.json` 的 `freeLessonLimit`），其余渲染锁定页；`frontmatter` 的 `free: true` 可额外开放单节。
+- **实现**: `lib/course-access.ts`（模式/额度）+ `lib/course-lessons.ts`（`isLessonLocked`）+ `components/courses/locked-lesson.tsx` + 课时页分流（不把正文 props 传给视图）；`sitemap` 只收录免费节、`build-search.mjs` 不再索引付费正文。
+- **闸门**: `scripts/courses/assert-no-gated-content.mjs` 扫描 `out/`：付费正文探针 0 命中 + 每个锁定页必须有 `data-locked-lesson` + 免费页正文对照；已接入 `npm run build` 与 GitHub Actions（`COURSE_ACCESS: public`）。
+- **实测**: 88 节 → 公开 6 / 锁定 82；1563 个产物文件、162 条探针，0 泄露；注入正文的负向测试会 exit 1。
+- **未做**: P2.1 权益表、P2.2 magic link、P2.3 成员站。因此**暂不可开启真实收款**。
+
 ## Known Issues
 -   Screenshots are still text-based placeholders.
 -   Chinese documentation depth still needs to be expanded for Providers/Configuration sections.

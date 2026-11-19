@@ -366,7 +366,7 @@ export function CourseDetail({
           </div>
 
           {/* Aside: purchase */}
-          <aside className="lg:sticky lg:top-24 lg:self-start">
+          <aside id="pricing" className="scroll-mt-24 lg:sticky lg:top-24 lg:self-start">
             <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-950">
               <div className={`bg-gradient-to-br px-5 py-4 text-white ${accentClass(course.accent)}`}>
                 <div className="flex items-center justify-between">

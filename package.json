@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3012",
-    "build": "node scripts/build-search.mjs && node scripts/courses/validate-courses.mjs && next build",
+    "build": "node scripts/build-search.mjs && node scripts/courses/validate-courses.mjs && next build && node scripts/courses/assert-no-gated-content.mjs",
     "start": "next start",
     "lint": "next lint",
     "docs:sync": "node scripts/docs-sync/run.mjs",
@@ -13,6 +13,8 @@
     "courses:stripe": "node scripts/courses/stripe-payment-links.mjs",
     "courses:stripe:dry": "node scripts/courses/stripe-payment-links.mjs --dry-run",
     "courses:validate": "node scripts/courses/validate-courses.mjs",
+    "courses:backfill": "node scripts/courses/backfill-entitlements.mjs",
+    "courses:assert": "node scripts/courses/assert-no-gated-content.mjs",
     "workers:test": "cd workers/course-delivery && node --test",
     "courses:meta": "node scripts/courses/sync-course-meta.mjs"
   },

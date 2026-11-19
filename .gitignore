@@ -39,6 +39,9 @@ node_modules/
 .translation-cache/
 SYNC_REPORT.md
 
+# 生成的 SQL / 临时产物
+.tmp/
+
 # Cloudflare Worker 本地状态与本地密钥（workers/course-delivery）
 .wrangler/
 .dev.vars

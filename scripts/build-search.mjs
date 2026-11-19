@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
 import { globby } from 'globby'
+import { isFreeLesson, isPublicBuild } from './courses/access.mjs'
 
 /** 把课程 JSON 转成搜索索引条目（课程页是 TSX，不在 MDX 扫描范围内） */
 function buildCourseEntries() {
@@ -65,29 +66,47 @@ function buildLessonEntries() {
       const prefix = locale === 'zh' ? '/zh/courses' : '/en/courses'
       const files = fs.readdirSync(courseDir).filter((file) => file.endsWith('.mdx') && !file.startsWith('_'))
 
-      for (const file of files) {
-        let parsed
-        try {
-          parsed = matter(fs.readFileSync(path.join(courseDir, file), 'utf8'))
-        } catch {
-          continue
-        }
+      // 必须先按 模块 → 节 排序，免费额度才与课时页/sitemap 用的是同一个「第几节」
+      const parsed = files
+        .map((file) => {
+          try {
+            return {
+              slug: path.basename(file, '.mdx'),
+              doc: matter(fs.readFileSync(path.join(courseDir, file), 'utf8')),
+            }
+          } catch {
+            return null
+          }
+        })
+        .filter(Boolean)
+        .sort(
+          (a, b) =>
+            (Number(a.doc.data.module) || 0) - (Number(b.doc.data.module) || 0) ||
+            (Number(a.doc.data.lesson) || 0) - (Number(b.doc.data.lesson) || 0) ||
+            a.slug.localeCompare(b.slug),
+        )
 
-        const slug = path.basename(file, '.mdx')
-        const body = parsed.content
-          .replace(/```[\s\S]*?```/g, '')
-          .replace(/[#*\[\]()_`>|-]/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim()
-          .slice(0, 400)
+      parsed.forEach(({ slug, doc }, index) => {
+        const free = isFreeLesson({ index, frontmatterFree: doc.data?.free === true })
+        // 公开构建里付费节的正文不能进索引：search.json 是全站公开文件
+        const includeBody = !isPublicBuild() || free
+
+        const body = includeBody
+          ? doc.content
+              .replace(/```[\s\S]*?```/g, '')
+              .replace(/[#*\[\]()_`>|-]/g, ' ')
+              .replace(/\s+/g, ' ')
+              .trim()
+              .slice(0, 400)
+          : ''
 
         entries.push({
-          title: String(parsed.data.title ?? slug),
+          title: String(doc.data?.title ?? slug),
           url: `${prefix}/${courseSlug}/${slug}`,
-          content: [parsed.data.summary, body].filter(Boolean).join(' ').slice(0, 500),
+          content: [doc.data?.summary, body].filter(Boolean).join(' ').slice(0, 500),
           category: locale === 'zh' ? 'Chinese' : 'English',
         })
-      }
+      })
     }
   }
 

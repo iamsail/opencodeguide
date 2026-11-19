@@ -101,5 +101,94 @@ export function createStore(db) {
       const assignments = [...columns.keys()].map((column) => `${column} = ?`).join(", ");
       await run(`update orders set ${assignments} where id = ?`, [...columns.values(), id]);
     },
+
+    /* ---------------- 权益（P2.1） ---------------- */
+
+    /**
+     * 写权益（幂等）。
+     * unique(email, course_slug) 上的 upsert：重复购买会「复活」同一条记录并指向新订单，
+     * 而不是堆出两条——否则 /account 里会出现重复课程，退款也容易只撤一半。
+     */
+    async grantEntitlement(ent) {
+      await run(
+        `insert into entitlements (id, email, course_slug, plan_id, order_id, granted_at, revoked_at)
+         values (?, ?, ?, ?, ?, ?, null)
+         on conflict(email, course_slug) do update set
+           plan_id    = excluded.plan_id,
+           order_id   = excluded.order_id,
+           granted_at = excluded.granted_at,
+           revoked_at = null`,
+        [ent.id, ent.email, ent.courseSlug, ent.planId, ent.orderId, ent.grantedAt],
+      );
+    },
+
+    /** 按订单回收权益（全额退款/可选拒付），返回本次真正被撤销的条数 */
+    async revokeEntitlementsByOrder(orderId, revokedAt) {
+      const result = await run(
+        "update entitlements set revoked_at = ? where order_id = ? and revoked_at is null",
+        [revokedAt, orderId],
+      );
+      return result?.meta?.changes ?? 0;
+    },
+
+    /** 门禁查询：该邮箱现在能否读这门课（每次请求都查库，所以退款即时生效） */
+    async hasEntitlement(email, courseSlug) {
+      const statement = db.prepare(
+        "select 1 from entitlements where email = ? and course_slug = ? and revoked_at is null limit 1",
+      );
+      const row = await statement.bind(email, courseSlug).first();
+      return Boolean(row);
+    },
+
+    /** 账户页：该邮箱的全部权益（含已撤销，便于排查） */
+    async listEntitlementsByEmail(email) {
+      const statement = db.prepare(
+        `select course_slug, plan_id, granted_at, revoked_at
+           from entitlements where email = ? order by course_slug`,
+      );
+      const result = await statement.bind(email).all();
+      return result?.results ?? [];
+    },
+
+    /* ---------------- 登录令牌与限流（P2.2） ---------------- */
+
+    /** 只存 sha256(token)；ip 仅用于排查 */
+    async insertMagicLink(link) {
+      await run(
+        "insert into magic_links (token_hash, email, expires_at, created_at, ip) values (?, ?, ?, ?, ?)",
+        [link.tokenHash, link.email, link.expiresAt, link.createdAt, link.ip ?? null],
+      );
+    },
+
+    async findMagicLink(tokenHash) {
+      const statement = db.prepare("select * from magic_links where token_hash = ?");
+      return (await statement.bind(tokenHash).first()) ?? null;
+    },
+
+    /** 单次使用：只有第一次 update 会命中 used_at is null，天然防并发重放 */
+    async markMagicLinkUsed(tokenHash, usedAt) {
+      const result = await run(
+        "update magic_links set used_at = ? where token_hash = ? and used_at is null",
+        [usedAt, tokenHash],
+      );
+      return (result?.meta?.changes ?? 0) > 0;
+    },
+
+    /** 固定窗口计数，返回自增后的次数 */
+    async incrementAttempt(key, at) {
+      await run(
+        `insert into auth_attempts (key, count, updated_at) values (?, 1, ?)
+         on conflict(key) do update set count = count + 1, updated_at = excluded.updated_at`,
+        [key, at],
+      );
+      const statement = db.prepare("select count from auth_attempts where key = ?");
+      const row = await statement.bind(key).first();
+      return Number(row?.count ?? 1);
+    },
+
+    /** 清掉过期窗口，避免计数表无限增长 */
+    async pruneAttempts(before) {
+      await run("delete from auth_attempts where updated_at < ?", [before]);
+    },
   };
 }
