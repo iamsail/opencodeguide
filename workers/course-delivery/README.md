@@ -208,43 +208,41 @@ npx wrangler d1 execute course-delivery --remote --command \
 
 **注意**：新增课程时必须把 slug 加进 `ALL_ACCESS_COURSES`（`wrangler.toml` 或 secret），否则「全站通」买家看不到新课。
 
-## 登录与账户（P2.2）
+## 登录与购买（P2.2 改造版，2026-11-19）
 
-会员站的身份层：邮箱 + 一次性链接，无密码。会话是 HMAC-SHA256 的 JWT，
-但**每次请求都查 `entitlements`**，所以退款/拒付的撤销是分钟级生效。
+登录改为 **Google OAuth**（不再发登录邮件），购买改为 **先登录再买**。
 
 **端点**
 
 | 端点 | 作用 |
 | :--- | :--- |
-| `GET /login` | 登录页（邮箱表单，`?next=` 回跳） |
-| `POST /auth/magic` | 签发令牌并发登录邮件；无论是否购买过响应相同（防枚举） |
-| `GET /auth/verify?t=` | 校验令牌（单次使用、15 分钟）→ 写会话 cookie → 302 回跳 |
-| `POST/GET /auth/logout` | 清 cookie → 302 `/login` |
-| `GET /account` | 我的课程（有效权益列表） |
+| `GET /login` | 「使用 Google 继续」（`?next=` 回跳） |
+| `GET /auth/google` | 生成 state + PKCE，302 到 Google |
+| `GET /auth/google/callback` | 校验 state / 换令牌 / 取邮箱（要求 email_verified）→ 写会话 |
+| `GET /auth/logout` | 清 cookie |
+| `GET /account` | 我的课程 |
+| `GET /buy/<slug>/<plan>` | 确认订单页（未登录先跳登录） |
+| `POST /checkout` | 用登录邮箱创建 Customer + Checkout Session → 跳 Stripe |
 
 **需要的 secret / 变量**
 
 ```bash
-npx wrangler secret put SESSION_SECRET      # 随机 32+ 字节，缺失时登录接口 503
-# 可选：LEARN_URL、SESSION_COOKIE_DOMAIN、COURSE_NAMES
+npx wrangler secret put SESSION_SECRET          # 会话签名
+npx wrangler secret put GOOGLE_CLIENT_ID
+npx wrangler secret put GOOGLE_CLIENT_SECRET
+npx wrangler secret put STRIPE_SECRET_KEY       # 服务端创建 Checkout Session
+node scripts/courses/sync-worker-catalog.mjs --apply   # COURSE_CATALOG（标题/价格/priceId）
 ```
+
+Google 控制台里的 Authorized redirect URI 必须是
+`https://learn.opencodeguide.com/auth/google/callback`（或 `GOOGLE_REDIRECT_URI` 指定的同一个值）。
 
 **安全约束**
 
-- 令牌只存 `sha256`，明文只出现在邮件里；`update ... where used_at is null` 抢占，防并发重放；
-- 限流：同邮箱 60 秒 1 封、同 IP 每小时 5 封（`auth_attempts` 固定窗口，24 小时自动清理）；
-- cookie：`HttpOnly; Secure; SameSite=Lax; Max-Age=30d`，默认不带 Domain；
-- 回跳地址只接受站内路径（`safeNextPath`），防开放重定向；
-- 响应带 `Cache-Control: no-store`、`Referrer-Policy: no-referrer`、`X-Robots-Tag: noindex`；
-- **门禁默认拒绝**（`src/gate.js`）：只有 `/login`、`/auth/*`、`/health`、`/_next/*` 等白名单公开，
-  其余（正文、`index.txt` 这类 RSC payload、`/search.json`）都要登录并查权益。
+- 只接受 `email_verified: true` 的 Google 账号；state + PKCE 防 CSRF 与授权码拦截；
+- 会话：HS256 JWT，`HttpOnly; Secure; SameSite=Lax; Max-Age=30d`，默认不带 Domain；
+- 权益按登录邮箱写入，Stripe Customer 锁定邮箱（传 `customer` 而非 `customer_email`）；
+- 门禁 `src/gate.js` 默认拒绝，正文/`index.txt`/`search.json` 都要求登录并查权益；
+- 响应带 `no-store` / `no-referrer` / `noindex`。
 
-**尚未接线**：`gate.js` 已实现并有单测，但真正挂在静态资源前面属于 P2.3
-（需要 `assets` 绑定 + `learn.` 子域）。接线后的顺序是：
-
-```js
-const decision = await authorizeRequest({ request, env, store });
-if (!decision.allowed) return decision.needsLogin ? redirectLogin() : renderDenied();
-return env.ASSETS.fetch(request);
-```
+**尚未接线**：`gate.js` 挂到静态资源属于 P2.3（`assets` 绑定 + 成员站构建）。

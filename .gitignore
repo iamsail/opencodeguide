@@ -42,6 +42,9 @@ SYNC_REPORT.md
 # 生成的 SQL / 临时产物
 .tmp/
 
+# Stripe 资源 ID 映射（本地幂等用，含 test/live 环境相关 id）
+content/courses/stripe-products.json
+
 # Cloudflare Worker 本地状态与本地密钥（workers/course-delivery）
 .wrangler/
 .dev.vars

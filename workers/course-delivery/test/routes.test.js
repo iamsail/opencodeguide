@@ -1,23 +1,62 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { signSession } from "../src/auth.js";
 import worker from "../src/index.js";
-import { signPayload } from "../src/stripe.js";
-import { checkoutEvent, createFakeD1, createTestEnv } from "./fakes.js";
+import { createFakeD1, createTestEnv } from "./fakes.js";
 
-const WEBHOOK_SECRET = "whsec_test";
+const CATALOG = JSON.stringify({
+  "ai-coding-workflow:single": {
+    title: "AI 编程实战",
+    planLabel: "单课版",
+    amount: 7900,
+    currency: "usd",
+    priceId: "price_test_1",
+  },
+});
 
-/** 拦截 Resend 请求：既拿到登录链接，又不真的发信 */
-function stubResend() {
+function makeEnv(overrides = {}) {
+  return createTestEnv({
+    db: createFakeD1(),
+    overrides: {
+      GOOGLE_CLIENT_ID: "client-1",
+      GOOGLE_CLIENT_SECRET: "secret-1",
+      STRIPE_SECRET_KEY: "sk_test_fake",
+      COURSE_CATALOG: CATALOG,
+      LEARN_URL: "https://learn.test",
+      ...overrides,
+    },
+  });
+}
+
+function jsonResponse(payload) {
+  return new Response(JSON.stringify(payload), {
+    status: 200,
+    headers: { "content-type": "application/json" },
+  });
+}
+
+function stubFetch({ email = "buyer@example.com", emailVerified = true } = {}) {
   const calls = [];
   const original = globalThis.fetch;
-  globalThis.fetch = async (url, init) => {
-    calls.push({ url: String(url), init });
-    return new Response(JSON.stringify({ id: `msg_${calls.length}` }), {
-      status: 200,
-      headers: { "content-type": "application/json" },
-    });
+
+  globalThis.fetch = async (url, init = {}) => {
+    const href = String(url);
+    calls.push({ url: href, init });
+    if (href === "https://oauth2.googleapis.com/token") {
+      return jsonResponse({ access_token: "at-1", id_token: "id-1" });
+    }
+    if (href === "https://openidconnect.googleapis.com/v1/userinfo") {
+      return jsonResponse({ email, email_verified: emailVerified, name: "Buyer", sub: "g-1" });
+    }
+    if (href.startsWith("https://api.stripe.com/v1/customers?")) return jsonResponse({ data: [] });
+    if (href === "https://api.stripe.com/v1/customers") return jsonResponse({ id: "cus_1", email });
+    if (href === "https://api.stripe.com/v1/checkout/sessions") {
+      return jsonResponse({ id: "cs_1", url: "https://checkout.stripe.com/c/pay/cs_1" });
+    }
+    throw new Error(`unexpected fetch: ${href}`);
   };
+
   return {
     calls,
     restore: () => {
@@ -26,197 +65,237 @@ function stubResend() {
   };
 }
 
-async function sendWebhook(env, event = checkoutEvent()) {
-  const body = JSON.stringify(event);
-  const signature = await signPayload({ payload: body, secret: WEBHOOK_SECRET });
-  return worker.fetch(
-    new Request("https://learn.test/stripe/webhook", {
-      method: "POST",
-      headers: { "content-type": "application/json", "stripe-signature": signature },
-      body,
-    }),
-    env,
-  );
+function setCookies(response) {
+  if (typeof response.headers.getSetCookie === "function") return response.headers.getSetCookie();
+  const single = response.headers.get("set-cookie");
+  return single ? [single] : [];
 }
 
-function postForm(url, fields) {
-  return new Request(url, {
-    method: "POST",
-    headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams(fields).toString(),
-  });
+function cookieValue(response, name) {
+  const match = setCookies(response).find((cookie) => cookie.startsWith(`${name}=`));
+  return match ? match.split(";")[0] : "";
 }
 
-function tokenFromEmail(calls) {
-  const mail = calls
-    .map((call) => JSON.parse(call.init.body))
-    .find((payload) => String(payload.html).includes("/auth/verify?t="));
-  assert.ok(mail, "应发送过登录邮件");
-  const match = /\/auth\/verify\?t=([^"&]+)/.exec(mail.html);
-  assert.ok(match, "登录邮件里应有 verify 链接");
-  return decodeURIComponent(match[1]);
+function cookieHeader(response) {
+  return setCookies(response)
+    .map((cookie) => cookie.split(";")[0])
+    .filter(Boolean)
+    .join("; ");
 }
 
-test("GET /login 渲染邮箱表单且不索引", async () => {
-  const env = createTestEnv({ db: createFakeD1() });
+async function sessionCookie(env, email = "buyer@example.com") {
+  const token = await signSession({ email, secret: env.SESSION_SECRET });
+  return `ocg_session=${token}`;
+}
+
+test("GET /login 渲染 Google 登录按钮", async () => {
+  const env = makeEnv();
   const response = await worker.fetch(new Request("https://learn.test/login?next=%2Faccount"), env);
   const html = await response.text();
 
   assert.equal(response.status, 200);
-  assert.match(html, /action="\/auth\/magic"/);
-  assert.match(html, /name="email"/);
+  assert.match(html, /\/auth\/google\?next=%2Faccount/);
   assert.match(html, /noindex/);
 });
 
-test("POST /auth/magic 发送登录邮件，库里只存哈希", async () => {
-  const stub = stubResend();
-  try {
-    const db = createFakeD1();
-    const env = createTestEnv({ db, overrides: { EMAIL_DRY_RUN: "0" } });
+test("GET /auth/google 跳转到 Google 并下发 state / verifier cookie", async () => {
+  const env = makeEnv();
+  const response = await worker.fetch(new Request("https://learn.test/auth/google?next=%2Faccount"), env);
 
-    const response = await worker.fetch(
-      postForm("https://learn.test/auth/magic", { email: "buyer@example.com", next: "/account" }),
-      env,
-    );
-    const html = await response.text();
+  assert.equal(response.status, 302);
+  const location = new URL(response.headers.get("location"));
+  assert.equal(location.origin + location.pathname, "https://accounts.google.com/o/oauth2/v2/auth");
+  assert.equal(location.searchParams.get("client_id"), "client-1");
+  assert.equal(location.searchParams.get("code_challenge_method"), "S256");
+  assert.ok(location.searchParams.get("state"));
 
-    assert.equal(response.status, 200);
-    assert.match(html, /去邮箱点一下链接|Check your inbox/);
-    assert.equal(db._magicLinks.size, 1);
-
-    const token = tokenFromEmail(stub.calls);
-    const stored = [...db._magicLinks.keys()][0];
-    assert.notEqual(stored, token, "库里不能存明文令牌");
-    assert.equal(stored.length, 64);
-  } finally {
-    stub.restore();
-  }
+  const stateCookie = cookieValue(response, "ocg_oauth_state");
+  const verifierCookie = cookieValue(response, "ocg_oauth_verifier");
+  assert.ok(stateCookie.startsWith("ocg_oauth_state="));
+  assert.ok(verifierCookie.startsWith("ocg_oauth_verifier="));
+  assert.match(setCookies(response).join("|"), /HttpOnly/);
 });
 
-test("完整链路：付款 → 登录 → 看到课程 → 退出", async () => {
-  const stub = stubResend();
+test("回调成功：签发会话并回跳", async () => {
+  const stub = stubFetch();
   try {
-    const db = createFakeD1();
-    const env = createTestEnv({ db, overrides: { EMAIL_DRY_RUN: "0" } });
+    const env = makeEnv();
+    const start = await worker.fetch(new Request("https://learn.test/auth/google?next=%2Faccount"), env);
+    const state = new URL(start.headers.get("location")).searchParams.get("state");
+    const cookie = cookieHeader(start);
 
-    await sendWebhook(env);
-
-    const magic = await worker.fetch(
-      postForm("https://learn.test/auth/magic", { email: "buyer@example.com", next: "/account" }),
-      env,
-    );
-    assert.equal(magic.status, 200);
-
-    const token = tokenFromEmail(stub.calls);
-    const verify = await worker.fetch(
-      new Request(`https://learn.test/auth/verify?t=${encodeURIComponent(token)}&next=%2Faccount`),
+    const callback = await worker.fetch(
+      new Request(`https://learn.test/auth/google/callback?code=code-1&state=${encodeURIComponent(state)}`, {
+        headers: { cookie },
+      }),
       env,
     );
 
-    assert.equal(verify.status, 302);
-    assert.equal(verify.headers.get("location"), "/account");
-    const setCookie = verify.headers.get("set-cookie") || "";
-    assert.match(setCookie, /ocg_session=/);
-    assert.match(setCookie, /HttpOnly/);
-    const cookie = setCookie.split(";")[0];
+    assert.equal(callback.status, 302);
+    assert.equal(callback.headers.get("location"), "/account");
+    assert.match(cookieValue(callback, "ocg_session"), /^ocg_session=/);
 
+    const session = cookieValue(callback, "ocg_session");
     const account = await worker.fetch(
-      new Request("https://learn.test/account", { headers: { cookie } }),
+      new Request("https://learn.test/account", { headers: { cookie: session } }),
       env,
     );
     const html = await account.text();
     assert.equal(account.status, 200);
     assert.match(html, /buyer@example\.com/);
-    assert.match(html, /AI 编程实战/);
-
-    const logout = await worker.fetch(
-      new Request("https://learn.test/auth/logout", { method: "POST", headers: { cookie } }),
-      env,
-    );
-    assert.equal(logout.status, 302);
-    assert.match(logout.headers.get("set-cookie") || "", /Max-Age=0/);
   } finally {
     stub.restore();
   }
 });
 
-test("同一链接点第二次：400 且不再签发会话", async () => {
-  const stub = stubResend();
+test("state 不匹配：400，不签发会话", async () => {
+  const stub = stubFetch();
   try {
-    const db = createFakeD1();
-    const env = createTestEnv({ db, overrides: { EMAIL_DRY_RUN: "0" } });
+    const env = makeEnv();
+    const start = await worker.fetch(new Request("https://learn.test/auth/google"), env);
+    const cookie = cookieHeader(start);
 
-    await worker.fetch(postForm("https://learn.test/auth/magic", { email: "buyer@example.com" }), env);
-    const token = tokenFromEmail(stub.calls);
+    const callback = await worker.fetch(
+      new Request("https://learn.test/auth/google/callback?code=code-1&state=forged", {
+        headers: { cookie },
+      }),
+      env,
+    );
 
-    const first = await worker.fetch(new Request(`https://learn.test/auth/verify?t=${token}`), env);
-    const second = await worker.fetch(new Request(`https://learn.test/auth/verify?t=${token}`), env);
-
-    assert.equal(first.status, 302);
-    assert.equal(second.status, 400);
-    assert.equal(second.headers.get("set-cookie"), null);
+    assert.equal(callback.status, 400);
+    assert.equal(cookieValue(callback, "ocg_session"), "");
   } finally {
     stub.restore();
   }
 });
 
-test("同一邮箱 60 秒内第二次请求：429", async () => {
-  const stub = stubResend();
+test("邮箱未验证：403", async () => {
+  const stub = stubFetch({ emailVerified: false });
   try {
-    const db = createFakeD1();
-    const env = createTestEnv({ db, overrides: { EMAIL_DRY_RUN: "0" } });
+    const env = makeEnv();
+    const start = await worker.fetch(new Request("https://learn.test/auth/google"), env);
+    const state = new URL(start.headers.get("location")).searchParams.get("state");
 
-    const first = await worker.fetch(
-      postForm("https://learn.test/auth/magic", { email: "buyer@example.com" }),
+    const callback = await worker.fetch(
+      new Request(`https://learn.test/auth/google/callback?code=code-1&state=${encodeURIComponent(state)}`, {
+        headers: { cookie: cookieHeader(start) },
+      }),
       env,
     );
-    const second = await worker.fetch(
-      postForm("https://learn.test/auth/magic", { email: "buyer@example.com" }),
-      env,
-    );
 
-    assert.equal(first.status, 200);
-    assert.equal(second.status, 429);
-    assert.equal(db._magicLinks.size, 1, "被限流时不应再签发令牌");
+    assert.equal(callback.status, 403);
   } finally {
     stub.restore();
   }
 });
 
-test("未登录访问 /account：302 到登录页", async () => {
-  const env = createTestEnv({ db: createFakeD1() });
-  const response = await worker.fetch(new Request("https://learn.test/account"), env);
+test("/buy 未登录：302 到登录页并带回跳", async () => {
+  const env = makeEnv();
+  const response = await worker.fetch(new Request("https://learn.test/buy/ai-coding-workflow/single"), env);
+
   assert.equal(response.status, 302);
-  assert.equal(response.headers.get("location"), "/login?next=%2Faccount");
+  assert.equal(response.headers.get("location"), "/login?next=%2Fbuy%2Fai-coding-workflow%2Fsingle");
 });
 
-test("非法邮箱也返回「已发送」，不泄露是否买过", async () => {
-  const db = createFakeD1();
-  const env = createTestEnv({ db, overrides: { EMAIL_DRY_RUN: "0" } });
+test("/buy 已登录：显示课程与价格", async () => {
+  const env = makeEnv();
   const response = await worker.fetch(
-    postForm("https://learn.test/auth/magic", { email: "not-an-email" }),
+    new Request("https://learn.test/buy/ai-coding-workflow/single", {
+      headers: { cookie: await sessionCookie(env) },
+    }),
     env,
   );
+  const html = await response.text();
 
   assert.equal(response.status, 200);
-  assert.equal(db._magicLinks.size, 0);
+  assert.match(html, /AI 编程实战/);
+  assert.match(html, /\$79/);
+  assert.match(html, /action="\/checkout"/);
 });
 
-test("SESSION_SECRET 未配置时 verify 返回 503（不签发弱会话）", async () => {
-  const db = createFakeD1();
-  const env = createTestEnv({ db, overrides: { SESSION_SECRET: "" } });
+test("POST /checkout：创建 Customer + Checkout Session 并跳转 Stripe", async () => {
+  const stub = stubFetch();
+  try {
+    const env = makeEnv();
+    const response = await worker.fetch(
+      new Request("https://learn.test/checkout", {
+        method: "POST",
+        headers: {
+          cookie: await sessionCookie(env),
+          "content-type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({ course: "ai-coding-workflow", plan: "single" }).toString(),
+      }),
+      env,
+    );
+
+    assert.equal(response.status, 303);
+    assert.equal(response.headers.get("location"), "https://checkout.stripe.com/c/pay/cs_1");
+
+    const sessionCall = stub.calls.find((call) => call.url === "https://api.stripe.com/v1/checkout/sessions");
+    assert.ok(sessionCall, "应该调用 Checkout Session 接口");
+    const body = new URLSearchParams(sessionCall.init.body);
+    assert.equal(body.get("customer"), "cus_1");
+    assert.equal(body.get("line_items[0][price]"), "price_test_1");
+    // 权益归属用登录邮箱，而不是 Stripe 页面收集的邮箱
+    assert.equal(body.get("metadata[email]"), "buyer@example.com");
+    assert.equal(body.get("metadata[course_slug]"), "ai-coding-workflow");
+    assert.equal(body.get("metadata[plan_id]"), "single");
+  } finally {
+    stub.restore();
+  }
+});
+
+test("POST /checkout 未登录：302 到登录页", async () => {
+  const env = makeEnv();
   const response = await worker.fetch(
-    new Request("https://learn.test/auth/verify?t=some-token-value-1234567890"),
+    new Request("https://learn.test/checkout", {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: "course=ai-coding-workflow&plan=single",
+    }),
     env,
   );
-  assert.equal(response.status, 503);
+
+  assert.equal(response.status, 302);
+  assert.match(response.headers.get("location"), /^\/login\?next=/);
 });
 
-test("/health 暴露登录相关绑定开关但不泄露密钥", async () => {
-  const env = createTestEnv({ db: createFakeD1() });
+test("POST /checkout 未配置的课程：400", async () => {
+  const env = makeEnv();
+  const response = await worker.fetch(
+    new Request("https://learn.test/checkout", {
+      method: "POST",
+      headers: {
+        cookie: await sessionCookie(env),
+        "content-type": "application/x-www-form-urlencoded",
+      },
+      body: "course=unknown-course&plan=single",
+    }),
+    env,
+  );
+
+  assert.equal(response.status, 400);
+});
+
+test("/auth/logout 清 cookie", async () => {
+  const env = makeEnv();
+  const response = await worker.fetch(
+    new Request("https://learn.test/auth/logout", { method: "POST" }),
+    env,
+  );
+
+  assert.equal(response.status, 302);
+  assert.match(setCookies(response).join("|"), /Max-Age=0/);
+});
+
+test("/health 暴露 Google / Stripe / 目录绑定开关", async () => {
+  const env = makeEnv();
   const response = await worker.fetch(new Request("https://learn.test/health"), env);
   const payload = await response.json();
 
-  assert.equal(payload.bindings.sessionSecret, true);
-  assert.ok(!JSON.stringify(payload).includes(env.SESSION_SECRET));
+  assert.equal(payload.bindings.googleOauth, true);
+  assert.equal(payload.bindings.stripeKey, true);
+  assert.equal(payload.bindings.catalog, true);
+  assert.ok(!JSON.stringify(payload).includes("sk_test_fake"));
 });

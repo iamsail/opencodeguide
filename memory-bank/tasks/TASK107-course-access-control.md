@@ -86,6 +86,12 @@
 - **P2.1–P2.3 完成前不要开启真实收款**：付费正文已从公开站下架，买家暂时没有阅读入口。
 
 ## Progress Log
+### 2026-11-19（登录/购买改造）
+- 登录从 magic link 改为 **Google OAuth**：`src/oauth.js` + `routes/auth.js`，删除 magic link 代码与两张表（迁移 0003）。
+- 购买改为 **先登录再买**：`/buy/<slug>/<plan>` + `POST /checkout`，用 Stripe Customer 锁死登录邮箱，权益改按 `metadata.email` 写入。
+- 新增 `COURSE_CATALOG`（脚本生成）与 `STRIPE_SECRET_KEY` / `GOOGLE_*` 配置；测试 101/101。
+- 遗留：公开站购买按钮仍指向 Payment Link，需切到 `learn./buy/...`。
+
 ### 2026-11-19（P2.2）
 - 登录闭环：magic link（只存哈希、单次、15 分钟）+ 会话 JWT（30 天）+ 限流（邮箱 60s / IP 5h）+ `/account`。
 - 门禁 `gate.js` 默认拒绝，已覆盖「只拦 html 不拦 `.txt` / `search.json`」这个最容易漏的口子；撤销后立刻失效有专门测试。

@@ -13,6 +13,8 @@
 | 2026-11-19 | 部分退款保留访问 | 一律回收 | 部分退款多为补差价/少发一节，不是退货；全额才回收 |
 | 2026-11-19 | 拒付默认**不**立即回收（`REVOKE_ON_DISPUTE=1` 可改） | 一律回收 | 拒付常是持卡人误操作，金额未最终判定；先取证举证，避免误伤正常用户 |
 | 2026-11-19 | 鉴权用**自建 magic link**（D1 + Resend + WebCrypto） | Supabase Auth | 已有 Resend 与 D1；magic link 协议面小、无月费、按人可撤销；换供应商只增加迁移面 |
+| 2026-11-19 | 登录改为 **Google OAuth（唯一方式）**，去掉 magic link | 保留 magic link 兜底 | 用户少一步、少一个邮件依赖；代价是 Google 账号在大陆不可用（已知取舍，后续可加 GitHub provider） |
+| 2026-11-19 | 改为**先登录再买**：服务端创建 Checkout Session，用 Customer 锁死邮箱 | 匿名 Payment Link + 事后认领 | 身份与付款人天然一致，不再依赖「付款邮箱 = 登录邮箱」；代价是必须登录才能下单 |
 | 待定 | `learn.` 子域托管（Cloudflare / Vercel） | — | 取决于 DNS 能否交给 Cloudflare |
 | 待定 | 鉴权实现（自建 magic link / Supabase Auth） | — | 已有 Resend + D1，倾向自建 |
 
@@ -117,28 +119,31 @@
 
 看起来省事，实际把 110 篇正文全部塞进公开产物，只是加了把锁。密钥一泄露（买家一定会分享），全部内容就永久公开，且无法按人撤销。构建期分流是唯一能同时满足「不泄露」和「可撤销」的做法。
 
-## 5. 鉴权设计（magic link，自建）— 已实现（P2.2）
+## 5. 登录与购买（Google OAuth + 先登录再买）— 已实现
 
-> 实现：`workers/course-delivery/src/auth.js`（签发/校验/JWT/限流）、`src/routes/auth.js`（端点）、
-> `src/pages.js`（页面）、`src/gate.js`（门禁）。接线到静态资源见 P2.3。
+> 最初方案是「邮件 magic link」。2026-11-19 改为 Google OAuth 并去掉 magic link：
+> 用户少一步、少一个邮件服务依赖；代价是 Google 账号在中国大陆不可用（已知取舍）。
 
-已有 Resend 与 D1，再加一个供应商（Supabase Auth）会多一处身份源、多一份月费与迁移风险。magic link 的协议面很小，自建可控。
+**登录**
 
-**流程**
+1. `GET /login` → 「使用 Google 继续」→ `GET /auth/google`
+2. 生成 state + PKCE verifier，写 HttpOnly cookie（10 分钟），302 到 Google
+3. `GET /auth/google/callback`：比对 state → 换令牌 → 取 userinfo → 只接受 `email_verified: true`
+4. 写会话 cookie（HS256 JWT，30 天，HttpOnly / Secure / SameSite=Lax）
+5. 每个受保护请求：验签 → 查 `entitlements`（每次查库，所以退款即时生效）
 
-1. 用户输入邮箱 → `POST /auth/magic`
-   - 生成 32 字节随机 token，DB 只存 `sha256(token)`，TTL 15 分钟，单次使用
-   - 同邮箱 60 秒内只发一封；同 IP 每小时上限 5 封
-   - 无论邮箱是否购买过，都返回同样的「已发送」页面（防枚举）
-2. 邮件里点击 `https://learn.opencodeguide.com/auth/verify?t=<token>`
-   - 校验哈希、TTL、未使用 → 标记 `used_at`
-   - 若 `entitlements` 无记录：仍允许登录，但只看到「暂无已购课程 + 联系支持」
-3. 下发会话：`Set-Cookie: session=<JWT HS256>; HttpOnly; Secure; SameSite=Lax; Domain=.opencodeguide.com; Max-Age=2592000`
-   - payload：`sub=email`、`iat`、`exp`、`jti`
-4. 每次访问受保护页面：验签 → 取 `sub` → 查 `entitlements`（带 `revoked_at is null`）→ 通过才返回正文
-   - 会话是长期的，但**授权每次都查库**，所以退款即时生效
+**购买（先登录再买）**
 
-**为什么不用长期签名链接**：链接会被转发、无法按人撤销、也没有「我的课程」入口。magic link 只多一步点击，换来可撤销的会话。
+1. 公开站购买按钮 → `https://learn.opencodeguide.com/buy/<slug>/<plan>`
+2. 未登录 → `/login?next=/buy/...`，登录后回到购买页
+3. `POST /checkout`：用**登录邮箱**创建/复用 Stripe Customer，再创建 Checkout Session
+   - 传 `customer`（不是 `customer_email`），Stripe 页面上邮箱不可改
+   - `metadata` 带 `email` / `course_slug` / `plan_id`
+4. Webhook 优先读 `metadata.email` 写权益 → 付款人与阅读身份天然一致
+5. 支付成功回跳 `/account?paid=1`
+
+**为什么不保留匿名购买**：身份只能来自「付款时填的邮箱」，而那个邮箱我们无法验证归属；
+先登录后购买让身份和付款人是同一个对象，也不需要为对齐身份再发验证邮件。
 
 ## 6. 数据模型（D1 增量）
 
@@ -319,7 +324,7 @@ P2.0 之后，付费正文在公开站**已经读不到**了。所以在 P2.1–
 - 免费额度按「课表顺序」而不是「模块 1」计算：课程 3 的模块 1 只有 1 节，第 2 节会自动顺延到模块 2。
 - `frontmatter` 的 `free: true` 仍然有效，可用于额外开放某一节；`validate` 会在它超出额度时给出警告。
 
-## 16. P2.1 实施记录（2026-11-19）
+## 16. P2.1 权益表实施记录（2026-11-19）
 
 **做了什么**
 
@@ -342,7 +347,7 @@ P2.0 之后，付费正文在公开站**已经读不到**了。所以在 P2.1–
 
 **下一步（P2.2）**：`/auth/magic` 签发与校验、会话 JWT、限流、`/account`、静态资源门禁 `gate.js`——门禁每次请求都查 `entitlements`，所以 P2.1 的撤销能直接生效。
 
-## 17. P2.2 实施记录（2026-11-19）
+## 17. P2.2 实施记录（magic link 版本，已被第 18 节取代）
 
 **做了什么**
 
@@ -364,3 +369,32 @@ P2.0 之后，付费正文在公开站**已经读不到**了。所以在 P2.1–
 2. `learn.` 子域与 DNS、成员站构建（`COURSE_ACCESS=members`）；
 3. 全站的 `X-Robots-Tag: noindex` 与 `robots.txt` 全禁；
 4. 正文页水印（邮箱）与登录失败排查日志看板（P2.4）。
+
+## 18. 登录与购买改造（2026-11-19）
+
+**改了什么**
+
+| 环节 | 之前 | 现在 |
+| :--- | :--- | :--- |
+| 登录 | 邮件 magic link（依赖 Resend） | Google OAuth（`src/oauth.js` + `routes/auth.js`） |
+| 删除 | `magic_links` / `auth_attempts` 表与相关代码 | 迁移 `0003_drop_magic_link.sql` |
+| 购买 | 公开站跳 Stripe Payment Link（匿名） | 公开站 → `learn./buy/<slug>/<plan>`（需登录）→ `POST /checkout` |
+| 支付会话 | Payment Link 托管 | 服务端创建 Checkout Session（`src/stripe-api.js`） |
+| 身份 | 用 Stripe 页面填的邮箱 | 用登录邮箱，并绑定 Stripe Customer（邮箱不可改） |
+| 权益归属 | `customer_details.email` | `metadata.email` 优先，回退旧逻辑 |
+
+**新增配置（Worker）**
+
+| 名称 | 说明 |
+| :--- | :--- |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth 客户端 |
+| `GOOGLE_REDIRECT_URI` | 可选，默认 `${LEARN_URL}/auth/google/callback`，必须与控制台一致 |
+| `STRIPE_SECRET_KEY` | 服务端创建 Customer / Checkout Session |
+| `COURSE_CATALOG` | 运行时课程目录（标题 / 价格 / priceId），由 `scripts/courses/sync-worker-catalog.mjs` 生成 |
+| `SESSION_SECRET` | 会话签名（已有） |
+
+**测试**：`npm run workers:test` → 101/101（覆盖 OAuth state/PKCE、邮箱未验证、buy 需登录、
+checkout 用 Customer 锁邮箱、metadata 带登录邮箱）。
+
+**遗留**：公开站的购买按钮仍指向 Payment Link（需要改 `lib/courses.ts` / `BuyButton` 指向
+`learn./buy/...` 并重新构建部署）；旧 Payment Link 继续可用作兼容。
