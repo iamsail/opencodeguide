@@ -280,7 +280,7 @@ CI 增加一步：public 构建后跑 `node scripts/courses/assert-no-gated-cont
 
 1. ~~**免费边界**~~ ✅ 2026-11-19 定为每门前 2 节（`content/courses/access.json`）。
 2. ~~**登录形态**~~ ✅ 2026-11-19 定为自建 magic link（D1 + Resend + WebCrypto）。
-3. **DNS**：`learn.opencodeguide.com` 能否交给 Cloudflare？（决定成员站是 Cloudflare 还是 Vercel）——这是 P2.3 的唯一前置。
+3. ~~**DNS**~~ ✅ 2026-11-19 实测确认：`opencodeguide.com` 的 NS 已是 Cloudflare（`alla/tadeo.ns.cloudflare.com`），`learn.opencodeguide.com` 已代理到 Worker 自定义域。结论：成员站走 Cloudflare，顶点域继续 GitHub Pages（DNS only）。操作步骤见 [08-launch-runbook.md](./08-launch-runbook.md) §1。
 
 ## 15. P2.0 实施记录（2026-11-19）
 

@@ -76,7 +76,7 @@
 | # | 决策 | 状态 | 影响 |
 | :--- | :--- | :--- | :--- |
 | 1 | 免费边界：每门前 2 节还是 3 节 | ✅ 定为 2 节（`access.json` 可改） | 转化与 SEO |
-| 2 | `learn.` 子域 DNS 能否交给 Cloudflare | 待定 | 决定成员站托管在 Cloudflare 还是 Vercel（Vercel 会产生按量成本） |
+| 2 | `learn.` 子域 DNS 能否交给 Cloudflare | ✅ 2026-11-19 确认已在 Cloudflare | 成员站走 Cloudflare Worker，顶点域继续 GitHub Pages。步骤见 `docs/courses/08-launch-runbook.md` |
 | 3 | 自建 magic link 还是 Supabase Auth | 待定（倾向自建） | 多一个供应商 vs 多一份维护 |
 
 ## 与其它任务的关系
@@ -86,6 +86,12 @@
 - **P2.1–P2.3 完成前不要开启真实收款**：付费正文已从公开站下架，买家暂时没有阅读入口。
 
 ## Progress Log
+### 2026-11-19（上线前外部配置盘点）
+- 实测探测：DNS 已在 Cloudflare、`learn.` 已绑定 Worker 自定义域（DNS 决策关闭）。
+- 线上 Worker 仍是改造前版本：`/health` 无 `googleOauth`/`stripeKey`/`catalog`，`resend:false`，`/auth/google` 与 `/buy/*` 均 404，`/` 返回 404（`env.ASSETS` 未接线）。
+- `content/courses/stripe-products.json` 不存在 → 尚未创建 live 商品/价格，`/checkout` 必然因缺 `priceId` 返回 503。
+- 产出 [`docs/courses/08-launch-runbook.md`](../../docs/courses/08-launch-runbook.md)：DNS 结论、Google/Stripe/Resend 逐步配置、注入与部署顺序、十项验收、回滚点、分工。
+
 ### 2026-11-19（登录/购买改造）
 - 登录从 magic link 改为 **Google OAuth**：`src/oauth.js` + `routes/auth.js`，删除 magic link 代码与两张表（迁移 0003）。
 - 购买改为 **先登录再买**：`/buy/<slug>/<plan>` + `POST /checkout`，用 Stripe Customer 锁死登录邮箱，权益改按 `metadata.email` 写入。

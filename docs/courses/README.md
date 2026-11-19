@@ -10,6 +10,8 @@
 | [04-stripe-integration.md](./04-stripe-integration.md) | 为什么用 Payment Link、如何接入、如何升级到 Checkout + Webhook、税务与合规 |
 | [05-rollout-plan.md](./05-rollout-plan.md) | 分期上线路线图（P0-P3）、验收标准、指标与风险 |
 | [06-todo.md](./06-todo.md) | **进度看板与 TODO**：已完成 / 待人工 / P1-P3 任务清单 |
+| [07-access-control.md](./07-access-control.md) | 付费墙与会员中心设计：双构建、权益表、门禁、验收标准 |
+| [08-launch-runbook.md](./08-launch-runbook.md) | **上线操作手册**：DNS 归属结论、Google OAuth / Stripe / Resend 逐步配置、部署顺序与十项验收 |
 
 ## 当前实现状态（Phase 1 / P0：已完成）
 
