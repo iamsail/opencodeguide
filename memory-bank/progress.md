@@ -172,6 +172,13 @@
 - **设计文档**: `docs/courses/`（市场分析、功能设计、课程内容、Stripe 方案、分期路线图、`06-todo` 进度看板）。
 - **验证**: `next build` 静态导出通过（158 页）；`tsc --noEmit` 通过；sitemap 收录 30 条课程 URL 且排除感谢页；`Course` JSON-LD、canonical、hreflang 输出正确；用临时 Stripe 链接构建验证过 `client_reference_id`/utm 参数与未配置时的降级行为。
 - **待办**: P1（正式收款 + 邮件交付）见 `docs/courses/06-todo.md` 与 `TASK105`；阻塞项为 Stripe 密钥、等待名单端点、视频/模板/社群交付物。
+## 课程正文完成 (2026-11-19)
+- 四门课 **123/123 节**：AI 编程实战 27、独立开发者出海 33、跨境电商独立站 36（补齐模块 7–8）、出海网站 SEO 27（全新 6 模块）。
+- 规模：27.4 万字符、204 个代码块、约 17.4h 阅读；`courses:validate` 0 错误。
+- 构建：281 页、123 个课时页；付费墙断言扫描 1773 个文件 / 230 条探针，0 泄露（公开 8 / 锁定 115）。
+- 修复：闸门探针在「行内代码/加粗切碎段落」时抽不出候选，改为取最长纯文本片段。
+- 待办：英文正文（0 节）。
+
 ## 登录改 Google + 先登录再买 (2026-11-19)
 - **登录**: Google OAuth（授权码 + PKCE + state cookie），只接受 `email_verified`；会话仍是 HS256 JWT（30 天）。magic link 代码与 `magic_links`/`auth_attempts` 一并删除（迁移 0003）。
 - **购买**: `/buy/<slug>/<plan>` 要求登录 → `POST /checkout` 用登录邮箱创建/复用 Stripe Customer（`customer` 锁死邮箱）→ Checkout Session，metadata 带 email/course_slug/plan_id。

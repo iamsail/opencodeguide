@@ -1,0 +1,65 @@
+---
+title: "Core Web Vitals：静态导出 + CDN 的性能基线"
+summary: "用真实网络测 LCP、INP、CLS，把静态导出的首屏优势守住"
+module: 3
+lesson: 1
+duration: 8
+free: false
+objectives:
+  - "能说清 LCP、INP、CLS 各自测什么，以及判定「良好」的边界"
+  - "能写出区分 HTML 与带哈希静态资源的缓存头配置"
+  - "能区分实验室数据与现场数据，用现场数据决定是否继续优化"
+---
+
+本地 Lighthouse 跑到 99 分，上线两周后核心网页指标却大片标黄——这是静态站点最常见的一记闷棍。原因不复杂：你在本机对着 localhost 跑分，用户在地铁里用中端安卓机打开你的首屏。静态导出已经帮你省掉了服务端渲染时间，剩下的差距几乎全在交付层：HTML 文档的 TTFB、字体与首图的下载顺序、图片没写尺寸带来的布局抖动。
+
+这一节把性能当成一条可验收的基线来处理：先定指标口径，再定缓存策略，最后用现场数据复核，而不是盯着实验室评分反复自嗨。
+
+## 三个指标分别在测什么
+
+LCP 测首屏最大内容元素的渲染时刻，通常是首图或大标题；INP 测从用户交互到界面给出响应的延迟；CLS 测加载过程中布局偏移的累计幅度。公开的判定边界是 LCP ≤ 2.5s、INP ≤ 200ms、CLS ≤ 0.1 记为良好，超过 4s、500ms、0.25 记为差。这三个数字是诊断起点，不是优化目标本身：先把「差」的页面清掉，再讨论从 2.6s 到 2.4s 值不值得。
+
+静态导出在这三项上天然占优：构建期就把 HTML 写成文件，边缘节点直接返回，没有数据库查询和模板渲染。代价是 Next.js 的图片优化服务不在产物里——`output: 'export'` 下必须 `images.unoptimized: true`，`next/image` 退化成普通 `img`，尺寸、格式、懒加载策略都得你自己给。
+
+## CDN 缓存：HTML 不缓存，带哈希的资源永久缓存
+
+导出产物分两类，缓存策略必须分开。HTML 每次发布都变，要尽快让用户看到新版本；`_next/static` 下的文件名带内容哈希，改一次文件名就变，可以放心长缓存。
+
+| 路径 | Cache-Control | 原因 |
+| :--- | :--- | :--- |
+| `/*.html` | `public, max-age=0, must-revalidate` | 每次回源校验，发布即生效 |
+| `/_next/static/*` | `public, max-age=31536000, immutable` | 文件名带哈希，内容不会变 |
+| `/fonts/*`、`/images/*` | `public, max-age=31536000, immutable` | 同上，但要求文件名自带版本号 |
+
+Cloudflare Pages 直接读 `public/_headers`：
+
+```text
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*
+  Cache-Control: public, max-age=0, must-revalidate
+```
+
+GitHub Pages 不支持自定义响应头，只有默认的 `max-age=600`。想覆盖它，要么在域名前串一层 Cloudflare 代理并配 Cache Rules，要么接受十分钟的 HTML 缓存——后者会让发布后的验证窗口变长，别把「还没生效」误判成「部署失败」。
+
+## 先消除 CLS 与 LCP 的硬伤
+
+CLS 绝大多数来自没写尺寸的图片和首屏渲染后才插入的横幅。首图在 `next/image` 上写明 `width`、`height`，首屏唯一的大图加 `priority`；字体用 `font-display: swap`，或本地托管后 `preload` 提前拉。LCP 最常见的拖累是首图被懒加载：默认 `loading="lazy"` 会把首屏图排到队尾，首屏图必须显式关掉懒加载。
+
+判定顺序建议固定下来：先在 PageSpeed Insights 看现场数据（CrUX）有没有标黄，再用实验室数据定位到具体元素。别反过来——实验室跑分只代表一台模拟设备，现场数据才代表你的真实用户分布。
+
+## 落地动作
+
+1. 打开 PageSpeed Insights，把移动端与桌面端的现场数据抄进表格，记下 LCP 元素对应的选择器。
+2. 在 `public/_headers` 写入上面三组规则，部署后用 `curl -I` 抽查一条 HTML 和一条 `_next/static` 资源，确认响应头生效。
+3. 给首屏图片补 `width`、`height`、`priority`，重新构建后再跑一次现场数据，只对比同一页面、同一设备类型。
+
+## 常见坑
+
+- **现象**：本地 Lighthouse 稳定 95 分以上，Search Console 里大量 URL 判「需要改进」。→ **原因**：实验室环境没有网络延迟，设备性能远好于中端机。→ **对策**：以 CrUX 现场数据为准，按 URL 分组，先修流量最大的那一组。
+- **现象**：改完缓存头并重新发布，回访用户仍看到旧页面。→ **原因**：把 HTML 也设成了长缓存或 `immutable`。→ **对策**：HTML 一律 `max-age=0, must-revalidate`，长缓存只给带哈希的静态资源。
+- **现象**：CLS 反复超标却找不到元凶。→ **原因**：图片无尺寸，Cookie 横幅或广告位在首屏之后才插入，把正文顶下去。→ **对策**：所有媒体元素预留占位，横幅用固定高度容器先占住空间再展开。

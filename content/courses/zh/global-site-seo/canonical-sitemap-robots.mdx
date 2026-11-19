@@ -1,0 +1,92 @@
+---
+title: "canonical、sitemap、robots 的正确配合"
+summary: "三件套各管一件事：声明主版本、提交可索引 URL、控制抓取"
+module: 3
+lesson: 2
+duration: 8
+free: false
+objectives:
+  - "能解释 canonical 为什么只是建议，以及它在什么情况下会被搜索引擎忽略"
+  - "能在 generateMetadata 里同时生成 canonical 与 hreflang，并让 sitemap 保持同一套 URL"
+  - "能判断一个页面该进 sitemap、该写 noindex，还是该被 robots.txt 挡住"
+---
+
+Search Console 里出现「重复网页，用户未选定规范网页」，多数人第一反应是再补一条 canonical。但问题常常不在缺声明，而在三条链路互相矛盾：页面 A 的 canonical 指向 B，B 又指回 A；sitemap 里躺着带 `?utm_source=` 的 URL；robots.txt 挡住了一个指望靠 noindex 下架的页面。三个文件的职责被混着用，信号就会互相抵消。
+
+先把职责分开：canonical 声明「哪一个是主版本」，sitemap 提交「我希望被收录的最终 URL 清单」，robots.txt 控制「爬虫能不能来抓」。三者是三种不同的话，说不到一起就等于没说。
+
+## canonical 是建议，冲突时搜索引擎自己挑
+
+canonical 是提示而非指令。当它和页面内容、内链、sitemap、hreflang 互相矛盾时，搜索引擎会自己判断，而它的结论常常和你声明的不一样。所以规则只有三条：每个可索引页面必须自引用 canonical；全站只用一个绝对 URL，带协议和域名；canonical 与 hreflang 必须互相印证——hreflang 指向的那个语言版本，其 canonical 不能指回另一种语言，否则 hreflang 整组会被忽略。
+
+本仓用 `metadataBase` 加相对路径，避免在几十个页面里重复写域名：
+
+```ts
+// app/(zh)/zh/courses/[slug]/page.tsx
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params
+  const course = getCourse(slug)
+  const path = `/zh/courses/${slug}/`
+
+  return {
+    title: `${course.locales.zh.title} · OpenCode Guide`,
+    description: course.locales.zh.seo.description,
+    alternates: {
+      canonical: path,
+      languages: {
+        'zh-CN': path,
+        en: `/en/courses/${slug}/`,
+        'x-default': `/en/courses/${slug}/`,
+      },
+    },
+  }
+}
+```
+
+注意路径末尾的斜杠：`next.config.mjs` 里开了 `trailingSlash: true`，canonical、hreflang、sitemap、内链必须全部用带斜杠的形式，否则同一页会出现两个可访问 URL，重复内容自己造出来。
+
+## sitemap 只放「最终且可索引」的 URL
+
+静态导出下 `app/sitemap.ts` 会在构建时生成 `sitemap.xml`，记得加 `export const dynamic = 'force-static'`。它只该收录三类 URL：返回 200、允许抓取、且你希望被索引。感谢页、带查询参数的筛选结果、构建中的占位页都不该进去。
+
+有两个细节值得单独处理。一是多语言：sitemap 条目支持 `alternates.languages`，它和页面里的 hreflang 应该是同一份映射，最好由同一个常量生成，而不是两边各写一遍。二是 `lastModified`：不要用 `new Date()`，那会让每次构建都刷新全部时间戳，爬虫很快就不信这个字段，改用文件 mtime 或课程数据里的 `lastUpdated`。
+
+```ts
+{
+  url: `${BASE_URL}/zh/courses/${slug}/`,
+  lastModified: new Date(course.lastUpdated),
+  changeFrequency: 'weekly' as const,
+  priority: 0.9,
+  alternates: {
+    languages: {
+      en: `${BASE_URL}/en/courses/${slug}/`,
+      'zh-CN': `${BASE_URL}/zh/courses/${slug}/`,
+    },
+  },
+}
+```
+
+## robots.txt 管抓取预算，不管收录
+
+`app/robots.ts` 同样在构建时输出静态 `robots.txt`。它最适合做两件事：声明 sitemap 位置、挡掉确实无需抓取的路径（后台、搜索结果页、`/private/`）。它不适合用来下架内容，因为被 `Disallow` 的页面，爬虫根本读不到页面里的 `noindex`，结果是页面留在索引里、你还在等它消失。
+
+| 你的目标 | 该用什么 | 不要用 |
+| :--- | :--- | :--- |
+| 从索引中移除某个页面 | 页面级 `noindex`，同时允许抓取 | `Disallow` |
+| 减少无效抓取（分页、排序参数） | `Disallow` 或 canonical 收敛 | 先 `noindex` 再 `Disallow` |
+| 声明主版本 | canonical 自引用 + 一致的 sitemap | 只在 sitemap 里改 |
+| 让别人发现站点清单 | `robots.txt` 的 `Sitemap:` 行 | 只等 Search Console 抓取 |
+
+还有一条静态站点专属的红线：别屏蔽 `/_next/static/`。CSS 与 JS 拿不到，搜索引擎的渲染评估会直接失败，页面被当成残缺文档。
+
+## 落地动作
+
+1. 抓一份线上 `sitemap.xml`，逐条 `curl -I` 检查状态码与末尾斜杠，把跳转或 404 的条目删掉。
+2. 打开三个典型页面（首页、课程详情、课时页）查看源码里的 canonical 与 hreflang，确认自引用且与 sitemap 的 alternates 完全一致。
+3. 在 Search Console 的「页面索引」里筛出「重复网页」，逐条对照是谁指向了谁，只保留单向、自洽的声明。
+
+## 常见坑
+
+- **现象**：页面提交了 sitemap，几周后仍显示「已发现但未编入索引」。→ **原因**：sitemap 里混入了跳转 URL、带参数的重复页，或 canonical 指向了别的页面。→ **对策**：只保留 200 且自引用 canonical 的最终 URL，把条目数量降下来再观察。
+- **现象**：中英文页面互相不认，hreflang 报告整组失效。→ **原因**：两个语言版本互相把 canonical 指到了对方。→ **对策**：每个语言版本 canonical 自引用，hreflang 用完整的一组成员互相指向。
+- **现象**：某个页面加了 `Disallow`，搜索里还能看到它。→ **原因**：robots.txt 只阻止抓取，不删除已有索引，而爬虫读不到 `noindex`。→ **对策**：先放开抓取并加 `noindex`，等索引移除后再考虑屏蔽。

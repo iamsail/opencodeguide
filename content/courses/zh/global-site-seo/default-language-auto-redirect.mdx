@@ -1,0 +1,83 @@
+---
+title: "默认语言、自动跳转与爬虫可达性"
+summary: "URL 必须承载语言：静态导出下没有服务端协商，按语言头跳转会挡住爬虫"
+module: 2
+lesson: 4
+duration: 8
+free: false
+objectives:
+  - "能说明静态导出站点为什么做不了按请求头的语言分流，以及替代方案在哪一层"
+  - "能指出按 Accept-Language 跳转带来的三个可验证问题"
+  - "能把根路径、x-default 与语言切换器配成一套不依赖自动跳转的方案"
+---
+
+很多多语言站会在根路径读 `Accept-Language`，把用户重定向到对应语言。上线后通常发生三件事：爬虫只看到默认语言、分享出去的链接在别人手里变成另一种语言、Search Console 里各语言版本互相打架。这三件都不是运气问题，而是这个方案的必然结果。
+
+## 静态导出站没有服务端协商
+
+本仓库的 `next.config` 是 `output: 'export'`，产物是一堆静态文件。Next.js 的静态导出文档把不支持项列得很清楚，其中包括 Redirects、Rewrites、Headers 和 Proxy（中间件）——`next.config` 里写的跳转规则、以及按请求头分流，在静态导出下都不存在。
+
+想在请求时读 `Accept-Language` 分流，只能放在托管层：GitHub Pages 做不到，它只按路径返回文件；Cloudflare 的 Redirect Rules 能做静态路径映射，但规则不读 `Accept-Language`，要按语言头分流只能上 Worker。
+
+## 为什么不建议按语言头跳转
+
+1. **爬虫大多不发这个头。** 抓取时通常不带 `Accept-Language`，于是它永远只看到默认语言；其它版本只能靠 hreflang 与 sitemap 被发现，跳转等于给发现过程加成本。
+2. **链接不再可分享。** 你把 `/pricing/` 发给伦敦的同事，他打开地址栏变成 `/en-GB/pricing/`，你们在讨论两个不同的 URL。
+3. **缓存会互相污染。** CDN 按 URL 缓存却没加 `Vary: Accept-Language` 时，会给一批用户返回另一批用户的语言版本。
+
+## 推荐结构：URL 决定语言
+
+| 路径 | 内容 | 索引策略 |
+| :--- | :--- | :--- |
+| `/` | 默认语言页或语言选择页 | 可索引，`x-default` 指向它 |
+| `/en/...` | 英语内容 | 可索引，hreflang 自指 |
+| `/zh/...` | 中文内容 | 可索引，hreflang 自指 |
+| `/en-GB/...` | 地区变体 | 有独立内容才建，否则 301 到 `/en/` |
+
+语言切换用可见的选择器，切换时改 URL；用户的选择存 cookie，但只在用户点击过之后生效，绝不代替 URL 承载语言语义。如果一定要做自动分流，用 Worker 只处理根路径、只对 GET，并且跳 302 而不是 301：
+
+```ts
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+    if (url.pathname !== "/" || request.method !== "GET") return fetch(request);
+    const accept = (request.headers.get("accept-language") ?? "").toLowerCase();
+    return Response.redirect(`${url.origin}/${accept.startsWith("zh") ? "zh" : "en"}/`, 302);
+  },
+};
+```
+
+## 可达性检查
+
+```bash
+curl -sI https://example.com/ | head -5        # 应返回 200，不是 302 环
+curl -s -A "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" \
+  https://example.com/en/ | grep -o '<link rel="canonical"[^>]*>'
+```
+
+两项都要过：根路径返回 200；语言页 canonical 自指。
+
+## 语言选择页怎么写
+
+如果根路径用选择页，它必须满足四条：列表能被爬虫读到（不要用 JS 生成）、每个语言是真实可点的链接（不是按钮加跳转脚本）、记住上次选择但只在二次访问时预选、自身可索引。
+
+```html
+<nav aria-label="Language">
+  <a href="/zh/docs/" hreflang="zh-CN" lang="zh-CN">简体中文</a>
+  <a href="/en/docs/" hreflang="en" lang="en">English</a>
+</nav>
+```
+
+链接必须指向最终地址：如果 `/zh/` 还要 301 到 `/zh/docs/`，就直接写后者。选择页本身要进 sitemap，并作为 `x-default` 的目标。
+
+## 落地动作
+
+1. 检查 `next.config` 与托管平台，确认没有依赖 `redirects`、`headers`、`Proxy` 的配置残留在静态导出里。
+2. 把根路径定成真实页面（默认语言或选择器），写进 sitemap，并在所有语言页的 `alternates.languages` 里放上 `x-default`。
+3. 跑上面两条命令，再清掉浏览器语言偏好刷新一次，确认语言不会被自动改掉。
+
+## 常见坑
+
+- **现象**：其它语言页面收录很少。→ **原因**：根路径按语言头跳转，爬虫只见到默认语言。→ **对策**：去掉按请求头跳转，改用可见切换器 + hreflang + sitemap。
+- **现象**：用户反馈「打开是英文，我是中文用户」。→ **原因**：cookie 偏好被自动应用，或 CDN 缓存串了语言。→ **对策**：偏好只在显式点击后生效，或按路径分缓存键。
+- **现象**：同一条链接在两个同事那里内容不一样。→ **原因**：URL 不承载语言，语言来自请求头或 cookie。→ **对策**：语言写进 URL，URL 相同则内容必须相同。

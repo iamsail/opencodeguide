@@ -1,0 +1,86 @@
+---
+title: "GA4 事件设计：从访问到注册到付费的归因"
+summary: "六个事件打通访问到付费，用事件表和对账口径替代「Direct 占一半」"
+module: 6
+lesson: 2
+duration: 8
+free: false
+objectives:
+  - "能写出覆盖访问、注册、结账、付费六个事件的事件表，含触发时机与参数"
+  - "能用 gtag 在 Next.js 静态导出站点上报自定义事件，且不阻断业务逻辑"
+  - "能说清 GA4 与 Stripe 各自该信哪一部分数据，并写出对账公式"
+---
+
+GA4 装好之后，最常见的结果是：来源报表里 Direct 占一半，注册数和后台对不上，付费只能靠 Stripe 后台手工数。原因不是工具坏了，而是事件设计缺失——默认只有 `page_view`，用户做了什么都记不下来，模型只能把无法归因的会话丢进 Direct。
+
+## 先定事件，再谈归因
+
+事件设计的顺序是：先列出业务上必须回答的问题（这周有多少人注册、注册的人里多少付费、付费的人从哪来），再倒推需要哪些事件。每加一个事件都要能回答一个问题，否则它只是给报表添噪音。
+
+命名统一用小写下划线（GA4 推荐），参数名复用 GA4 的标准字段（`value`、`currency`、`items`、`transaction_id`），自定义字段放业务维度（`course`、`plan`、`locale`）。标准字段别改名，改了就用不上 GA4 内置的收入报表。
+
+## 六个事件覆盖完整漏斗
+
+| 事件名 | 触发时机 | 必带参数 |
+| :--- | :--- | :--- |
+| `page_view` | 每个静态路由渲染完成（增强测量自动上报） | `page_location`、`page_referrer` |
+| `view_item` | 课程详情页挂载后 | `item_id`、`item_name`、`price` |
+| `cta_click` | 点击主行动按钮（试听、看大纲、订阅） | `cta_id`、`page_path`、`locale` |
+| `sign_up` | 账号创建成功回调后 | `method`、`page_path` |
+| `begin_checkout` | 点击购买按钮、跳转 Stripe 之前（站点已有） | `currency`、`value`、`items[]`、`course`、`plan` |
+| `purchase` | 回执页 `/courses/thank-you` 带 `transaction_id` 打开时 | `transaction_id`、`value`、`currency`、`items[]` |
+
+`begin_checkout` 已经在 `components/courses/buy-button.tsx` 里实现，参数与 Stripe 的 `client_reference_id`、utm 一一对应，这是后面能对账的关键。`purchase` 在纯静态站只能用回执页近似上报，所以真实收入一律以 Stripe 为准。
+
+## 一个薄封装，避免 SSR 报错和重复上报
+
+Next.js 静态导出时页面先构建成 HTML，代码里不能假设 `window.gtag` 存在；同时报告页刷新会重复发 `purchase`，要用 `transaction_id` 去重。
+
+```ts
+// lib/analytics.ts
+type Params = Record<string, string | number | boolean | object | undefined>;
+
+export function track(name: string, params: Params = {}) {
+  if (typeof window === "undefined") return; // 构建期没有 window
+  try {
+    window.gtag?.("event", name, params);
+  } catch {
+    /* 埋点永远不能阻断结账 */
+  }
+}
+
+export function trackPurchaseOnce(orderId: string, value: number) {
+  if (typeof window === "undefined") return;
+  const key = `ga_purchase_${orderId}`;
+  if (window.sessionStorage.getItem(key)) return;
+  window.sessionStorage.setItem(key, "1");
+  track("purchase", { transaction_id: orderId, currency: "USD", value });
+}
+```
+
+调用点只写一行：`track("sign_up", { method: "email", page_path: location.pathname })`。不要在组件里直接写 `window.gtag(...)`，否则静态导出和单元测试都会报错。
+
+## GA4 管趋势，Stripe 管金额
+
+两边口径不同，混用必然对不上。GA4 会漏报（广告拦截、跨域跳转丢 session、同意模式下未授权），也会多报（回执页刷新、测试订单）。正确做法是分工：GA4 负责各渠道的会话、注册、结账行为的相对变化；Stripe 负责付款成功与金额。每周用一条对账公式量化差距：
+
+| 指标 | 计算口径 | 数据来源 |
+| :--- | :--- | :--- |
+| 归因完整度 | `GA4 purchase 订单数 ÷ Stripe 成功支付笔数` | GA4 探索 + Stripe |
+| 自然注册率 | `自然来源注册数 ÷ 自然来源会话数` | GA4 |
+| 注册到付费转化率 | `自然新增付费用户 ÷ 自然注册数` | GA4 + Stripe |
+| SEO 获客成本 | `(内容工时 × 时薪 + 工具与外链费用) ÷ 自然新增付费用户` | 自建成本表 + Stripe |
+
+归因完整度长期低于自己设定的下限时，先修技术（跨域、同意模式、回执页参数），再去解释渠道差异；否则所有渠道结论都是噪声。
+
+## 落地动作
+
+1. 把上面的事件表抄进自己的表格，逐条写上「谁触发、在哪个文件里、带哪些参数」，缺的补实现，多余的删掉。
+2. 在 GA4 里把 `sign_up`、`begin_checkout`、`purchase` 标记为关键事件，并用「探索」建一个「渠道 × 关键事件」的自由格式表。
+3. 用一笔真实小额订单跑完「点击购买 → Stripe → 回执页」，确认 `begin_checkout` 与 `purchase` 都上报、`transaction_id` 不重复，再记录当周归因完整度作为基线。
+
+## 常见坑
+
+- **现象**：来源报表里直接流量占一半以上。→ **原因**：跳转 Stripe 再跳回来时 utm 丢失，回执页被记成新会话。→ **对策**：回执页 URL 带回 `session_id` 或 `client_reference_id`，在读参数后用 `track` 手动补一次来源信息。
+- **现象**：报告里同一天出现两笔相同订单。→ **原因**：回执页被刷新或用户从邮件再次打开。→ **对策**：用 `transaction_id` 加 `sessionStorage` 或服务端去重，只上报首次。
+- **现象**：事件名写成 `SignUp`、`sign-up`、`signup` 三种。→ **原因**：多人各写各的，没有登记表。→ **对策**：事件表进版本库，新增事件必须先在表里登记，命名只允许小写下划线。

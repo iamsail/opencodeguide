@@ -1,0 +1,106 @@
+---
+title: "hreflang 的正确写法与 5 个高频错误"
+summary: "每组必须自指且双向，href 必须是 200 的最终地址，否则整组静默失效"
+module: 2
+lesson: 2
+duration: 8
+free: false
+objectives:
+  - "能写出含自指、互指与 x-default 的完整 hreflang 组，并说明三项硬要求"
+  - "能用脚本抓 head 里的 alternate 链接，验出自指缺失、单向指向与跳转地址"
+  - "能说清 head、HTTP 头、sitemap 三处实现为什么只能选一套"
+---
+
+hreflang 的作用是告诉搜索引擎「这一组页面是同一内容的语言或地区变体」，它不是排名手段。写错时不会报错，只会静默失效——最典型的表现是：英文页收录了，其它语言一个都没进索引，而代码里明明写了。
+
+## 一组 hreflang 的完整形态
+
+每个语言页的 head 都要包含指向自己和其他所有变体的链接，包括自己：
+
+```html
+<link rel="alternate" hreflang="zh-CN" href="https://example.com/zh/pricing/" />
+<link rel="alternate" hreflang="en" href="https://example.com/en/pricing/" />
+<link rel="alternate" hreflang="x-default" href="https://example.com/pricing/" />
+```
+
+三条硬要求：① 自指必须存在；② 互指必须双向，A 指 B，B 也必须指 A；③ `href` 必须是能直接打开、返回 200 的地址，不能是 301 源、302 跳转或 404。
+
+## 五个高频错误
+
+| 错误 | 现象 | 后果 |
+| :--- | :--- | :--- |
+| ① 缺自指 | 只写了「其它语言」的链接 | 该页被排除出这组变体 |
+| ② 单向指向 | A 指 B，B 没指 A | 整组关系被忽略 |
+| ③ 语言码写错 | `en-UK`、`zh_CN`、`jp` | 无效值被直接丢弃 |
+| ④ href 是跳转地址 | 指向带 301 的旧 URL | 变体关系丢失 |
+| ⑤ 三处实现冲突 | head、sitemap、HTTP 头各写一套 | 只认一套，其余白写 |
+
+合法值只有两类：纯语言（`en`、`zh`、`es`）和「语言-地区」（`en-US`、`en-GB`、`es-MX`、`zh-CN`）。地区用 ISO 3166-1 两位码：`UK` 不是国家码，英国是 `GB`。
+
+还有两个易漏点：`x-default` 只能有一个，指向没有语言匹配时的落地页；`hreflang` 与 `canonical` 不冲突，但 canonical 必须自指——全指向英文版会直接把其它语言页合并掉。
+
+## App Router 里的写法
+
+```ts
+// app/(zh)/zh/pricing/page.tsx
+import type { Metadata } from "next";
+
+const ORIGIN = "https://example.com";
+const path = "/pricing";
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: `${ORIGIN}/zh${path}`,
+    languages: {
+      "zh-CN": `${ORIGIN}/zh${path}`,
+      en: `${ORIGIN}/en${path}`,
+      "x-default": `${ORIGIN}/en${path}`,
+    },
+  },
+};
+```
+
+`languages` 的 key 就是 `hreflang` 的值，Next 会为每一项输出一条 `<link rel="alternate">`。也可以只写路径、靠根布局的 `metadataBase` 展开，但两种风格不要混用。
+
+## 上线后的校验
+
+```bash
+# 逐个页面抓 head，检查自指与互指是否成对
+for p in /zh/pricing/ /en/pricing/; do
+  echo "== $p"
+  curl -s "https://example.com$p" | grep -o '<link rel="alternate"[^>]*>'
+done
+```
+
+看三件事：每个页面都包含指向自己那一行；每个 `href` 用 `curl -I` 都能拿到 200；`x-default` 全站只有一个目标。再用 Search Console 的 URL 检查确认「已编入索引」，别只看 sitemap 里写了。
+
+## 三处实现与语言码对照
+
+| 实现位置 | 优点 | 代价 |
+| :--- | :--- | :--- |
+| 页面 head | 与页面同生共死，改一次就生效 | 每页都要写全，容易漏自指 |
+| sitemap 的 `xhtml:link` | 集中维护，适合页面量大 | 必须与 head 一致，冲突即失效 |
+| HTTP 响应头 | 适合非 HTML 文件 | 静态托管通常改不了响应头 |
+
+小站选 head；页面数上百后改由同一份数据同时生成 head 与 sitemap，别维护两套。
+
+| 写法 | 含义 | 什么时候用 |
+| :--- | :--- | :--- |
+| `en` | 英语，不限地区 | 只有一份英文内容时 |
+| `en-US` / `en-GB` | 美式 / 英式英语 | 价格、拼写、合规有差异时 |
+| `zh-CN` / `zh-TW` | 简体 / 繁体 | 用词与支付习惯不同时 |
+| `x-default` | 无匹配时的默认页 | 每组一个，指向默认语言页 |
+
+语言码用 ISO 639-1，地区码用 ISO 3166-1 的两位码。`zh-Hans` 这类脚本子标签可以用，但要与 `zh-CN` 二选一，全站统一。
+
+## 落地动作
+
+1. 列出要支持的 locale 清单，只保留有真实翻译内容的；没有内容的语言不要登记进 hreflang。
+2. 在 layout 或 `generateMetadata` 里统一生成 alternates，禁止每页手写——手写必然漏自指。
+3. 上线后跑上面的脚本，把每个 href 用 `curl -I` 验一遍状态码，修完再重提 sitemap。
+
+## 常见坑
+
+- **现象**：只有默认语言被收录，其它语言查不到。→ **原因**：缺自指、单向指向，或所有页 canonical 都指向默认语言。→ **对策**：自指 canonical + 双向 hreflang，逐页验证。
+- **现象**：写了 hreflang，搜索结果显示的仍是错误语言版本。→ **原因**：href 是跳转地址，或地区码用了 `UK` 这类无效值。→ **对策**：href 用最终 200 地址，语言码只用合法形式。
+- **现象**：sitemap 与页面 head 的 hreflang 不一致。→ **原因**：两处各自维护。→ **对策**：只保留一套生成逻辑，另一处由同一份数据导出。

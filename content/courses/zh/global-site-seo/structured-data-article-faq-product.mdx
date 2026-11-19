@@ -1,0 +1,126 @@
+---
+title: "结构化数据实战：Article、FAQ、Product、Course、Breadcrumb"
+summary: "按实体选类型，只标记页面上看得见的内容，并用工具闭环验证"
+module: 3
+lesson: 4
+duration: 8
+free: false
+objectives:
+  - "能为任意页面选出正确的 @type，并列出它的必填字段"
+  - "能写出 Article + FAQPage + BreadcrumbList 共用一个 @graph 的 JSON-LD"
+  - "能区分「语法有效」与「能拿到增强结果」，用正确工具逐层排查"
+---
+
+往页面里塞一段 JSON-LD 之后再没管过，是结构化数据最常见的状态。等到 Search Console 报「检测到但无效」，才发现价格字段写的是字符串、`image` 用了相对路径、`aggregateRating` 是编的。更隐蔽的一种是语法全对、字段也齐，可富媒体结果就是不出——因为页面上的可见内容跟你标记的对不上。
+
+结构化数据不是给搜索引擎看的装饰，它是对页面内容的第二次陈述。第二次陈述只要和第一次有任何不一致，收益就会归零，甚至变成风险。
+
+## 先定实体，再写字段
+
+一份 JSON-LD 只回答一个问题：这个页面在讲什么实体。博客文章是 `Article`，课时页是 `TechArticle`，商品页是 `Product`，课程详情是 `Course`，问答区块是 `FAQPage`，层级导航是 `BreadcrumbList`。同一页可以有多个实体，但它们应该是同一主题的不同切面，而不是把能想到的类型全刷一遍。
+
+| 页面 | @type | 必填字段 |
+| :--- | :--- | :--- |
+| 文章、课时 | `Article` / `TechArticle` | headline、datePublished、author、image |
+| 有问答的内容页 | `FAQPage` | mainEntity 里的 Question 与 acceptedAnswer |
+| 课程详情 | `Course` | name、description、provider、offers |
+| 商品详情 | `Product` | name、image、offers（price 与 priceCurrency） |
+| 任意层级页 | `BreadcrumbList` | itemListElement 的 position、name、item |
+
+## 内容页：三种类型共用一个 @graph
+
+内容页常有正文、问答和面包屑，与其注入三个 `script`，不如用一个 `@graph` 收在一起，`@id` 指向同一页面，关系更清楚：
+
+```json
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "@id": "https://opencodeguide.com/zh/blog/core-web-vitals/#article",
+      "headline": "Core Web Vitals 的测量口径",
+      "description": "用现场数据而非实验室跑分判断首屏性能",
+      "inLanguage": "zh-CN",
+      "datePublished": "2026-10-01",
+      "dateModified": "2026-11-15",
+      "author": { "@type": "Person", "name": "作者姓名" },
+      "publisher": {
+        "@type": "Organization",
+        "name": "OpenCode Guide",
+        "url": "https://opencodeguide.com"
+      },
+      "mainEntityOfPage": "https://opencodeguide.com/zh/blog/core-web-vitals/"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "静态导出还能用图片优化吗？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "不能。output: 'export' 下要设置 images.unoptimized，图片需自行给出尺寸与格式。"
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "首页", "item": "https://opencodeguide.com/zh/" },
+        { "@type": "ListItem", "position": 2, "name": "课程", "item": "https://opencodeguide.com/zh/courses/" }
+      ]
+    }
+  ]
+}
+```
+
+`FAQPage` 能帮助引擎理解问答结构，但它不保证一定展示富媒体问答结果；不要为了拿展示位去造页面上不存在的问答。
+
+## Course 与 Product：涉及价格就别偷懒
+
+`Course` 与 `Product` 是少数需要价格与有效性字段的类型，也最容易因为渲染时机出问题：价格来自接口或客户端状态，服务端构建时拿不到，于是标了空值或写死一个旧数字。
+
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "Course",
+  "name": "出海网站 SEO 与增长工程",
+  "description": "用工程方法做多语言 SEO",
+  "inLanguage": "zh-CN",
+  "provider": { "@type": "Organization", "name": "OpenCode Guide" },
+  "url": "https://opencodeguide.com/zh/courses/global-site-seo/",
+  "offers": {
+    "@type": "Offer",
+    "price": "199",
+    "priceCurrency": "USD",
+    "availability": "https://schema.org/InStock",
+    "url": "https://opencodeguide.com/zh/courses/global-site-seo/"
+  },
+  "hasCourseInstance": {
+    "@type": "CourseInstance",
+    "courseMode": "online",
+    "courseWorkload": "PT10H"
+  }
+}
+```
+
+`Product` 的写法同构，把 `offers` 换成真实价格，`image` 给绝对 URL 数组。原则只有一条：页面上展示什么价，JSON-LD 就写什么价，币种与库存状态必须一致。没有真实评价就别写 `aggregateRating`，这是最容易被人工核查的一项。
+
+本仓的分工可以直接沿用：课程详情页注入 `Course`，课时页注入 `TechArticle` 并用 `isPartOf` 指回课程，避免同一页面出现两个 `Course`。
+
+## 验证：语法、富媒体、报告三层
+
+第一层看 JSON 是否可解析、字段是否合法，用 Schema Markup Validator；第二层看能否产出增强结果，用 Google 的 Rich Results Test；第三层看线上真实状态，用 Search Console 的增强功能报告。三层顺序不能颠倒——语法错误时后两层的信息没有意义。
+
+## 落地动作
+
+1. 列出站内五种主要页面，按上面的表填一遍 `@type` 与必填字段，缺的字段先补数据源。
+2. 把内容页的 Article、FAQPage、BreadcrumbList 合并成一个 `@graph`，用渲染函数注入，确保每页只有一份。
+3. 每条代表性 URL 过一遍 Validator 与 Rich Results Test，再把结果记进表格，两周后对照 Search Console 增强功能报告看趋势。
+
+## 常见坑
+
+- **现象**：JSON-LD 通过语法校验，富媒体结果依旧不出现。→ **原因**：标记的内容在页面上不可见，或类型与页面主题不符。→ **对策**：只标记页面上看得到的字段，删掉为用户不可见内容准备的那部分。
+- **现象**：同一页出现两个 `Course` 或重复 `Article`，报告互相覆盖。→ **原因**：组件和页面各注入一次 JSON-LD。→ **对策**：收敛到一个注入点，多实体用 `@graph` 组合。
+- **现象**：`offers` 被报缺少 price 或 priceCurrency。→ **原因**：价格在客户端渲染时才拿到，构建期输出为空。→ **对策**：把价格放进构建期可读的课程数据，前端展示与 JSON-LD 用同一个值。
