@@ -36,7 +36,7 @@ test("公开路径白名单：登录、鉴权、静态资源", () => {
 });
 
 test("正文、账户、首页、搜索索引都受保护", () => {
-  for (const path of ["/", "/account", "/courses/ai-coding-workflow/lesson-1", "/courses/ai-coding-workflow/index.txt", "/search.json"]) {
+  for (const path of ["/", "/account", "/courses/ai-coding-workflow/lesson-1", "/courses/ai-coding-workflow/index.txt", "/zh/courses/ai-coding-workflow/lesson-1", "/en/courses/ai-coding-workflow/index.txt", "/search.json"]) {
     assert.equal(isProtectedPath(path), true, `${path} 应受保护`);
   }
 });
@@ -47,6 +47,9 @@ test("从路径解析课程 slug", () => {
   assert.equal(courseSlugFromPath("/courses/ai-coding-workflow/setup/index.txt"), "ai-coding-workflow");
   assert.equal(courseSlugFromPath("/courses"), null);
   assert.equal(courseSlugFromPath("/account"), null);
+  assert.equal(courseSlugFromPath("/zh/courses"), null);
+  assert.equal(courseSlugFromPath("/zh/courses/ai-coding-workflow"), "ai-coding-workflow");
+  assert.equal(courseSlugFromPath("/en/courses/ai-coding-workflow/setup/"), "ai-coding-workflow");
 });
 
 test("未登录访问正文：需要登录", async () => {

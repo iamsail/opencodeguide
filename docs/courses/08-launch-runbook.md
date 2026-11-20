@@ -224,14 +224,17 @@ EMAIL_DRY_RUN=1 npx wrangler dev     # http://127.0.0.1:8787，邮件只打日�
 
 ## 5. 部署顺序（照这个顺序做，别跳）
 
-### 5.1 前置：先把 P2.3 代码接线补完（开发侧）
+### 5.1 前置：P2.3 代码接线（已完成 2026-11-20）
 
-现在 `/` 返回 404 就是因为这个没做。需要四处改动（详见 §6）：
+四处改动都已落地，并在本地 `wrangler dev` 端到端验证过（未登录 302 / 有权益 200 / 未购买 403 / `search.json` 401）：
 
-1. `COURSE_ACCESS=members npm run build` → 产出 `out-members/`（当前构建脚本只出 `out/`）；
-2. `wrangler.toml` 增加 `[assets] directory = "../out-members"` + `binding = "ASSETS"`；
-3. `src/index.js` 在 `/account` 之后调用 `authorizeRequest`，放行则 `env.ASSETS.fetch(request)`；
-4. 成员构建全站 `X-Robots-Tag: noindex`（可在 Worker 统一加，比逐页加可靠）。
+1. `npm run build:members` → `COURSE_ACCESS=members` + `NEXT_DIST_DIR=out-members`，产出 `out-members/`；
+2. `wrangler.toml` 的 `[assets]`：`directory = "../../out-members"`、`binding = "ASSETS"`、**`run_worker_first = true`**；
+3. `src/index.js` 在 `/account` 之后调用 `authorizeRequest`，放行才 `env.ASSETS.fetch(request)`；
+4. Worker 统一加 `X-Robots-Tag: noindex` 与 `cache-control: no-store`（比逐页加可靠）。
+
+> ⚠️ `run_worker_first` 默认是 `false`：静态资源会先于 Worker 返回、Worker 根本不执行，门禁等于不存在。
+> ⚠️ `assets.directory` 是相对 `wrangler.toml` 所在目录（`workers/course-delivery/`），不是仓库根目录。
 
 ### 5.2 注入与发布（拿到凭据后）
 
@@ -289,13 +292,13 @@ curl -sS https://learn.opencodeguide.com/health
 
 | 事项 | 只能你做 | 我可以做 |
 | :--- | :---: | :---: |
-| Cloudflare 登录 / `wrangler login` 浏览器授权 | ✅ | |
-| DNS 记录确认（SSL 模式、是否代理） | ✅ | |
+| Cloudflare 登录 / D1 迁移 / 部署 / secret 注入 | | ✅ 已完成登录与迁移 0003（2026-11-20） |
+| DNS / SSL 模式确认 | 已完成（`Full (strict)`、apex 灰云） | |
 | Google Cloud 建项目 / OAuth client | ✅ | |
 | Stripe 账户激活 / KYB / live 密钥 | ✅ | |
 | Resend 域名验证（点 Verify） | ✅ | |
 | 法务页补主体信息 | ✅ | |
-| P2.3 四处代码接线 + 成员构建 + noindex | | ✅ |
+| P2.3 四处代码接线 + 成员构建 + noindex | | ✅ 已完成（2026-11-20） |
 | 公开站购买按钮切到 `learn./buy/...` | | ✅ |
 | 注入 secret 的命令与核对 | | ✅（需要你已登录 wrangler） |
 | 验收清单逐条实测 | | ✅ |

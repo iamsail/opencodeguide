@@ -58,3 +58,13 @@ COURSE_DELIVERY = '{"ai-coding-workflow:*":{"watch":"https://learn.opencodeguide
 # 需要注入的其它 secret：
 #   STRIPE_WEBHOOK_SECRET / RESEND_API_KEY / ADMIN_TOKEN
 #   SESSION_SECRET（P2.2 会话签名密钥，随机 32+ 字节；缺失时登录接口直接 503）
+
+# 成员站静态资源（P2.3）：Next 静态导出产物 out-members/ 由本 Worker 回源。
+# run_worker_first 默认是 false —— 那会让静态文件先于 Worker 返回、门禁被绕过，
+# 所以这里必须显式 true（配套 src/index.js 的 handleMemberAsset）。
+[assets]
+directory = "../../out-members"
+binding = "ASSETS"
+run_worker_first = true
+html_handling = "auto-trailing-slash"
+not_found_handling = "none"

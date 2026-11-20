@@ -172,6 +172,16 @@
 - **设计文档**: `docs/courses/`（市场分析、功能设计、课程内容、Stripe 方案、分期路线图、`06-todo` 进度看板）。
 - **验证**: `next build` 静态导出通过（158 页）；`tsc --noEmit` 通过；sitemap 收录 30 条课程 URL 且排除感谢页；`Course` JSON-LD、canonical、hreflang 输出正确；用临时 Stripe 链接构建验证过 `client_reference_id`/utm 参数与未配置时的降级行为。
 - **待办**: P1（正式收款 + 邮件交付）见 `docs/courses/06-todo.md` 与 `TASK105`；阻塞项为 Stripe 密钥、等待名单端点、视频/模板/社群交付物。
+## 成员站门禁接线 P2.3 (2026-11-20)
+- **构建**: 新增 `npm run build:members`（`COURSE_ACCESS=members` + `NEXT_DIST_DIR=out-members`，`next.config.mjs` 支持自定义导出目录），产出 1778 文件 / 78 MB;脚本备份并还原 `public/search.json`，避免含付费正文的索引留在仓库。
+- **部署配置**: `wrangler.toml` 增加 `[assets]`：`directory = "../../out-members"`、`binding = "ASSETS"`、`run_worker_first = true`、`html_handling = "auto-trailing-slash"`。
+- **门禁**: `src/index.js` 在 `/account` 之后接 `handleMemberAsset` —— 先 `authorizeRequest`、放行才 `env.ASSETS.fetch()`;未登录 HTML → 302 `/login?next=`，非 HTML → 401，无权益 → 403;放行响应强制 `x-robots-tag: noindex` + `cache-control: no-store`。
+- **修掉一个门禁绕过**: `courseSlugFromPath` 原来只认 `/courses/<slug>`，而导出产物在 `/zh/courses/`、`/en/courses/` 下——任何登录用户都能用带语言前缀的 URL 读任意付费正文。已支持语言前缀并补路径用例。
+- **测试**: 101 → 110（新增 `test/assets.test.js` 9 条：未授权不回源、302/401/403 分流、headers 覆盖、无 ASSETS 时 404、全站通跨课、`/_next` 公开）。
+- **验证**: 公开构建 1773 文件 / 公开 8 节 / 锁定 115 节 / 230 探针 0 命中;`wrangler dev` 实测未登录 302、有权益 200（144 KB 正文）、未购买 403、`search.json` 401、`/_next` 200。
+- **环境**: 远端 D1 已应用 `0003_drop_magic_link.sql`;SSL 模式确认为 `Full (strict)`。
+- **未完成**: `wrangler deploy`（等 Google/Stripe/Resend 凭据）、公开站购买按钮切到 `learn./buy/...`、P2.4 水印与日志看板。
+
 ## 课程正文完成 (2026-11-19)
 - 四门课 **123/123 节**：AI 编程实战 27、独立开发者出海 33、跨境电商独立站 36（补齐模块 7–8）、出海网站 SEO 27（全新 6 模块）。
 - 规模：27.4 万字符、204 个代码块、约 17.4h 阅读；`courses:validate` 0 错误。

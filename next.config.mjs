@@ -13,6 +13,8 @@ const options = {
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
+  // 成员站构建（npm run build:members）产出到独立目录，避免覆盖公开站的 out/
+  ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
   trailingSlash: true,
   images: {
     unoptimized: true,

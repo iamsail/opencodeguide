@@ -1,8 +1,8 @@
 # [TASK107] - 课程访问控制与会员中心（P2.0 完成，P2.1–P2.4 待做）
 
-**Status:** In Progress (P2.0 + P2.1 + P2.2 done 2026-11-19)
+**Status:** In Progress (P2.0 + P2.1 + P2.2 + P2.3 代码接线 done 2026-11-20；待注入凭据后部署)
 **Added:** 2026-11-18
-**Updated:** 2026-11-19
+**Updated:** 2026-11-20
 
 ## Original Request
 课程内容当时已写到 88/123 节（现已 123/123），但静态站无法鉴权——正文对所有人可见。决定采用「只公开每门前 2 节，其余进会员中心」，先出设计再实施。
@@ -23,7 +23,8 @@
 - [x] P2.0 公开/付费分流：锁定页、sitemap、搜索索引、构建期断言（2026-11-19）
 - [x] P2.1 `entitlements` / `magic_links` / `auth_attempts` 迁移 + Webhook 写入与退款回收 + 历史订单回填（2026-11-19）
 - [x] P2.2 鉴权 Worker：magic link、会话 JWT、限流、`/account`、`gate.js` 门禁（2026-11-19）
-- [ ] P2.3 成员站部署：`COURSE_ACCESS=members` 构建到 `out-members/`、Worker 静态资源、子域与 DNS、noindex（0.5–1 天）
+- [x] P2.3 成员站接线：`out-members/` 构建、`[assets]` 绑定、门禁接 `env.ASSETS`、全站 noindex（2026-11-20）
+- [ ] P2.3 成员站部署：等 Google / Stripe / Resend 凭据到位后 `wrangler deploy`（`learn.` 子域已绑定）
 - [ ] P2.4 水印、邮件模板、登录失败排查、日志看板（0.5–1 天）
 
 合计 4–6 个工程师日，剩约 3–5 天。
@@ -69,7 +70,7 @@
 | `workers/course-delivery/src/pages.js` | 登录/已发送/限流/无效链接/无权限/账户页（noindex、深色模式、中英双语） |
 | `workers/course-delivery/src/templates.js` | 登录邮件（双语、解释「不是本人怎么办」） |
 
-测试：100/100（新增 38）。**未做**：静态资源接线、`learn.` 子域与成员站构建（P2.3）、水印与日志看板（P2.4）。
+测试：100/100（新增 38）。P2.3 接线已于 2026-11-20 补齐（测试 110/110），剩余水印与日志看板（P2.4）。
 
 ## 阻塞项（需要人拍板）
 
@@ -77,7 +78,7 @@
 | :--- | :--- | :--- | :--- |
 | 1 | 免费边界：每门前 2 节还是 3 节 | ✅ 定为 2 节（`access.json` 可改） | 转化与 SEO |
 | 2 | `learn.` 子域 DNS 能否交给 Cloudflare | ✅ 2026-11-19 确认已在 Cloudflare | 成员站走 Cloudflare Worker，顶点域继续 GitHub Pages。步骤见 `docs/courses/08-launch-runbook.md` |
-| 3 | 自建 magic link 还是 Supabase Auth | 待定（倾向自建） | 多一个供应商 vs 多一份维护 |
+| 3 | 自建 magic link 还是 Supabase Auth | ✅ 都不用，改 Google OAuth（2026-11-19） | 少一个供应商，代价是大陆用户无法登录 |
 
 ## 与其它任务的关系
 
@@ -86,6 +87,17 @@
 - **P2.1–P2.3 完成前不要开启真实收款**：付费正文已从公开站下架，买家暂时没有阅读入口。
 
 ## Progress Log
+### 2026-11-20（P2.3 代码接线完成，本地端到端验证通过）
+- Cloudflare 侧直接做完（机器上已有 wrangler OAuth 登录）：远端 D1 应用 `0003_drop_magic_link.sql`，删掉两张不再读写的表；`learn.` 子域与 Worker 自定义域早已绑好，SSL 模式确认是 `Full (strict)`。
+- 新增 `npm run build:members`：`COURSE_ACCESS=members` + `NEXT_DIST_DIR=out-members`（`next.config.mjs` 支持），构建出 12 个课程详情页；脚本备份并还原 `public/search.json`，避免把含付费正文的索引留在仓库里。
+- `wrangler.toml` 增加 `[assets]`：`directory = "../../out-members"`、`binding = "ASSETS"`、`run_worker_first = true`、`html_handling = "auto-trailing-slash"`。
+- `src/index.js` 在 `/account` 之后接 `handleMemberAsset`：**先** `authorizeRequest`、放行才回源；未登录 HTML → 302 `/login?next=`，非 HTML（RSC/.txt/json）→ 401，无权益 → 403；放行响应统一覆盖 `x-robots-tag: noindex` 与 `cache-control: no-store`。
+- **修掉一个门禁绕过**（新测试抓出来的）：`courseSlugFromPath` 原来只认 `/courses/<slug>`，而导出产物在 `/zh/courses/` 与 `/en/courses/` 下 —— 任何登录用户都能用带语言前缀的 URL 读到任意课程正文。现已支持语言前缀并补了路径用例。
+- 测试 101 → 110（新增 `test/assets.test.js` 9 条：未授权不回源、302/401/403 分流、headers 覆盖、无 ASSETS 时 404、全站通跨课、`/_next` 公开、health 不依赖资源绑定）。
+- 验证：`npm run build` 通过（1773 文件 / 公开 8 节 / 锁定 115 节 / 230 探针 0 命中）；`wrangler dev` 实测 —— 未登录 302、有权益 200（144 KB 正文）、未购买 403、`/_next` 200、`search.json` 401、响应头 `no-store` + `noindex`。
+- 两个踩过的坑：`run_worker_first` 默认 `false`（不显式设 `true` 门禁等于不存在）；`assets.directory` 相对 `wrangler.toml` 所在目录而不是仓库根目录。
+- 未做：`wrangler deploy`（等凭据）、公开站购买按钮切到 `learn./buy/...`（等成员站上线）、P2.4 水印与日志看板。
+
 ### 2026-11-19（上线前外部配置盘点）
 - 实测探测：DNS 已在 Cloudflare、`learn.` 已绑定 Worker 自定义域（DNS 决策关闭）。
 - 线上 Worker 仍是改造前版本：`/health` 无 `googleOauth`/`stripeKey`/`catalog`，`resend:false`，`/auth/google` 与 `/buy/*` 均 404，`/` 返回 404（`env.ASSETS` 未接线）。

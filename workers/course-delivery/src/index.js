@@ -12,6 +12,7 @@
 
 import {
   courseTitle,
+  displayCourseName,
   formatMoney,
   getSettings,
   planLabel,
@@ -25,6 +26,8 @@ import { verifyStripeSignature } from "./stripe.js";
 import { handleAccountPage } from "./routes/account.js";
 import { handleAuthRoutes } from "./routes/auth.js";
 import { handleBuyPage, handleCheckout } from "./routes/buy.js";
+import { authorizeRequest, isHtmlRequest, loginRedirectFor } from "./gate.js";
+import { renderDeniedPage, renderUnavailablePage, resolveLocale } from "./pages.js";
 
 const WEBHOOK_PATH = "/stripe/webhook";
 const RESEND_PATH = "/admin/resend";
@@ -56,9 +59,8 @@ export default {
     if (url.pathname === WEBHOOK_PATH && request.method === "POST") return handleWebhook(request, env);
     if (url.pathname === RESEND_PATH && request.method === "POST") return handleResend(request, env);
 
-    // P2.2 登录与账户。P2.3 会把成员站静态资源接在这里之后：
-    //   const decision = await authorizeRequest({ request, env, store });
-    //   decision.allowed ? env.ASSETS.fetch(request) : 登录/购买页
+    // P2.2 登录、购买、账户：这些都是 Worker 自己渲染的页面，不需要静态资源。
+    // 成员站正文（out-members/）在下面走门禁，见 handleMemberAsset。
     const authRoute = await handleAuthRoutes(request, env);
     if (authRoute) return authRoute;
 
@@ -72,6 +74,11 @@ export default {
     }
 
     if (url.pathname === "/account" && request.method === "GET") return handleAccountPage(request, env);
+
+    // P2.3 成员站静态资源：默认拒绝，放行后才回源 out-members/。
+    // wrangler.toml 必须 run_worker_first = true —— 默认 false 时 Cloudflare 会先
+    // 返回静态文件、Worker 根本不执行，整套门禁等于不存在。
+    if (env.ASSETS) return handleMemberAsset(request, env);
 
     return json({ error: "not found" }, 404);
   },
@@ -93,6 +100,7 @@ function handleHealth(env) {
       googleOauth: Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET),
       stripeKey: Boolean(env.STRIPE_SECRET_KEY),
       catalog: Boolean(env.COURSE_CATALOG),
+      assets: Boolean(env.ASSETS),
       dryRun: env.EMAIL_DRY_RUN === "1",
     },
   });
@@ -238,4 +246,89 @@ async function handleResend(request, env) {
   });
 
   return json({ ok: true, orderId: order.id, to: order.email });
+}
+
+/**
+ * 成员站静态资源（P2.3）
+ * ------------------------------------------------------------
+ * 门禁在这里落地：默认拒绝 —— 未登录 → /login，已登录但无权益 → 403，
+ * 只有 authorizeRequest 放行之后才向 env.ASSETS 回源。
+ *
+ * 顺序很重要：**先判权限、再回源**。反过来写（先取 assets 再决定要不要给）
+ * 等于把正文读进了内存，后面任何一处提前 return 都会泄露。
+ */
+async function handleMemberAsset(request, env) {
+  let store;
+  try {
+    store = createStore(env.DB);
+  } catch (error) {
+    // 查不了权益就无法证明有权限：失败必须朝「拒绝」方向倒
+    console.error(`[assets] 存储未就绪，拒绝回源：${error.message}`);
+    return unavailableResponse(request);
+  }
+
+  const decision = await authorizeRequest({ request, env, store });
+  if (!decision.allowed) return denyAssetRequest(request, env, decision);
+
+  return withMemberHeaders(await env.ASSETS.fetch(request));
+}
+
+function unavailableResponse(request) {
+  const locale = resolveLocale(request);
+  if (isHtmlRequest(request)) return htmlResponse(renderUnavailablePage({ locale }), 503);
+  return json({ error: "storage unavailable" }, 503);
+}
+
+/** 未登录 / 无权益的分流响应 */
+function denyAssetRequest(request, env, decision) {
+  const locale = resolveLocale(request);
+  const pathname = new URL(request.url).pathname;
+
+  if (decision.needsLogin) {
+    if (isHtmlRequest(request)) {
+      return new Response(null, {
+        status: 302,
+        headers: { location: loginRedirectFor(pathname), "cache-control": "no-store" },
+      });
+    }
+    // RSC / JSON / .txt 这类请求不跳登录页，直接告诉调用方未登录
+    return json({ error: "login required", login: `/login?next=${encodeURIComponent(pathname)}` }, 401);
+  }
+
+  const courseTitle = decision.courseSlug
+    ? displayCourseName(decision.courseSlug, locale, env)
+    : "";
+
+  if (isHtmlRequest(request)) {
+    return htmlResponse(renderDeniedPage({ locale, courseTitle }), 403);
+  }
+  return json({ error: "forbidden", reason: decision.reason ?? "no_entitlement" }, 403);
+}
+
+function htmlResponse(html, status = 200) {
+  return new Response(html, {
+    status,
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "no-store",
+      "x-robots-tag": "noindex, nofollow",
+    },
+  });
+}
+
+/**
+ * 成员站的所有响应都不许被索引、不许被缓存：
+ * 同一个 URL 对不同用户返回不同正文，被 CDN 或浏览器缓存就会串号。
+ */
+function withMemberHeaders(response) {
+  if (response.status === 204 || response.status === 304) return response;
+
+  const headers = new Headers(response.headers);
+  headers.set("x-robots-tag", "noindex, nofollow");
+  headers.set("cache-control", "no-store");
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 }

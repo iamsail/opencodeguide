@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3012",
     "build": "node scripts/build-search.mjs && node scripts/courses/validate-courses.mjs && next build && node scripts/courses/assert-no-gated-content.mjs",
+    "build:members": "node scripts/courses/build-members.mjs",
     "start": "next start",
     "lint": "next lint",
     "docs:sync": "node scripts/docs-sync/run.mjs",

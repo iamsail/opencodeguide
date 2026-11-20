@@ -31,9 +31,15 @@ export function isProtectedPath(pathname) {
   return !isPublicPath(pathname);
 }
 
-/** /courses/<slug>/... → slug；/courses 或其它路径 → null */
+/**
+ * /courses/<slug>/... → slug；带语言前缀的 /zh/courses/<slug>/... 同样识别。
+ * /courses、/zh/courses 或其它路径 → null。
+ *
+ * 语言前缀必须支持：Next 静态导出把课时页产在 /zh/ 与 /en/ 下，
+ * 漏掉前缀会让带前缀的 URL 被当成「非课程页」直接放行（已由测试兜住）。
+ */
 export function courseSlugFromPath(pathname) {
-  const match = /^\/courses\/([a-z0-9-]+)(?:\/|$)/.exec(pathname ?? "");
+  const match = /^(?:\/(?:zh|en))?\/courses\/([a-z0-9-]+)(?:\/|$)/.exec(pathname ?? "");
   return match ? match[1] : null;
 }
 
