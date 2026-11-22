@@ -312,6 +312,7 @@
 -   **Canonical vs Redirect**: We chose to keep the educational articles at their original URLs but use `canonical` instead of `301 redirects`. This allows us to keep the viral/SEO-friendly "entry points" while concentrating the actual ranking power on the documentation.
 -   **Hreflang Logic**: Even if the content is not a word-for-word translation, we link pages with high semantic overlap (e.g., Use Cases ↔ Usage) to help Google understand the site structure.
 -   **Documentation Sovereignty**: The `/zh/docs/` path is now explicitly confirmed as the "Single Source of Truth" for all technical details.
+-   **课程内容的仓库边界（方案 B，2026-11-22 定方向，未实施）**: 仓库是公开的，而付费墙只在构建期生效 —— 115 节付费正文的源码目前在 `dev` 分支上人人可读（课程**未上线**：`main` 无课程文件、线上 404、sitemap 0 条）。决定采用「**元数据公开、正文私有**」：公开仓保留课程大纲 + 课时清单（manifest）+ 8 节免费正文，115 节正文与 `workers/` 搬私有仓。理由：保留 git 工作流、公开仓仍可被外部 clone 构建、无密钥单点。方案 A（整体转私有）与 C（子模块 / 对象存储 / 加密入库）的取舍、四条硬约束与开放问题见 [`docs/courses/09-content-repo-boundary.md`](../docs/courses/09-content-repo-boundary.md)。**在拆分完成前不要把课程合到 `main` 发布。**
 
 ## Next Steps
 1.  **课程 P2.3 部署 ([TASK107])**: 代码接线已完成（2026-11-20），只剩凭据到位后 `cd workers/course-delivery && npx wrangler deploy` + `docs/courses/08-launch-runbook.md` §5.3 十条验收；这是能安全开收款的最后一步。

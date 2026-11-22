@@ -12,6 +12,7 @@
 | [06-todo.md](./06-todo.md) | **进度看板与 TODO**：已完成 / 待人工 / P1-P3 任务清单 |
 | [07-access-control.md](./07-access-control.md) | 付费墙与会员中心设计：双构建、权益表、门禁、验收标准 |
 | [08-launch-runbook.md](./08-launch-runbook.md) | **上线操作手册**：DNS 归属结论、Google OAuth / Stripe / Resend 逐步配置、部署顺序与十项验收 |
+| [09-content-repo-boundary.md](./09-content-repo-boundary.md) | **仓库边界**：为什么要把付费正文移出公开仓（方案 B 思路）、边界怎么划、四条硬约束 |
 
 ## 当前实现状态（Phase 1 / P0：已完成）
 

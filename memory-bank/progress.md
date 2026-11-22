@@ -172,6 +172,13 @@
 - **设计文档**: `docs/courses/`（市场分析、功能设计、课程内容、Stripe 方案、分期路线图、`06-todo` 进度看板）。
 - **验证**: `next build` 静态导出通过（158 页）；`tsc --noEmit` 通过；sitemap 收录 30 条课程 URL 且排除感谢页；`Course` JSON-LD、canonical、hreflang 输出正确；用临时 Stripe 链接构建验证过 `client_reference_id`/utm 参数与未配置时的降级行为。
 - **待办**: P1（正式收款 + 邮件交付）见 `docs/courses/06-todo.md` 与 `TASK105`；阻塞项为 Stripe 密钥、等待名单端点、视频/模板/社群交付物。
+## 内容仓库边界决策 (2026-11-22)
+- **问题**: 仓库公开，付费墙只在构建期生效 → 123 节课时正文（含 115 节付费，984 KB）的源码已在 `dev` 分支公开可读。课程**尚未上线**（`main` 无 `content/courses/`、线上课程 URL 全 404、sitemap 0 条课程 URL），但源码已泄露。
+- **决策（方案 B，方向已定未实施）**: 「元数据公开、正文私有」——公开仓保留大纲 + 课时清单 manifest + 8 节免费正文；115 节正文与 `workers/` 搬私有仓。否决 A（整体转私有，会牺牲开源文档站且要改托管）与 C（子模块=假单仓、对象存储丢 git 工作流、加密入库把内容变成不可读密文）。
+- **四条硬约束**: 课表目前由 MDX 文件驱动（`lib/course-lessons.ts` 的 `readdirSync`），必须先立 manifest 为真相源，否则删正文会让课表退化成 8 节；拆仓 ≠ 删历史（正文在 `159de3d`、`48b66bc`，需重写历史）；公开仓必须保持可构建；先拆分后发布。
+- **文档**: [`docs/courses/09-content-repo-boundary.md`](../docs/courses/09-content-repo-boundary.md)（只定方向与边界，实施步骤另开任务卡）。
+- **配套**: 新增 `.githooks/pre-commit` 密钥护栏（拦截 `.dev.vars`/`.env`/私钥文件名 + `sk_live_`/`whsec_`/`GOCSPX-` 等形态，命中值打码，`GIT_ALLOW_SECRETS=yes` 可放行）。
+
 ## 本地联调打通 Google 登录 (2026-11-22)
 - **凭据**: Google Cloud 新建项目 `opencodeguide-learn`，OAuth 客户端类型「网页应用」，重定向 URI 为 `https://learn.opencodeguide.com/auth/google/callback` 与 `http://localhost:3022/auth/google/callback`；scope 仅 `openid email profile`（non-sensitive，无需审核）。Client ID/Secret 已验证有效（假 code 请求返回 `invalid_grant` 而非 `invalid_client`）。
 - **本地跑不通的真因**: `wrangler dev` 的本地模式由 workerd 执行代码，**workerd 的出站 fetch 不读系统代理**，也没有任何 proxy 选项（`workerd serve --help` 无相关 flag）。wrangler 那句 "Proxy environment variables detected" 只作用于它自己的 Node fetch（`undici.setGlobalDispatcher(EnvHttpProxyAgent)`）。表现为回调卡 75 秒后 `[auth] internal error`。
