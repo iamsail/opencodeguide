@@ -71,6 +71,8 @@ curl -sS https://learn.opencodeguide.com/health | head -c 200
 
 ### 2.1 操作步骤（约 10 分钟）
 
+> 状态（2026-11-22）：已在项目 `opencodeguide-learn` 建好客户端（网页应用），重定向 URI 为 `https://learn.opencodeguide.com/auth/google/callback` 与 `http://localhost:3022/auth/google/callback`，scope 仅 `openid email profile`。发布状态仍是「测试」（未点发布）——本地登录不受影响，但**买家能否登录要在部署后用非 owner 账号实测**。
+
 1. 打开 <https://console.cloud.google.com/>，新建项目，例如 `opencodeguide-learn`。
 2. **APIs & Services → OAuth consent screen**
    - User type：`External`
@@ -221,6 +223,37 @@ EMAIL_DRY_RUN=1 npx wrangler dev     # http://127.0.0.1:8787，邮件只打日�
 ```
 
 ---
+
+### 4.4 本地联调：workerd 不走系统代理（2026-11-22 踩过）
+
+`wrangler dev` 的本地模式用 workerd 执行代码，而 **workerd 的出站 `fetch` 不读系统代理，也没有任何 proxy 选项**（`workerd serve --help` 里没有相关 flag）。wrangler 打印的 “Proxy environment variables detected” 只作用于它自己的 Node fetch（`undici.setGlobalDispatcher(new EnvHttpProxyAgent())`）。
+
+后果：国内网络下回调卡 75 秒，然后报 `[auth] internal error; reference = ...` + `GET /auth/google/callback 400`，看起来像代码 bug，其实是从没连上 Google。
+
+本地方案（已入库）：
+
+```bash
+cd workers/course-delivery
+npm run dev:proxy        # 默认代理 127.0.0.1:7890，可用 HTTPS_PROXY 覆盖
+# 浏览器开 http://localhost:3022/login（必须 localhost，不能 127.0.0.1）
+```
+
+它做的事：Miniflare 起 Worker → `outboundService` 在 **Node 宿主进程**重发出站请求 → Node 24 的 `NODE_USE_ENV_PROXY=1` 让 `fetch` 认 `HTTPS_PROXY`。脚本见 [`scripts/dev/member-dev.mjs`](../../scripts/dev/member-dev.mjs)，三个坑写在注释里（`modulesRules` 要显式 ESModule、workerd 的 `Request` 不能直接喂 Node `fetch`、`NODE_USE_ENV_PROXY` 必须启动前设）。
+
+判断是否真的连上 Google 的快速方法：用假 code 打一次回调，**看耗时**——
+
+```bash
+curl -sS -m 60 -o /dev/null -w "status=%{http_code} time=%{time_total}s\n" \
+  -H "Cookie: ocg_oauth_state=abc.%2Faccount; ocg_oauth_verifier=v" \
+  "http://127.0.0.1:3022/auth/google/callback?code=bogus&state=abc"
+```
+
+- `time≈0.7s` + 日志 `Google 令牌交换失败：Malformed auth code.` → 通了
+- `time≈75s` → 还是没走代理
+
+### 4.5 本地 `.dev.vars`
+
+`workers/course-delivery/.dev.vars`（已 gitignore）放本地的 `SESSION_SECRET`、`GOOGLE_CLIENT_ID/SECRET`、`GOOGLE_REDIRECT_URI=http://localhost:3022/auth/google/callback`、`EMAIL_DRY_RUN=1`。线上这些走 `wrangler secret put`，**不要**复用本地生成的 SESSION_SECRET。
 
 ## 5. 部署顺序（照这个顺序做，别跳）
 

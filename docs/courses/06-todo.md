@@ -9,7 +9,7 @@
 | :--- | :--- | :--- | :--- |
 | P0 基建与预售 | 课程页、数据层、Stripe 接入、文档 | 已完成 | 100% |
 | P1 首发成交 | 正式收款、优惠码、邮件交付、发票 | 进行中（代码已就绪，等密钥与交付物） | 45% |
-| P2 会员中心 | 登录、权益、播放页、Webhook | 进行中（P2.0 分流 + P2.1 权益 + P2.2 登录 + P2.3 成员站接线已完成） | 75% |
+| P2 会员中心 | 登录、权益、播放页、Webhook | 进行中（P2.0 分流 + P2.1 权益 + P2.2 登录 + P2.3 成员站接线已完成；Google 登录本地验证通过） | 80% |
 | 文章版内容 | 4 门课 123 节正文 + 课时阅读页 | 已完成 | 100%（123/123） |
 | P3 规模化 | 订阅、企业采购、联盟、训练营 | 未开始 | 0% |
 
@@ -122,7 +122,9 @@
   - 权益归属改为 `metadata.email`（登录邮箱），不再依赖 Stripe 页面收集的邮箱
   - 待办：公开站购买按钮改指向 `learn./buy/...` 并重新部署
 - [x] 成员站接线：`out-members/` 构建 + Worker 静态资源 + 门禁接 `env.ASSETS` + 全站 noindex（P2.3，2026-11-20）
-- [ ] 成员站部署：凭据到位后 `wrangler deploy` + §5.3 十条验收（`learn.` 子域已绑定）
+- [x] Google OAuth 凭据：`opencodeguide-learn` 项目建客户端，回调 `https://learn.opencodeguide.com/auth/google/callback` + `http://localhost:3022/auth/google/callback`，scope 仅 `openid email profile`（2026-11-22）
+- [x] 本地登录闭环：`npm run dev:proxy`（Miniflare + Node 侧代理）实测 `localhost:3022/login` → Google → `/account` 通过（2026-11-22）
+- [ ] 成员站部署：`wrangler login` → 注入 secret → `wrangler deploy` + §5.3 十条验收（Google 已就绪，等 Stripe/Resend）
 - [x] 基础设施：D1 `orders`（0001）/ `entitlements` / `magic_links` / `auth_attempts`（0002，不需要 Supabase）
 - [~] Checkout Session 接口替换 Payment Link：Worker 端已完成（`/checkout`），公开站按钮待切换，旧链接保留兼容
 - [x] Webhook 入库：`checkout.session.completed`、`charge.refunded`、`charge.dispute.created`（`invoice.paid` 属订阅，P3）
@@ -147,6 +149,7 @@
 - [x] 课程 JSON 的 schema 校验脚本（`npm run courses:validate`，已接入 build；校验结构、枚举、价格、双语完整度、`stripe-links.json` 有效性、课时正文）
 - [x] 课时页代码高亮（rehype-pretty-code）与 `TechArticle` JSON-LD
 - [x] 字体自托管（`next/font/local`）：修掉构建期从 gstatic 拉字体超时导致 build/dev 失败
+- [x] 本地联调代理（`npm run dev:proxy`）：`wrangler dev` 的 workerd 出站不读系统代理，改用 Miniflare + Node 侧代理重发（2026-11-22）
 - [x] `npm run courses:meta`：从大纲与已写正文推导 `lessonCount` / `durationHours`，避免 5 个 JSON 各写一份数字
 - [ ] 英文正文（27+33+36+27 节，当前 0 节）：先决定是「全量翻译」还是「英文站只放目录 + 中文正文」
 - [ ] 详情页「更新日志」区块（依赖课程内容的版本记录）
@@ -159,7 +162,7 @@
 
 ## 7. 下一步建议（优先级排序）
 
-1. **注入凭据并部署新版 Worker**：Google OAuth（`GOOGLE_CLIENT_ID/SECRET`）+ `STRIPE_SECRET_KEY` + `COURSE_CATALOG`（**未注入**，等 Stripe 商品建好后跑 `sync-worker-catalog.mjs --apply`），然后 `wrangler deploy`，实测「Google 登录 → /buy → /checkout → Stripe」。迁移 0003 已在 2026-11-20 应用。
+1. **注入凭据并部署新版 Worker**：Google OAuth 凭据已就绪（2026-11-22，`GOOGLE_CLIENT_ID/SECRET` 待 `wrangler secret put` 注入），还差 `STRIPE_SECRET_KEY` 与 `COURSE_CATALOG`（Stripe 商品建好后跑 `sync-worker-catalog.mjs --apply`），然后 `wrangler deploy`，实测「Google 登录 → /buy → /checkout → Stripe」。迁移 0003 已在 2026-11-20 应用。
 2. **P2.3 成员站上线**：代码接线已完成（2026-11-20），只剩凭据到位后 `wrangler deploy` 与验收。这是能开收款的前置。
 3. **公开站购买按钮切换**：`lib/courses.ts` / `BuyButton` 从 Payment Link 改指 `learn./buy/<slug>/<plan>`，重新构建发布。
 4. **英文正文**：0/123，先定策略（全量翻译 vs 英文站只放目录 + 中文正文）。

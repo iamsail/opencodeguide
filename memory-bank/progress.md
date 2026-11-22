@@ -172,6 +172,14 @@
 - **设计文档**: `docs/courses/`（市场分析、功能设计、课程内容、Stripe 方案、分期路线图、`06-todo` 进度看板）。
 - **验证**: `next build` 静态导出通过（158 页）；`tsc --noEmit` 通过；sitemap 收录 30 条课程 URL 且排除感谢页；`Course` JSON-LD、canonical、hreflang 输出正确；用临时 Stripe 链接构建验证过 `client_reference_id`/utm 参数与未配置时的降级行为。
 - **待办**: P1（正式收款 + 邮件交付）见 `docs/courses/06-todo.md` 与 `TASK105`；阻塞项为 Stripe 密钥、等待名单端点、视频/模板/社群交付物。
+## 本地联调打通 Google 登录 (2026-11-22)
+- **凭据**: Google Cloud 新建项目 `opencodeguide-learn`，OAuth 客户端类型「网页应用」，重定向 URI 为 `https://learn.opencodeguide.com/auth/google/callback` 与 `http://localhost:3022/auth/google/callback`；scope 仅 `openid email profile`（non-sensitive，无需审核）。Client ID/Secret 已验证有效（假 code 请求返回 `invalid_grant` 而非 `invalid_client`）。
+- **本地跑不通的真因**: `wrangler dev` 的本地模式由 workerd 执行代码，**workerd 的出站 fetch 不读系统代理**，也没有任何 proxy 选项（`workerd serve --help` 无相关 flag）。wrangler 那句 "Proxy environment variables detected" 只作用于它自己的 Node fetch（`undici.setGlobalDispatcher(EnvHttpProxyAgent)`）。表现为回调卡 75 秒后 `[auth] internal error`。
+- **解法（路线 B）**: 新增 `scripts/dev/member-dev.mjs` + `npm run dev:proxy`：用 Miniflare 起 Worker，`outboundService` 钩子在 **Node 宿主进程**里重发出站请求，配合 Node 24 的 `NODE_USE_ENV_PROXY=1` 走 `HTTPS_PROXY`。三个坑：Miniflare 需显式 `modulesRules: ESModule`（否则 `.js` 按 CommonJS 解析报 `ERR_MODULE_PARSE`）；workerd 的 `Request` 不能直接喂 Node `fetch`（`ERR_INVALID_URL`，须拆 url+init）；`NODE_USE_ENV_PROXY` 必须在启动前设置。
+- **验证**: 假 code 回调从 75 秒超时变为 0.74 秒返回 Google 的 `Malformed auth code.`；浏览器实测 `http://localhost:3022/login` → Google 选账号 → 落到 `/account` 显示登录邮箱与「这个邮箱还没有已购课程」，登录闭环在本地跑通。
+- **依赖**: `miniflare@4.20260730.0` 进 devDependencies（与 wrangler 内置的 workerd 版本对齐）。
+- **未做**: Stripe live key、Resend 域名验证（DNS 里仍无 `resend._domainkey`，MX 是 Namecheap 转发）、`wrangler login` 超时未完成，因此**尚未部署**。
+
 ## 成员站门禁接线 P2.3 (2026-11-20)
 - **构建**: 新增 `npm run build:members`（`COURSE_ACCESS=members` + `NEXT_DIST_DIR=out-members`，`next.config.mjs` 支持自定义导出目录），产出 1778 文件 / 78 MB;脚本备份并还原 `public/search.json`，避免含付费正文的索引留在仓库。
 - **部署配置**: `wrangler.toml` 增加 `[assets]`：`directory = "../../out-members"`、`binding = "ASSETS"`、`run_worker_first = true`、`html_handling = "auto-trailing-slash"`。

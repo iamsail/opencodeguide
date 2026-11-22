@@ -1,8 +1,8 @@
 # [TASK107] - 课程访问控制与会员中心（P2.0 完成，P2.1–P2.4 待做）
 
-**Status:** In Progress (P2.0 + P2.1 + P2.2 + P2.3 代码接线 done 2026-11-20；待注入凭据后部署)
+**Status:** In Progress (P2.0 + P2.1 + P2.2 + P2.3 代码接线 done 2026-11-20；Google 凭据已配置并本地验证 2026-11-22；待 Stripe/Resend 凭据 + wrangler 登录后部署)
 **Added:** 2026-11-18
-**Updated:** 2026-11-20
+**Updated:** 2026-11-22
 
 ## Original Request
 课程内容当时已写到 88/123 节（现已 123/123），但静态站无法鉴权——正文对所有人可见。决定采用「只公开每门前 2 节，其余进会员中心」，先出设计再实施。
@@ -24,7 +24,7 @@
 - [x] P2.1 `entitlements` / `magic_links` / `auth_attempts` 迁移 + Webhook 写入与退款回收 + 历史订单回填（2026-11-19）
 - [x] P2.2 鉴权 Worker：magic link、会话 JWT、限流、`/account`、`gate.js` 门禁（2026-11-19）
 - [x] P2.3 成员站接线：`out-members/` 构建、`[assets]` 绑定、门禁接 `env.ASSETS`、全站 noindex（2026-11-20）
-- [ ] P2.3 成员站部署：等 Google / Stripe / Resend 凭据到位后 `wrangler deploy`（`learn.` 子域已绑定）
+- [ ] P2.3 成员站部署：Google 凭据已就绪（2026-11-22），还差 Stripe / Resend 凭据与 `wrangler login`，之后 `wrangler deploy`（`learn.` 子域已绑定）
 - [ ] P2.4 水印、邮件模板、登录失败排查、日志看板（0.5–1 天）
 
 合计 4–6 个工程师日，剩约 3–5 天。
@@ -87,6 +87,15 @@
 - **P2.1–P2.3 完成前不要开启真实收款**：付费正文已从公开站下架，买家暂时没有阅读入口。
 
 ## Progress Log
+### 2026-11-22（Google OAuth 配好，本地登录闭环跑通）
+- Google Cloud 新建项目 `opencodeguide-learn`：客户端类型「网页应用」，重定向 URI `https://learn.opencodeguide.com/auth/google/callback` 与 `http://localhost:3022/auth/google/callback`，scope 仅 `openid email profile`。控制台仍显示「测试」发布状态（未点发布），本地登录不受影响；付费买家是否能登录仍待部署后用非 owner 账号实测。
+- 凭据有效性用假 code 验证：直连 Google 返回 `invalid_grant / Malformed auth code`（而非 `invalid_client`），证明 ID/Secret 正确。
+- **本地 75 秒超时的真因**：`wrangler dev` 本地模式用 workerd 执行，**workerd 出站 fetch 不读系统代理、也没有 proxy 选项**；wrangler 的 `EnvHttpProxyAgent` 只作用于它自己的 Node fetch。表现是回调卡 75 秒后 `[auth] internal error`。
+- **解法**：新增 `scripts/dev/member-dev.mjs` + `npm run dev:proxy`（Miniflare + `outboundService` 在 Node 侧重发请求 + Node 24 `NODE_USE_ENV_PROXY=1`）。三个坑写进脚本注释：`modulesRules` 要显式 ESModule、workerd 的 `Request` 不能直接喂 Node `fetch`、`NODE_USE_ENV_PROXY` 必须启动前设。
+- **验证**：假 code 回调 75s → 0.74s；浏览器 `localhost:3022/login` → Google 选账号 → `/account` 显示邮箱与「这个邮箱还没有已购课程」。
+- 新增 devDependency `miniflare@4.20260730.0`；`.dev.vars` 已 gitignore，本地 SESSION_SECRET 为随机生成，不复用到线上。
+- 未做：`wrangler login` 上次超时（`Timed out waiting for authorization code`）；Stripe live key 与 Resend 域名验证仍未开始。
+
 ### 2026-11-20（P2.3 代码接线完成，本地端到端验证通过）
 - Cloudflare 侧直接做完（机器上已有 wrangler OAuth 登录）：远端 D1 应用 `0003_drop_magic_link.sql`，删掉两张不再读写的表；`learn.` 子域与 Worker 自定义域早已绑好，SSL 模式确认是 `Full (strict)`。
 - 新增 `npm run build:members`：`COURSE_ACCESS=members` + `NEXT_DIST_DIR=out-members`（`next.config.mjs` 支持），构建出 12 个课程详情页；脚本备份并还原 `public/search.json`，避免把含付费正文的索引留在仓库里。

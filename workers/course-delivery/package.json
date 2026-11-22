@@ -8,7 +8,8 @@
     "deploy": "wrangler deploy",
     "test": "node --test",
     "migrate:local": "wrangler d1 migrations apply course-delivery --local",
-    "migrate:remote": "wrangler d1 migrations apply course-delivery --remote"
+    "migrate:remote": "wrangler d1 migrations apply course-delivery --remote",
+    "dev:proxy": "NODE_USE_ENV_PROXY=1 HTTPS_PROXY=${HTTPS_PROXY:-http://127.0.0.1:7890} NO_PROXY=localhost,127.0.0.1 PORT=${PORT:-3022} node ../../scripts/dev/member-dev.mjs"
   },
   "engines": {
     "node": ">=20"
