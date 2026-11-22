@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+
+# Repository secret guard (runs on `git commit`).
+#
+# 这个仓库是公开的，任何真实密钥一旦提交就会永久留在 git 历史里。这个 hook 做两件事：
+#   1. 拦截不该入库的文件名（.dev.vars / .env / 私钥等，.example 放行）；
+#   2. 扫描暂存区内容里像真密钥的字符串（Stripe / Google / Resend / GitHub / AWS / 私钥）。
+#
+# 误报时的放行方式（请先确认那不是真实密钥）：
+#   GIT_ALLOW_SECRETS=yes git commit ...
+#
+# 注意：hook 只是本地护栏，不是安全边界。真正的边界是「密钥不写进文件」。
+
+set -euo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "${repo_root}"
+
+if [[ "${GIT_ALLOW_SECRETS:-}" == "yes" ]]; then
+  echo "Secret guard: skipped because GIT_ALLOW_SECRETS=yes."
+  exit 0
+fi
+
+fail=0
+report() {
+  echo ""
+  echo "  ✘ $1"
+  fail=1
+}
+
+# ---------------------------------------------------------------------------
+# 1. 文件名规则
+# ---------------------------------------------------------------------------
+echo "Secret guard: checking staged file names…"
+
+blocked_paths="$(git diff --cached --name-only --diff-filter=ACMR | while IFS= read -r file; do
+  base="$(basename "${file}")"
+  case "${base}" in
+    .dev.vars|.env|.env.local|.env.*.local|*.pem|*.key|*.p12|*.pfx|id_rsa|id_ed25519|credentials.json)
+      # 模板文件放行
+      case "${base}" in
+        *.example|*.sample|*.template) continue ;;
+      esac
+      echo "${file}"
+      ;;
+  esac
+done)"
+
+if [[ -n "${blocked_paths}" ]]; then
+  while IFS= read -r file; do
+    report "禁止提交的文件：${file}（本地密钥请留在工作区，用 wrangler secret put 或密码管理器同步）"
+  done <<< "${blocked_paths}"
+fi
+
+# ---------------------------------------------------------------------------
+# 2. 内容规则（扫描暂存区，不是工作区）
+# ---------------------------------------------------------------------------
+echo "Secret guard: scanning staged content for credentials…"
+
+# 只匹配「像真密钥」的形态，避免把文档里的 sk_live_xxx 这类占位符也拦下来。
+patterns=(
+  'sk_live_[A-Za-z0-9]{20,}'
+  'sk_test_[A-Za-z0-9]{20,}'
+  'rk_live_[A-Za-z0-9]{20,}'
+  'whsec_[A-Za-z0-9]{20,}'
+  'GOCSPX-[A-Za-z0-9_-]{20,}'
+  're_[A-Za-z0-9]{20,}'
+  'ghp_[A-Za-z0-9]{30,}'
+  'github_pat_[A-Za-z0-9_]{30,}'
+  'AKIA[0-9A-Z]{16}'
+  '-----BEGIN (RSA |EC |OPENSSH |PGP )?PRIVATE KEY-----'
+)
+
+for pattern in "${patterns[@]}"; do
+  matches="$(git grep --cached -I -n -E "${pattern}" -- . 2>/dev/null || true)"
+  if [[ -n "${matches}" ]]; then
+    while IFS= read -r line; do
+      report "疑似密钥（模式 ${pattern}）：$(printf '%s' "${line}" | sed -E "s/${pattern}/[REDACTED]/g")"
+    done <<< "${matches}"
+  fi
+done
+
+# ---------------------------------------------------------------------------
+# 3. 汇总
+# ---------------------------------------------------------------------------
+if [[ "${fail}" -eq 1 ]]; then
+  echo ""
+  echo "Commit blocked by the secret guard."
+  echo ""
+  echo "如果你确认命中的是占位符或测试值，可以用："
+  echo "  GIT_ALLOW_SECRETS=yes git commit ..."
+  echo "但真实密钥请从文件里删掉，并从对应平台轮换（一旦提交过就必须视为已泄露）。"
+  exit 1
+fi
+
+echo "Secret guard: no credentials detected."
+exit 0

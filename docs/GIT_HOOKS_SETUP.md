@@ -1,4 +1,4 @@
-# Git Hooks 配置指南（push 前网络检查）
+# Git Hooks 配置指南（push 前网络检查 + 提交前密钥检查）
 
 本仓库在 `git push` 前强制执行一次网络环境确认，策略与 `autoxhs` 仓库一致：**未连接 VPN、当前不是办公网络、记录 WiFi/网络名称、输入 `ALLOW PUSH`**，全部满足才允许推送。
 
@@ -12,9 +12,9 @@
 bash scripts/install-git-hooks.sh
 ```
 
-脚本只做两件事：
+脚本做两件事：
 
-1. 给 `.githooks/pre-push` 添加执行权限；
+1. 给 `.githooks/pre-push` 与 `.githooks/pre-commit` 添加执行权限；
 2. 把**当前仓库**的 `core.hooksPath` 设为 `.githooks`。
 
 不会修改全局 Git 配置，也不影响其他仓库。
@@ -23,12 +23,14 @@ bash scripts/install-git-hooks.sh
 
 ```bash
 git config --local --get core.hooksPath   # 期望输出：.githooks
-ls -l .githooks/pre-push                  # 期望带可执行权限
+ls -l .githooks/pre-push .githooks/pre-commit   # 期望都带可执行权限
 ```
 
 `core.hooksPath` 是本地配置，不会随仓库克隆自动生效，每个新克隆都需要执行一次安装脚本。
 
 ## 检查项
+
+### pre-push（网络环境）
 
 | 检查项 | 行为 |
 | --- | --- |
@@ -74,3 +76,29 @@ git push --no-verify
 - `core.hooksPath` 使用相对路径 `.githooks`（参考项目为绝对路径），更换机器或挂载路径后仍有效。
 - 修复了 stdin 不是终端导致交互分支不可达的问题。
 - 不提供 `npm install` 的 `postinstall` 自动配置，避免安装依赖时隐式修改 Git 配置。
+
+## pre-commit（密钥护栏）
+
+本仓库是**公开仓库**，密钥一旦提交就会永久留在 git 历史里（删文件、force push 都清不干净）。`pre-commit` 在本地拦一道：
+
+| 检查 | 行为 |
+| --- | --- |
+| 文件名 | 拦截 `.dev.vars`、`.env`、`.env.local`、`*.pem`、`*.key`、`id_rsa`、`credentials.json` 等；`*.example` / `*.sample` / `*.template` 放行 |
+| 内容 | 扫描暂存区（`git grep --cached`），匹配 `sk_live_`、`sk_test_`、`rk_live_`、`whsec_`、`GOCSPX-`、`re_`、`ghp_`、`github_pat_`、`AKIA…`、`BEGIN … PRIVATE KEY` 等形态 |
+| 输出 | 命中值**打码**成 `[REDACTED]`，避免日志二次泄露 |
+
+误报放行：
+
+```bash
+GIT_ALLOW_SECRETS=yes git commit -m "..."
+```
+
+### 密钥不该进仓库时的正确做法
+
+| 场景 | 做法 |
+| --- | --- |
+| 线上 Worker 的 secret | `npx wrangler secret put <NAME>`（存 Cloudflare，不落文件） |
+| 本地联调 | `workers/course-delivery/.dev.vars`（已 gitignore）+ `.dev.vars.example` 模板入库 |
+| 多机器同步 | 密码管理器，或每台机器重新生成 `SESSION_SECRET`（`openssl rand -hex 32`） |
+
+> 护栏不是安全边界。真正的边界是「真实密钥不写进任何被跟踪的文件」。
