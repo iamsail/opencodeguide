@@ -1,0 +1,30 @@
+# 本地联调模板：复制成 .dev.vars 再填值（.dev.vars 已被 gitignore，不会入库）。
+#
+#   cp workers/course-delivery/.dev.vars.example workers/course-delivery/.dev.vars
+#
+# 启动：
+#   cd workers/course-delivery
+#   npm run dev:proxy          # 国内网络需要，走 HTTPS_PROXY 出站
+#   浏览器打开 http://localhost:3022/login（必须 localhost，不能 127.0.0.1）
+#
+# 线上不读这个文件，走 `wrangler secret put <NAME>` 注入。
+
+# 会话 JWT 签名密钥：本地随便生成，别复用线上的，也别把线上的写进来
+#   openssl rand -hex 32
+SESSION_SECRET=
+
+# Google OAuth（Google Cloud → Google Auth Platform → 客户端 → 网页应用）
+# 回调地址需在控制台登记：http://localhost:3022/auth/google/callback
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+# 本地回调地址，必须与控制台登记的那条逐字一致；不配则用 LEARN_URL 推导出生产地址
+GOOGLE_REDIRECT_URI=http://localhost:3022/auth/google/callback
+
+# 本地发信只打日志，避免误发真实邮件、消耗 Resend 额度
+EMAIL_DRY_RUN=1
+
+# 需要联调支付/退款时再打开
+# STRIPE_SECRET_KEY=sk_test_xxx
+# STRIPE_WEBHOOK_SECRET=whsec_xxx
+# RESEND_API_KEY=re_xxx

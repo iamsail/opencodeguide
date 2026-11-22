@@ -50,4 +50,6 @@ content/courses/stripe-products.json
 .wrangler/
 .dev.vars
 .dev.vars.*
+# 模板要入库，否则新克隆不知道要填哪些变量
+!.dev.vars.example
 workers/**/.wrangler/
