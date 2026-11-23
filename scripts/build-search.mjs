@@ -151,6 +151,10 @@ async function buildSearchIndex() {
     fs.mkdirSync('public')
   }
 
+  // 按 URL 排序：目录遍历顺序不稳定，排序后同一份内容总能产出同一份索引，
+  // 避免每次构建都让 public/search.json 变脏（它被 git 跟踪）。
+  searchIndex.sort((a, b) => a.url.localeCompare(b.url))
+
   fs.writeFileSync('public/search.json', JSON.stringify(searchIndex))
   console.log(`Updated search index with ${searchIndex.length} pages`)
 }
