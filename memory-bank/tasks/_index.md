@@ -7,6 +7,7 @@
 - [TASK105] 课程板块 P1：正式收款与邮件交付 - Blocked：等 Stripe 密钥、等待名单端点与视频/模板/社群交付物
 
 ## Completed
+- [TASK110] 成员站上线 + 页面样式对齐 + 购买入口切换 - 公开站按钮改指 learn./buy（默认 learn 模式，可回退 stripe）；Worker 页面改用与站点一致的设计系统（暗色/主题切换/课程 accent）；wrangler 登录、注入 secret、成员站两次部署、Stripe 测试 webhook 验签通过 - Completed on 2026-11-23
 - [TASK104] 课程板块 + Stripe 支付接入（Phase 1） - 中英双语课程目录/详情/回执页 + Payment Link 生成脚本 + 设计文档（docs/courses）+ 退款政策页 - Completed on 2026-11-18
 - [TASK103] OpenCode v2 文档自动化同步流水线 - Phase 0~4 全部完成：流水线 + 21 update 页 + 14 legacy 提示 + 45 新增页（zh docs 36→81）+ 侧边栏/ROUTE_MAP + SEO 回归全绿；next 升级 16.4.3 修复 SWC CJK panic - Completed on 2026-10-26
 - [TASK103] Add Homepage API CTA - Added high-visibility API registration links to the homepage hero and shared header - Completed on 2026-04-26

@@ -120,13 +120,14 @@
   - `src/gate.js` 默认拒绝门禁已实现并有单测；**接线到静态资源**在 P2.3
 - [x] **先登录再买**：`/buy/<slug>/<plan>`（需登录）+ `POST /checkout` 服务端创建 Checkout Session，用 Stripe Customer 锁死登录邮箱（2026-11-19）
   - 权益归属改为 `metadata.email`（登录邮箱），不再依赖 Stripe 页面收集的邮箱
-  - 待办：公开站购买按钮改指向 `learn./buy/...` 并重新部署
+  - 公开站购买按钮已改指 `learn./buy/<slug>/<plan>`（2026-11-23，`NEXT_PUBLIC_CHECKOUT_MODE` 默认 `learn`；等成员站部署后生效）
 - [x] 成员站接线：`out-members/` 构建 + Worker 静态资源 + 门禁接 `env.ASSETS` + 全站 noindex（P2.3，2026-11-20）
 - [x] Google OAuth 凭据：`opencodeguide-learn` 项目建客户端，回调 `https://learn.opencodeguide.com/auth/google/callback` + `http://localhost:3022/auth/google/callback`，scope 仅 `openid email profile`（2026-11-22）
 - [x] 本地登录闭环：`npm run dev:proxy`（Miniflare + Node 侧代理）实测 `localhost:3022/login` → Google → `/account` 通过（2026-11-22）
-- [ ] 成员站部署：`wrangler login` → 注入 secret → `wrangler deploy` + §5.3 十条验收（Google 已就绪，等 Stripe/Resend）
+- [x] 成员站部署：`wrangler login` → 注入 secret → `wrangler deploy` + §5.3 验收（2026-11-23；`/health` 绑定齐全、登录 302、search.json 401、noindex 头均通过；Resend 仍缺）
+- [x] 成员站页面样式对齐公开站（P2.4，2026-11-23）：`src/ui.js` 设计系统 + 登录/购买/账户/错误页重做，暗色与公开站同策略，`/` 302 到 `/account`
 - [x] 基础设施：D1 `orders`（0001）/ `entitlements` / `magic_links` / `auth_attempts`（0002，不需要 Supabase）
-- [~] Checkout Session 接口替换 Payment Link：Worker 端已完成（`/checkout`），公开站按钮待切换，旧链接保留兼容
+- [x] Checkout Session 接口替换 Payment Link：Worker 端 `/checkout` + 公开站按钮已切换（`learn` 模式），旧 Payment Link 保留为 `NEXT_PUBLIC_CHECKOUT_MODE=stripe` 应急回退
 - [x] Webhook 入库：`checkout.session.completed`、`charge.refunded`、`charge.dispute.created`（`invoice.paid` 属订阅，P3）
 - [x] 登录方案定稿：Google OAuth（放弃 magic link 与 Supabase Auth）
 - [ ] 课程播放页：视频托管 + 防盗链 + 章节导航
@@ -162,10 +163,13 @@
 
 ## 7. 下一步建议（优先级排序）
 
-1. **注入凭据并部署新版 Worker**：Google OAuth 凭据已就绪（2026-11-22，`GOOGLE_CLIENT_ID/SECRET` 待 `wrangler secret put` 注入），还差 `STRIPE_SECRET_KEY` 与 `COURSE_CATALOG`（Stripe 商品建好后跑 `sync-worker-catalog.mjs --apply`），然后 `wrangler deploy`，实测「Google 登录 → /buy → /checkout → Stripe」。迁移 0003 已在 2026-11-20 应用。
-2. **P2.3 成员站上线**：代码接线已完成（2026-11-20），只剩凭据到位后 `wrangler deploy` 与验收。这是能开收款的前置。
-3. **公开站购买按钮切换**：`lib/courses.ts` / `BuyButton` 从 Payment Link 改指 `learn./buy/<slug>/<plan>`，重新构建发布。
-4. **英文正文**：0/123，先定策略（全量翻译 vs 英文站只放目录 + 中文正文）。
-5. **正式收款**：以上就绪后切 live 密钥重新生成支付链接 + 早鸟码。
-6. **课程内容的仓库边界（方案 B：已完成）**：付费正文已从公开仓历史移除（`dev` 现只保留 8 节免费正文），私有仓 `iamsail/opencodeCourse` 收下完整旧历史；`manifest.json` 已成为课表真相源，公开仓在只有 8 节正文的情况下仍输出 123 个课时 URL（115 个锁定页）。详见 [TASK108](../../memory-bank/tasks/TASK108-course-content-split.md) 与 [`09-content-repo-boundary.md`](./09-content-repo-boundary.md)。
-7. **发布链路（Phase 1 完成，等部署基线）**：`npm run publish` 已把「元数据同步 + 成员构建 + 自检 + 部署」收成一条命令；部署上传量待 `wrangler` 登录后实测，再决定是否改成运行时下发。详见 [TASK109](../../memory-bank/tasks/TASK109-publish-pipeline.md) 与 [`10-publish-baseline.md`](./10-publish-baseline.md)。
+> 更新于 2026-11-23：成员站已部署、凭据已注入、购买入口已切换。以下只剩「对外发版」与「真实收款」。
+
+1. **Resend 接入（唯一阻塞「付款后收不到信」的问题）**：注入 `RESEND_API_KEY` + 在 Cloudflare 验证 `opencodeguide.com`（`resend._domainkey` TXT、合并 SPF、建议加 DMARC）。当前订单与权益会正常写入，只是 `email_status=failed`。
+2. **本地跑通一笔真实测试支付**：`npm run dev:proxy`（本地 D1 + `stripe listen` 转发 webhook）→ 登录 → `/buy` → 测试卡 `4242…` → `/account` 看到课程；随后在 Stripe 测试模式退款，验证 `revoked_at` 与门禁即时失效。
+3. **公开站发版**：`dev` 领先 `main` 21 个提交，合并后 GitHub Actions 会构建并部署 `opencodeguide.com`（课程页目前线上仍 404）。发布前确认 `NEXT_PUBLIC_CHECKOUT_MODE` 取默认 `learn`。
+4. **切正式收款**：`sk_live_` 注入 Worker → 重建 Stripe webhook（live）与 `COURSE_CATALOG` → `stripe-payment-links.mjs --force` 生成 live 链接。注意 `stripe-links.json` 被 git 跟踪，提交的必须是 live 链接。
+5. **英文正文**：0/123，先定策略（全量翻译 vs 英文站只放目录 + 中文正文）。
+6. **交付邮件链接核对**：`COURSE_DELIVERY` 的 `watch` 指向 `/courses/<slug>`，而产物只有 `/zh/courses/<slug>`；部署后实测一次，必要时加重定向。
+7. **课程内容的仓库边界（方案 B：已完成）**：付费正文已从公开仓历史移除（`dev` 现只保留 8 节免费正文），私有仓 `iamsail/opencodeCourse` 收下完整旧历史；`manifest.json` 已成为课表真相源。详见 [TASK108](../../memory-bank/tasks/TASK108-course-content-split.md) 与 [`09-content-repo-boundary.md`](./09-content-repo-boundary.md)。
+8. **发布链路（Phase 1 完成，部署基线已补）**：`npm run publish` 收口「元数据同步 + 成员构建 + 自检 + 部署」；实测全量部署 131.7s（超 Phase 2 的 90s 阈值）、纯 Worker 改动 7.6s，是否改运行时下发待一条「改一节」的实测。详见 [TASK109](../../memory-bank/tasks/TASK109-publish-pipeline.md)、[TASK110](../../memory-bank/tasks/TASK110-member-ui-and-release.md) 与 [`10-publish-baseline.md`](./10-publish-baseline.md)。

@@ -254,6 +254,15 @@
 - **待定**: 是否改成「内容运行时下发」取决于部署实测——单节部署 ≤90s 且 ≤10MB 就保持静态方案（规则见 `docs/courses/10-publish-baseline.md`）。
 - **任务**: [TASK108](tasks/TASK108-course-content-split.md)（拆仓）、[TASK109](tasks/TASK109-publish-pipeline.md)（发布链路）。
 
+## 成员站上线与页面样式 (2026-11-23)
+- **公开站购买入口**: 默认 `NEXT_PUBLIC_CHECKOUT_MODE=learn`，按钮从 Stripe Payment Link 改指 `https://learn.opencodeguide.com/buy/<slug>/<plan>`（带 `lang` 与 4 个 utm 参数），强制先 Google 登录、由服务端建 Checkout Session 并锁定登录邮箱；`stripe` 模式保留为应急回退（实测 env 覆盖与降级到「联系我们」都正常）。构建产物里 `buy.stripe.com` 0 处。
+- **成员站页面样式 (P2.4)**: 新增 `workers/course-delivery/src/ui.js` 设计系统（zinc 色板、卡片/按钮/明细/课程网格、头部/页脚、主题脚本、`shell()`）；`src/pages.js` 重写登录/购买/账户/无权访问/不可用/错误 6 类页面；错误页按 `reason`（login / unknown-course / payment）分文案，修掉「买课 404 显示登录失败」；购买页渐变头取 catalog 的 `accent`（`sync-worker-catalog.mjs` 新增，白名单 + 回退）；`/` 302 到 `/account`。
+- **主题一致**: `<html class="dark">` + `localStorage.theme`，键名与公开站 next-themes 相同；首屏内联脚本先定主题，无 JS 时退回 `prefers-color-scheme`；实测切换后刷新保持。
+- **上线**: `wrangler login` → 注入 `GOOGLE_CLIENT_ID/SECRET`、`STRIPE_SECRET_KEY`（测试）、`COURSE_CATALOG` → 成员站全量部署（1153 资源 / 131.7 秒，Version `78723e57`）→ 新样式再部署（`3692beb9`，7.6 秒）。Stripe 测试 webhook `we_1UexDHHaZKTeRe8aCsJpiRKe` 指向 `/stripe/webhook`，新 `whsec_` 已注入，正确签名放行 / 错误签名 400。
+- **验证**: `workers:test` 121/121（新增 11 个页面用例）；`/health` 的 db/webhookSecret/sessionSecret/googleOauth/stripeKey/catalog/assets 全 true（`resend` 仍 false）；未登录课程页 302、`search.json` 401、`noindex`+`no-store` 头保持；触发真实测试事件后订单与权益正确落库（已清理）。
+- **未完成**: Resend 未配（开信发不出，订单/权益仍写入）；Stripe 仍测试模式；公开站未发版（`dev` 领先 `main` 21 个提交，线上课程页 404）；英文正文 0/123。
+- **任务**: [TASK110](tasks/TASK110-member-ui-and-release.md)。
+
 ## Known Issues
 -   Screenshots are still text-based placeholders.
 -   Chinese documentation depth still needs to be expanded for Providers/Configuration sections.
