@@ -57,3 +57,14 @@ export function isMembersBuild(): boolean {
 export function isPublicBuild(): boolean {
   return getAccessMode() === "public";
 }
+
+/**
+ * 锁定页是否允许被搜索引擎索引（默认否）。
+ *
+ * 115 个锁定页的独有内容只有标题 + 一句话摘要，其余是每门课 27 页完全重复的课表侧栏；
+ * 新域名上一次放出 115 个薄页面会稀释质量信号，所以默认 noindex、follow（保留链接权重）。
+ * 想恢复「长尾词落地到锁定页」的策略：LOCKED_PAGE_INDEX=true。
+ */
+export function shouldIndexLockedPages(): boolean {
+  return process.env.LOCKED_PAGE_INDEX === "true";
+}

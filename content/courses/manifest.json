@@ -1,0 +1,1141 @@
+{
+  "version": 1,
+  "note": "课表真相源：只有元数据，不含正文。由 scripts/courses/build-manifest.mjs 生成，手改无效。正文是否存在由构建期读取磁盘决定。",
+  "courses": [
+    {
+      "slug": "ai-coding-workflow",
+      "locales": {
+        "zh": [
+          {
+            "slug": "local-first-vs-cloud",
+            "title": "本地优先 vs 云端助手：安全边界、成本结构与适用场景",
+            "summary": "分清哪些数据留在本机、哪些随请求发给模型，据此刻画团队的安全与成本边界",
+            "module": 1,
+            "lesson": 1,
+            "duration": 7,
+            "trial": true
+          },
+          {
+            "slug": "setup-first-session",
+            "title": "安装 OpenCode 并跑通第一个会话（macOS / Windows WSL / Linux）",
+            "summary": "用一条命令装好 OpenCode，并完成一次不改文件的只读会话",
+            "module": 1,
+            "lesson": 2,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "model-provider-strategy",
+            "title": "模型提供商配置：Anthropic、OpenAI、DeepSeek、Ollama 的组合策略",
+            "summary": "按角色接入四家提供商，用一份配置固定主力、审查与离线兜底模型",
+            "module": 1,
+            "lesson": 3,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "token-cost-switches",
+            "title": "把 token 成本压下来的 6 个开关（路由、缓存、上下文裁剪）",
+            "summary": "用六个真实配置项减少每轮请求的输入量，并说清每个开关的代价",
+            "module": 1,
+            "lesson": 4,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "agents-md-layers",
+            "title": "AGENTS.md 的分层写法：项目级 / 目录级 / 任务级",
+            "summary": "按目录分层放置 AGENTS.md，让每份规则只覆盖它该管的代码",
+            "module": 2,
+            "lesson": 1,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "team-conventions-as-rules",
+            "title": "把团队约定翻译成机器可执行的规则（命名、测试、提交信息）",
+            "summary": "把形容词式的团队约定改写成 AI 能判定、能执行、能自检的规则",
+            "module": 2,
+            "lesson": 2,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "plan-mode-spec-first",
+            "title": "Plan Mode 与 Spec-first：先让 AI 写方案，再让它写代码",
+            "summary": "用 plan 智能体先产出可审的方案，再切回 build 执行，避免边想边改",
+            "module": 2,
+            "lesson": 3,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "three-antipatterns",
+            "title": "三种反模式：过度上下文、伪需求、无验收标准的任务",
+            "summary": "识别三种让 AI 编码失控的任务写法，并按模板改写成可执行任务",
+            "module": 2,
+            "lesson": 4,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "verification-loop",
+            "title": "验收环节：如何让 AI 自己跑测试并解释失败原因",
+            "summary": "把验收写成循环：跑命令、贴原文、按类归因，再决定改代码还是改测试",
+            "module": 2,
+            "lesson": 5,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "subagent-roles",
+            "title": "子智能体（Subagent）的职责划分：规划、实现、评审、测试",
+            "summary": "把规划、实现、评审、测试拆成四个子智能体，用权限矩阵和描述把边界钉死",
+            "module": 3,
+            "lesson": 1,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "skills-reuse",
+            "title": "Skills 复用：把团队经验沉淀成一次安装、处处可用",
+            "summary": "把只在该类任务用得上的团队经验做成 SKILL.md，按需加载、跨项目复用",
+            "module": 3,
+            "lesson": 2,
+            "duration": 7,
+            "trial": false
+          },
+          {
+            "slug": "custom-commands",
+            "title": "自定义命令：把高频工作流压缩成 /review、/ship、/migrate",
+            "summary": "用 commands 目录把高频提示词固化成带参数与 shell 注入的斜杠命令",
+            "module": 3,
+            "lesson": 3,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "permissions-sandbox",
+            "title": "权限与沙箱：哪些目录绝不允许 AI 写入",
+            "summary": "用 permissions 收窄可写范围，用 policies 把 .git、凭证、CI 配置钉成硬禁区",
+            "module": 3,
+            "lesson": 4,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "multi-agent-pipeline",
+            "title": "多智能体协作实战：一个功能从需求到 PR 的完整流水线",
+            "summary": "以文件为交接物，把需求、实现、测试、评审串成可停顿、可重跑的流水线",
+            "module": 3,
+            "lesson": 5,
+            "duration": 10,
+            "trial": false
+          },
+          {
+            "slug": "mcp-protocol-basics",
+            "title": "MCP 协议原理与三类消息：tools、resources、prompts",
+            "summary": "拆开 MCP 的握手与能力协商，讲清 tools、resources、prompts 各自进上下文的方式和代价",
+            "module": 4,
+            "lesson": 1,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "database-mcp",
+            "title": "数据库 MCP：只读查询、Schema 自省、生成迁移脚本",
+            "summary": "用只读角色兜住底线，让模型查真实表结构、产出可回滚的迁移脚本",
+            "module": 4,
+            "lesson": 2,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "playwright-mcp",
+            "title": "Playwright MCP：让 AI 自己点网站、复现前端 Bug",
+            "summary": "把浏览器交给智能体，用可点击的步骤和证据文件复现前端 Bug，而不是靠读代码猜",
+            "module": 4,
+            "lesson": 3,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "internal-api-as-mcp",
+            "title": "封装内部 API 为 MCP 服务（30 行代码的最小实现）",
+            "summary": "用一个工具、一处错误处理把内部 API 包成 MCP 服务器，并用 local 配置接进会话",
+            "module": 4,
+            "lesson": 4,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "mcp-security",
+            "title": "MCP 的安全红线：凭证管理、权限最小化、审计日志",
+            "summary": "把凭证关进环境变量、把工具权限收成白名单、把每次调用落成可追溯的日志",
+            "module": 4,
+            "lesson": 5,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "legacy-tests-refactor",
+            "title": "实战 A：给无测试的遗留模块补测试并安全重构",
+            "summary": "用特性测试冻结遗留模块的现有行为，再把重构拆成可提交、可回滚的小批次",
+            "module": 5,
+            "lesson": 1,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "fullstack-feature-sprint",
+            "title": "实战 B：一次性完成「注册 → 支付 → 邮件」全栈功能",
+            "summary": "先定契约再切纵切，用只读子智能体校验，把三层改动压成一次可验收的交付",
+            "module": 5,
+            "lesson": 2,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "cross-repo-change",
+            "title": "实战 C：跨仓库改动：前端改字段、后端加接口、文档同步",
+            "summary": "把跨仓库字段改动切成有序提交，用精确授权与 grep 检查证明改干净",
+            "module": 5,
+            "lesson": 3,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "review-automation",
+            "title": "代码评审自动化：让 AI 按团队 checklist 出评审意见",
+            "summary": "把评审者做成只读子智能体，用技能固化 checklist，让每条意见可定位、可判定",
+            "module": 5,
+            "lesson": 4,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "team-policy",
+            "title": "团队规范：允许/禁止清单、Code Review 责任划分",
+            "summary": "把 AI 的允许与禁止写进仓库配置，并把评审签字责任落到具体角色",
+            "module": 6,
+            "lesson": 1,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "ci-quality-gates",
+            "title": "CI 集成：AI 生成代码的自动化质量门禁",
+            "summary": "用可复现检查守住合并口，让 AI 复核只做输入不做断言",
+            "module": 6,
+            "lesson": 2,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "security-compliance",
+            "title": "安全与合规：代码外发、私有化部署、审计留痕",
+            "summary": "封住代码外发的四条路径，把唯一出口换成内部网关，并留下可归档的审计证据",
+            "module": 6,
+            "lesson": 3,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "cost-governance",
+            "title": "成本治理：按月复盘 token 开销与产出比",
+            "summary": "固定一个时间窗与一份产出分母，把 token 账单换算成每个合并 PR 的成本",
+            "module": 6,
+            "lesson": 4,
+            "duration": 9,
+            "trial": false
+          }
+        ]
+      }
+    },
+    {
+      "slug": "cross-border-store",
+      "locales": {
+        "zh": [
+          {
+            "slug": "platform-vs-dtc",
+            "title": "平台店 vs 独立站：流量成本、复购与品牌资产的取舍",
+            "summary": "平台买现成流量，独立站买客户所有权，两者成本结构完全不同",
+            "module": 1,
+            "lesson": 1,
+            "duration": 8,
+            "trial": true
+          },
+          {
+            "slug": "target-market-selection",
+            "title": "目标市场选择：北美、欧洲、东南亚、中东的支付与物流差异",
+            "summary": "先选支付能过、退货扛得住的市场，再看流量规模",
+            "module": 1,
+            "lesson": 2,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "product-selection-data-sources",
+            "title": "选品方法：从供应链优势到需求验证的 4 个数据源",
+            "summary": "先用供应链筛掉做不到的品，再用四个数据源验证值不值得做",
+            "module": 1,
+            "lesson": 3,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "landed-cost-pricing-model",
+            "title": "定价模型：含运费、关税、广告成本的毛利测算表",
+            "summary": "把到岸成本、退货损耗和广告费都算成变动成本，才定得出最低售价",
+            "module": 1,
+            "lesson": 4,
+            "duration": 10,
+            "trial": false
+          },
+          {
+            "slug": "storefront-platform-decision-tree",
+            "title": "Shopify / Shopline / WooCommerce / Next.js 自建：决策树",
+            "summary": "按主体、履约复杂度与维护人力选建站方案，并算清换方案的迁移代价",
+            "module": 2,
+            "lesson": 1,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "shopify-checkout-customization",
+            "title": "Shopify 主题与结账流程定制（含 Checkout Extensibility）",
+            "summary": "分清主题、结账与扩展点三套机制，按收益顺序改结账而不是重做店面",
+            "module": 2,
+            "lesson": 2,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "headless-nextjs-stripe-storefront",
+            "title": "自建站方案：Next.js + 无头电商 API + Stripe",
+            "summary": "把能收钱的链路缩到五段，先做对幂等与价格边界，再谈前端体验",
+            "module": 2,
+            "lesson": 3,
+            "duration": 10,
+            "trial": false
+          },
+          {
+            "slug": "core-web-vitals-for-conversion",
+            "title": "站点性能：Core Web Vitals 对转化与广告质量分的影响",
+            "summary": "用真实用户数据定位每个模板的 LCP 元素，把性能预算写进 CI 而不是靠跑分",
+            "module": 2,
+            "lesson": 4,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "multilingual-multicurrency-structure",
+            "title": "多语言与多币种站点结构（子目录 vs 子域）",
+            "summary": "先锁 URL 结构再翻译，让地址只承载语言与地区，币种走偏好而不是路径",
+            "module": 2,
+            "lesson": 5,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "stripe-cross-border-payments",
+            "title": "Stripe 跨境收款：账户主体、结算周期、费率与拒付责任",
+            "summary": "先确认主体与结算节奏，再算清费率构成和拒付责任，决定直收还是代收",
+            "module": 3,
+            "lesson": 1,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "paypal-alipay-wechat-constraints",
+            "title": "PayPal / 支付宝 / 微信支付的接入条件与现实限制",
+            "summary": "渠道门槛不在 API，而在主体资质、资金去向与退款责任",
+            "module": 3,
+            "lesson": 2,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "multicurrency-pricing-fx",
+            "title": "多币种定价与汇率策略：本地货币展示 vs 美元结算",
+            "summary": "定价币种、展示币种、结算币种是三件事，混在一起会悄悄吃掉毛利",
+            "module": 3,
+            "lesson": 3,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "three-ds-sca-success-rate",
+            "title": "3DS / SCA 与支付成功率：为什么欧洲必须做",
+            "summary": "SCA 是准入条件而不是弹窗：用豁免策略与失败码分组，把被挡在门外的欧洲订单捞回来",
+            "module": 3,
+            "lesson": 4,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "fraud-rules-chargeback-prevention",
+            "title": "风控与拒付预防：地址校验、风险规则、人工审核阈值",
+            "summary": "风控只能治 fraudulent 那一类拒付：先量自己的分布，再用信号分档、规则兜底、人工兜最后一道",
+            "module": 3,
+            "lesson": 5,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "refund-partial-dispute-workflow",
+            "title": "退款、部分退款与争议（dispute）处理流程",
+            "summary": "退款不是一键退钱：先算净损失、再用事件驱动状态，最后才决定争议是接受还是举证",
+            "module": 3,
+            "lesson": 6,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "fulfillment-models-cost-model",
+            "title": "头程 / 尾程 / 海外仓：三种履约模式的成本模型",
+            "summary": "把履约成本拆成五段再比价，才知道海外仓在第几单回本",
+            "module": 4,
+            "lesson": 1,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "carrier-selection-tracking",
+            "title": "物流商选择与时效承诺（含追踪页与异常处理）",
+            "summary": "选物流商看异常率与状态回传质量，时效要按分位写成区间",
+            "module": 4,
+            "lesson": 2,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "duties-ddp-ddu",
+            "title": "关税与 DDP / DDU：收件人体验与成本的平衡",
+            "summary": "DDP 与 DDU 的差别是谁当进口方、谁承担拒收风险，不是谁付那笔税",
+            "module": 4,
+            "lesson": 3,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "returns-local-address",
+            "title": "退货方案：本地退货地址、退货率控制与二次销售",
+            "summary": "先算退回净回收是否为正，再决定要客户寄回还是直接退款",
+            "module": 4,
+            "lesson": 4,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "vat-oss-sales-tax-thresholds",
+            "title": "VAT / OSS / 销售税：什么规模开始必须注册",
+            "summary": "按仓储地与买家所在地判断注册义务，再用订单表排出注册顺序",
+            "module": 5,
+            "lesson": 1,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "privacy-cookie-consent-gdpr",
+            "title": "隐私合规：Cookie 同意、数据跨境、GDPR / CCPA 最小实现",
+            "summary": "先数清数据从哪出境，再决定要不要同意管理平台",
+            "module": 5,
+            "lesson": 2,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "product-certifications-ce-fcc",
+            "title": "商品合规：CE / FCC / 电池 / 化妆品的认证要求",
+            "summary": "把认证当成一份能自证的文件包，而不是箱子上印的标志",
+            "module": 5,
+            "lesson": 3,
+            "duration": 10,
+            "trial": false
+          },
+          {
+            "slug": "ad-policy-restrictions",
+            "title": "广告合规：Meta / Google 的禁售与宣称限制",
+            "summary": "把查政策、留证据、保一致做成上架流程，而不是背清单",
+            "module": 5,
+            "lesson": 4,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "legal-page-templates-store",
+            "title": "法务页模板：条款、隐私、退款、配送政策",
+            "summary": "四页政策的判断标准不是长短，而是能否对上你的实际流程",
+            "module": 5,
+            "lesson": 5,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "product-copy-multilingual-seo",
+            "title": "商品文案：多语言卖点提炼与 SEO 标题生成",
+            "summary": "先把参数提炼成场景卖点，再按市场重写标题，最后才交给 AI 翻译",
+            "module": 6,
+            "lesson": 1,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "ai-product-imagery-compliance",
+            "title": "图片与场景图：AI 生成 + 实拍结合的合规用法",
+            "summary": "主图必须还原实物，AI 只做背景；把合规风险挡在退货与拒审之前",
+            "module": 6,
+            "lesson": 2,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "short-video-script-batch-editing",
+            "title": "短视频脚本与批量剪辑工作流",
+            "summary": "把脚本拆成五段固定结构，用矩阵换钩子，用命令行批量导出",
+            "module": 6,
+            "lesson": 3,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "creative-ab-test-design",
+            "title": "落地页与广告素材的 A/B 实验设计",
+            "summary": "先算样本量再动手：一次一个变量，停手规则提前写死",
+            "module": 6,
+            "lesson": 4,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "ad-cold-start-structure",
+            "title": "Meta / Google / TikTok 的冷启动结构与最小预算",
+            "summary": "先用单次获客上限反推能花多少钱，再决定开几个账户、几个广告组",
+            "module": 7,
+            "lesson": 1,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "creative-test-matrix",
+            "title": "广告素材测试矩阵：hook、卖点、场景的组合",
+            "summary": "把素材拆成三层再做组合，让每一次测试都能归因到具体变化",
+            "module": 7,
+            "lesson": 2,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "funnel-diagnosis-pdp-cart-checkout",
+            "title": "转化率优化：商品页、购物车、结账页的漏斗诊断",
+            "summary": "按段拆漏斗、统一口径、一次只改一处，让转化率改动可验证",
+            "module": 7,
+            "lesson": 3,
+            "duration": 10,
+            "trial": false
+          },
+          {
+            "slug": "abandoned-cart-email-sms",
+            "title": "弃购挽回与邮件 / SMS 自动化",
+            "summary": "按弃购发生的环节分流触达，用频率上限换回订单而不烧掉发送声誉",
+            "module": 7,
+            "lesson": 4,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "core-ecommerce-metrics",
+            "title": "核心指标：AOV、CAC、LTV、退款率与真实毛利",
+            "summary": "五个指标一套口径，先算出真实毛利再看增长，否则增长只是放大亏损",
+            "module": 8,
+            "lesson": 1,
+            "duration": 10,
+            "trial": false
+          },
+          {
+            "slug": "ltv-subscription-bundles",
+            "title": "会员 / 订阅 / 捆绑销售：提升 LTV 的三种做法",
+            "summary": "三种提 LTV 的路径前提不同，先看复购动机再选，不要为了订阅而订阅",
+            "module": 8,
+            "lesson": 2,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "reviews-ugc-compliance",
+            "title": "评论与 UGC：合规收集与展示",
+            "summary": "把评论做成可验证的数据资产：先能合法收到，再能合规展示",
+            "module": 8,
+            "lesson": 3,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "quarterly-review-template",
+            "title": "季度复盘模板与下一步扩张决策",
+            "summary": "用一页纸的复盘模板判断该加预算、换市场还是收手",
+            "module": 8,
+            "lesson": 4,
+            "duration": 8,
+            "trial": false
+          }
+        ]
+      }
+    },
+    {
+      "slug": "global-site-seo",
+      "locales": {
+        "zh": [
+          {
+            "slug": "search-intent-quadrants",
+            "title": "搜索需求的四象限：高意图 / 低意图 / 品牌词 / 竞品词",
+            "summary": "用两根轴把关键词分成四类，每类配不同的承接页与考核指标",
+            "module": 1,
+            "lesson": 1,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "new-site-six-month-expectations",
+            "title": "新站 6 个月能拿到什么：真实预期与常见幻觉",
+            "summary": "用索引数、有曝光的查询数、品牌曝光三项判断进度，而不是看日历",
+            "module": 1,
+            "lesson": 2,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "keyword-research-tool-stack",
+            "title": "关键词研究：工具组合与「可赢关键词」筛选",
+            "summary": "三层工具分工，再用三个筛子找出前 10 里有弱页、你能替换的词",
+            "module": 1,
+            "lesson": 3,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "competitor-content-gaps",
+            "title": "竞品反查：从对手的内容结构里找缺口",
+            "summary": "先用 sitemap 拆出对手的内容类型，再找他们写得浅、内链弱的页面",
+            "module": 1,
+            "lesson": 4,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "subdirectory-subdomain-standalone",
+            "title": "子目录、子域、独立域名的取舍（含成本与权重继承）",
+            "summary": "默认用子目录：信号跟着 URL 走，换主机名等于把历史断开",
+            "module": 2,
+            "lesson": 1,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "hreflang-common-mistakes",
+            "title": "hreflang 的正确写法与 5 个高频错误",
+            "summary": "每组必须自指且双向，href 必须是 200 的最终地址，否则整组静默失效",
+            "module": 2,
+            "lesson": 2,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "language-region-separation",
+            "title": "语言与地区分离：en-US / en-GB / es-MX 该怎么组织",
+            "summary": "先判断地区差异是否真实存在，再决定拆不拆目录，差异用 fallback 承载",
+            "module": 2,
+            "lesson": 3,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "default-language-auto-redirect",
+            "title": "默认语言、自动跳转与爬虫可达性",
+            "summary": "URL 必须承载语言：静态导出下没有服务端协商，按语言头跳转会挡住爬虫",
+            "module": 2,
+            "lesson": 4,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "nextjs-static-i18n-routing",
+            "title": "静态导出站点的多语言路由实现（Next.js 实战）",
+            "summary": "route group 管壳、语言段管语言，静态导出必须显式声明全部参数",
+            "module": 2,
+            "lesson": 5,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "core-web-vitals-static-cdn",
+            "title": "Core Web Vitals：静态导出 + CDN 的性能基线",
+            "summary": "用真实网络测 LCP、INP、CLS，把静态导出的首屏优势守住",
+            "module": 3,
+            "lesson": 1,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "canonical-sitemap-robots",
+            "title": "canonical、sitemap、robots 的正确配合",
+            "summary": "三件套各管一件事：声明主版本、提交可索引 URL、控制抓取",
+            "module": 3,
+            "lesson": 2,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "ssg-ssr-csr-choices",
+            "title": "渲染方式选择：SSG / SSR / 客户端渲染分别适合什么内容",
+            "summary": "按「是否每次请求都不同」分类，再决定哪些页面走静态导出",
+            "module": 3,
+            "lesson": 3,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "structured-data-article-faq-product",
+            "title": "结构化数据实战：Article、FAQ、Product、Course、Breadcrumb",
+            "summary": "按实体选类型，只标记页面上看得见的内容，并用工具闭环验证",
+            "module": 3,
+            "lesson": 4,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "ai-search-citability",
+            "title": "AI 搜索时代的可引用性：清晰结构、事实密度与实体标记",
+            "summary": "让答案引擎能摘到你的段落：结构清楚、事实可核验、实体有据可查",
+            "module": 3,
+            "lesson": 5,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "search-intent-classification",
+            "title": "搜索意图分类：导航、信息、商业调查、交易",
+            "summary": "看 SERP 上占位的是哪类页面来定意图，再决定写教程、对比页还是定价页",
+            "module": 4,
+            "lesson": 1,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "article-structure-template",
+            "title": "文章结构模板：从标题到结论的可复用骨架",
+            "summary": "把结论提到第一屏，中间用可跟做的步骤，结尾只留一个下一步",
+            "module": 4,
+            "lesson": 2,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "internal-link-three-layers",
+            "title": "内链设计：用 3 层结构把权重导到转化页",
+            "summary": "枢纽页聚主题、支撑文承长尾、转化页收意向，每篇只发三条定向链接",
+            "module": 4,
+            "lesson": 3,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "ai-writing-boundaries",
+            "title": "AI 辅助写作的边界：哪些部分必须人来写",
+            "summary": "AI 负责结构与初稿，人负责事实、取舍和一手经验，界线用验收方式固定下来",
+            "module": 4,
+            "lesson": 4,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "content-refresh-vs-new",
+            "title": "内容更新机制：老文章翻新的收益为什么高于新文章",
+            "summary": "有展现无点击、排在第二页的老文，补内容比从零写新文更快见效",
+            "module": 4,
+            "lesson": 5,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "linkable-assets",
+            "title": "可链接资产：工具、数据、模板的三种做法",
+            "summary": "别人链你，是因为有个具体页面值得被引用，而不是因为你发了邮件",
+            "module": 5,
+            "lesson": 1,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "community-distribution",
+            "title": "社区分发：Reddit / HN / Product Hunt 的正确姿势",
+            "summary": "先读规则再发帖，帖子本身能独立成立，链接只做补充",
+            "module": 5,
+            "lesson": 2,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "directories-comparisons-partners",
+            "title": "目录站、对比站与合作伙伴外链",
+            "summary": "按是否人工编辑、是否有真实读者来筛，而不是按链接数量买套餐",
+            "module": 5,
+            "lesson": 3,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "backlink-quality-risk",
+            "title": "外链质量判断与风险规避",
+            "summary": "按相关度、编辑性与页面质量打分，宁缺毋滥，比数量更早看风险",
+            "module": 5,
+            "lesson": 4,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "search-console-reports",
+            "title": "Search Console 必看报表与常见误读",
+            "summary": "只看四张报表，用固定口径避开平均排名与曝光上涨带来的误读",
+            "module": 6,
+            "lesson": 1,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "ga4-event-attribution",
+            "title": "GA4 事件设计：从访问到注册到付费的归因",
+            "summary": "六个事件打通访问到付费，用事件表和对账口径替代「Direct 占一半」",
+            "module": 6,
+            "lesson": 2,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "six-seo-verdict-metrics",
+            "title": "6 个判断 SEO 是否值得继续的指标",
+            "summary": "三个看增长、三个看单位经济，用能算出来的指标决定加码还是收手",
+            "module": 6,
+            "lesson": 3,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "quarterly-seo-review",
+            "title": "季度增长复盘与下季度内容排期",
+            "summary": "用一张复盘表和一张排期表，把上季度的判断变成下季度的写作计划",
+            "module": 6,
+            "lesson": 4,
+            "duration": 8,
+            "trial": false
+          }
+        ]
+      }
+    },
+    {
+      "slug": "indie-saas-launch",
+      "locales": {
+        "zh": [
+          {
+            "slug": "product-shapes-for-indies",
+            "title": "三种适合独立开发者的产品形态：工具、垂直 SaaS、信息产品",
+            "summary": "按维护面与获客方式对比三种产品形态，选出一个人能长期扛住的那一种",
+            "module": 1,
+            "lesson": 1,
+            "duration": 9,
+            "trial": true
+          },
+          {
+            "slug": "pain-point-inventory",
+            "title": "从自己的痛点里挖需求：问题清单法",
+            "summary": "用七个字段记录真实发生的麻烦，按每周耗时排序，筛出值得做成产品的那一条",
+            "module": 1,
+            "lesson": 2,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "five-page-validation",
+            "title": "用 5 个页面验证需求（不等产品写完）",
+            "summary": "用五个静态页面和一组 CTA 埋点，一周内验证定位、价格与购买意愿是否成立",
+            "module": 1,
+            "lesson": 3,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "presale-and-waitlist",
+            "title": "预售与等待名单：用真实付款意图替代点赞",
+            "summary": "区分点赞、留邮箱与真实付款三种信号，用最小收款链路验证第一批人是否愿意掏钱",
+            "module": 1,
+            "lesson": 4,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "stack-selection-next-remix-astro",
+            "title": "技术选型：Next.js / Remix / Astro 的选择标准",
+            "summary": "按服务端边界和迁移代价挑框架，而不是按社区热度",
+            "module": 2,
+            "lesson": 1,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "postgres-and-orm-baseline",
+            "title": "数据库与 ORM：Postgres + Prisma / Drizzle 的最小约定",
+            "summary": "用五条 schema 约定和一条迁移纪律，避开连接池与金额存储的常见崩法",
+            "module": 2,
+            "lesson": 2,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "auth-provider-tradeoffs",
+            "title": "认证方案：Auth.js、Clerk、Supabase Auth 的成本与迁移风险",
+            "summary": "按用户表归属和退出成本选认证，而不是按登录页好不好看",
+            "module": 2,
+            "lesson": 3,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "deploy-cost-boundaries",
+            "title": "部署与成本：Vercel、Cloudflare、Fly.io 的免费额度边界",
+            "summary": "先搞清楚自己会撞上哪种计量，再决定把静态站和函数放在哪",
+            "module": 2,
+            "lesson": 4,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "observability-baseline",
+            "title": "可观测性：日志、错误追踪、用量埋点一次配好",
+            "summary": "只回答三个问题，用一行 JSON 日志和一张事实表撑起最小可观测性",
+            "module": 2,
+            "lesson": 5,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "multi-tenant-database-models",
+            "title": "单库多租户 vs 独立 schema：什么时候该选哪个",
+            "summary": "按隔离等级而非技术偏好选租户模型，说清三种方案各自的运维代价与升级出口",
+            "module": 3,
+            "lesson": 1,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "org-member-invite-model",
+            "title": "组织 / 成员 / 邀请：最小可用的团队模型",
+            "summary": "用三张表和一次事务实现组织、成员与邀请，并说清每个建模决策的长期代价",
+            "module": 3,
+            "lesson": 2,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "role-resource-action-permissions",
+            "title": "权限设计：角色、资源、动作三层模型",
+            "summary": "把散落在 if 里的角色判断收敛成一张权限矩阵，并让检查落在查询层而不是按钮上",
+            "module": 3,
+            "lesson": 3,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "quotas-and-rate-limits",
+            "title": "额度与限流：免费用户的成本护栏",
+            "summary": "用配额、限流、成本熔断三层护栏，把免费用户的按量计费风险挡在调用之前",
+            "module": 3,
+            "lesson": 4,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "stripe-account-kyb-settlement",
+            "title": "Stripe 账户准备：主体、KYB、结算币种与手续费",
+            "summary": "先定主体、再备 KYB 材料，最后从自己的 balance transaction 反推真实费率",
+            "module": 4,
+            "lesson": 1,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "checkout-session-vs-payment-link",
+            "title": "Checkout Session vs Payment Link vs 自建表单：怎么选",
+            "summary": "按服务端边界和价格是否随用户变化来选结账方式，并给日后迁移留好复用点",
+            "module": 4,
+            "lesson": 2,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "subscription-billing-models",
+            "title": "订阅模式：试用、按席位、按用量与混合计费",
+            "summary": "从成本结构和账单可预测性出发选一种计费维度，别一上线就把三种叠在一起",
+            "module": 4,
+            "lesson": 3,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "webhook-order-state-machine",
+            "title": "Webhook 与订单状态机：支付成功不等于开通成功",
+            "summary": "把开通权只交给验签后的 Webhook，用唯一索引和五个状态挡住重复与丢单",
+            "module": 4,
+            "lesson": 4,
+            "duration": 10,
+            "trial": false
+          },
+          {
+            "slug": "coupons-earlybird-refunds",
+            "title": "优惠码、早鸟价与退款策略",
+            "summary": "在改价与发码之间选一条，并把退款规则落成订单表里的状态机",
+            "module": 4,
+            "lesson": 5,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "stripe-tax-invoices-multicurrency",
+            "title": "Stripe Tax / 发票 / 多币种：出海必须处理的细节",
+            "summary": "把税务、发票、币种拆成三个决定，各自选一条一个人维护得起的路径",
+            "module": 4,
+            "lesson": 6,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "reconciliation-with-stripe",
+            "title": "对账：把 Stripe 付款记录和你的用户表对上",
+            "summary": "每周用一次差集查询，让每一笔差额都有归属，而不是月底怀疑 webhook",
+            "module": 4,
+            "lesson": 7,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "domain-dns-email-setup",
+            "title": "域名、DNS、邮件域名（SPF/DKIM/DMARC）一次配对",
+            "summary": "把站点解析与发信身份一次配好，避免上线后收据邮件进垃圾箱",
+            "module": 5,
+            "lesson": 1,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "landing-page-structure",
+            "title": "落地页结构：首屏、社会证明、定价、FAQ",
+            "summary": "按流量温度排四个区块，让还没有用户的页面也能完成转化",
+            "module": 5,
+            "lesson": 2,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "legal-pages-minimum",
+            "title": "法务三件套：隐私政策、服务条款、退款政策",
+            "summary": "用一页能对得上实际流程的政策替代模板堆砌，避免与页面承诺打架",
+            "module": 5,
+            "lesson": 3,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "launch-payment-rehearsal",
+            "title": "上线前演练：用真实测试卡跑通支付全链路",
+            "summary": "在收第一笔真钱之前，把成功、失败、退款、重放四条路径各走一遍",
+            "module": 5,
+            "lesson": 4,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "gradual-rollout-and-rollback",
+            "title": "灰度与回滚：出问题时怎么把损失控制在一小时内",
+            "summary": "用三个层级的开关替代临场查日志，把一次事故变成先止血再定位",
+            "module": 5,
+            "lesson": 5,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "cold-start-channels",
+            "title": "冷启动渠道盘点：Product Hunt、Reddit、HN、垂直社区",
+            "summary": "四个冷启动渠道的分发逻辑、适用条件与放弃信号，一次只押一个",
+            "module": 6,
+            "lesson": 1,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "seo-comparison-content",
+            "title": "内容 SEO：用 10 篇对比文拿下长尾搜索",
+            "summary": "对比文的选题配比、结构模板与收录验证，以及不该做 SEO 的情形",
+            "module": 6,
+            "lesson": 2,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "pricing-page-ab-and-cancel-flow",
+            "title": "转化优化：定价页 A/B 与取消流程挽留",
+            "summary": "样本不足时先修摩擦点，A/B 只测一个变量，取消流程给选择不设障碍",
+            "module": 6,
+            "lesson": 3,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "upgrade-triggers",
+            "title": "从免费到付费：触发升级的 4 个时机",
+            "summary": "免费版边界画在重复使用上，四个升级时机的触发信号与实现方式",
+            "module": 6,
+            "lesson": 4,
+            "duration": 8,
+            "trial": false
+          },
+          {
+            "slug": "refunds-chargebacks-risk",
+            "title": "退款、拒付（chargeback）与风控处理流程",
+            "summary": "把拒付当作有截止日的时间线，用交付时留下的证据和三条风控闸门应对",
+            "module": 7,
+            "lesson": 1,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "gdpr-ccpa-minimum",
+            "title": "数据合规：GDPR / CCPA 的最小实现",
+            "summary": "按适用范围判断义务，用三条可执行流程覆盖告知、导出、删除与拒绝",
+            "module": 7,
+            "lesson": 2,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "revenue-accounting-tax-basics",
+            "title": "收入记账与税务申报的基础认知",
+            "summary": "把到账金额还原成收入、手续费与退款，做出能交给会计的月度账",
+            "module": 7,
+            "lesson": 3,
+            "duration": 9,
+            "trial": false
+          },
+          {
+            "slug": "when-to-incorporate-offshore",
+            "title": "什么时候该注册海外主体，什么时候不该",
+            "summary": "用年持有成本与收入规模判断是否注册，以及三条路径各自的隐性代价",
+            "module": 7,
+            "lesson": 4,
+            "duration": 9,
+            "trial": false
+          }
+        ]
+      }
+    }
+  ]
+}

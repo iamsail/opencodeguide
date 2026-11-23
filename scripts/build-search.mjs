@@ -2,7 +2,9 @@ import fs from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
 import { globby } from 'globby'
-import { isFreeLesson, isPublicBuild } from './courses/access.mjs'
+import { isPublicBuild, readAccessConfig } from './courses/access.mjs'
+import { lessonRoots, resolveLessonFile } from './courses/content-paths.mjs'
+import { readLessonManifest } from './courses/manifest.mjs'
 
 /** 把课程 JSON 转成搜索索引条目（课程页是 TSX，不在 MDX 扫描范围内） */
 function buildCourseEntries() {
@@ -10,7 +12,9 @@ function buildCourseEntries() {
   if (!fs.existsSync(dir)) return []
 
   const entries = []
-  const files = fs.readdirSync(dir).filter((file) => file.endsWith('.json') && !file.startsWith('stripe-'))
+  const files = fs
+    .readdirSync(dir)
+    .filter((file) => file.endsWith('.json') && !file.startsWith('stripe-') && file !== 'manifest.json')
 
   for (const file of files) {
     let course
@@ -52,58 +56,44 @@ function buildCourseEntries() {
  * 课时页是动态路由，不在 app/**\/*.mdx 的扫描范围里，所以单独读 content。
  */
 function buildLessonEntries() {
-  const root = path.join(process.cwd(), 'content/courses')
+  const manifest = readLessonManifest()
+  if (!manifest) return []
+
+  const roots = lessonRoots()
+  const { freeLessonLimit } = readAccessConfig()
   const entries = []
 
-  for (const locale of ['zh', 'en']) {
-    const localeDir = path.join(root, locale)
-    if (!fs.existsSync(localeDir)) continue
-
-    for (const courseSlug of fs.readdirSync(localeDir)) {
-      const courseDir = path.join(localeDir, courseSlug)
-      if (!fs.statSync(courseDir).isDirectory()) continue
-
+  for (const course of manifest.courses) {
+    for (const [locale, lessons] of Object.entries(course.locales ?? {})) {
       const prefix = locale === 'zh' ? '/zh/courses' : '/en/courses'
-      const files = fs.readdirSync(courseDir).filter((file) => file.endsWith('.mdx') && !file.startsWith('_'))
 
-      // 必须先按 模块 → 节 排序，免费额度才与课时页/sitemap 用的是同一个「第几节」
-      const parsed = files
-        .map((file) => {
-          try {
-            return {
-              slug: path.basename(file, '.mdx'),
-              doc: matter(fs.readFileSync(path.join(courseDir, file), 'utf8')),
-            }
-          } catch {
-            return null
-          }
-        })
-        .filter(Boolean)
-        .sort(
-          (a, b) =>
-            (Number(a.doc.data.module) || 0) - (Number(b.doc.data.module) || 0) ||
-            (Number(a.doc.data.lesson) || 0) - (Number(b.doc.data.lesson) || 0) ||
-            a.slug.localeCompare(b.slug),
-        )
+      lessons.forEach((lesson, index) => {
+        // 免费额度按 manifest 顺序算 —— 与课时页、sitemap 用的是同一个「第几节」，
+        // 不能按「磁盘上恰好有哪几个文件」排序，否则少文件会把付费节错标成免费。
+        const free = lesson.trial === true || index < freeLessonLimit
+        const file = resolveLessonFile({ locale, course: course.slug, slug: lesson.slug }, roots)
 
-      parsed.forEach(({ slug, doc }, index) => {
-        const free = isFreeLesson({ index, frontmatterFree: doc.data?.free === true })
         // 公开构建里付费节的正文不能进索引：search.json 是全站公开文件
         const includeBody = !isPublicBuild() || free
 
-        const body = includeBody
-          ? doc.content
-              .replace(/```[\s\S]*?```/g, '')
+        let body = ''
+        if (includeBody && file) {
+          try {
+            body = matter(fs.readFileSync(file, 'utf8'))
+              .content.replace(/```[\s\S]*?```/g, '')
               .replace(/[#*\[\]()_`>|-]/g, ' ')
               .replace(/\s+/g, ' ')
               .trim()
               .slice(0, 400)
-          : ''
+          } catch {
+            body = ''
+          }
+        }
 
         entries.push({
-          title: String(doc.data?.title ?? slug),
-          url: `${prefix}/${courseSlug}/${slug}`,
-          content: [doc.data?.summary, body].filter(Boolean).join(' ').slice(0, 500),
+          title: lesson.title || lesson.slug,
+          url: `${prefix}/${course.slug}/${lesson.slug}`,
+          content: [lesson.summary, body].filter(Boolean).join(' ').slice(0, 500),
           category: locale === 'zh' ? 'Chinese' : 'English',
         })
       })

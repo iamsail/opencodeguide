@@ -9,6 +9,36 @@ export const dynamic = 'force-static'
 
 const BASE_URL = 'https://opencodeguide.com'
 
+/**
+ * 站点开了 trailingSlash: true，sitemap 里的 URL 就必须带尾斜杠。
+ * 否则每条 URL 被请求时都会先吃一次 301，白白浪费抓取预算。
+ */
+function withSlash(url: string): string {
+  return url.endsWith('/') ? url : `${url}/`
+}
+
+/** 统一把 url 与 alternates 里的语言版本补成带尾斜杠的形式 */
+function normalizeEntry(entry: MetadataRoute.Sitemap[number]): MetadataRoute.Sitemap[number] {
+  const languages = entry.alternates?.languages as Record<string, unknown> | undefined
+  const normalizedLanguages = languages
+    ? Object.fromEntries(
+        Object.entries(languages).map(([key, value]) => [
+          key,
+          typeof value === 'string' ? withSlash(value) : value,
+        ]),
+      )
+    : undefined
+
+  return {
+    ...entry,
+    url: withSlash(entry.url),
+    ...(normalizedLanguages
+      ? { alternates: { ...entry.alternates, languages: normalizedLanguages } }
+      : {}),
+  } as MetadataRoute.Sitemap[number]
+}
+
+
 async function getPageFiles(dir: string): Promise<string[]> {
   const entries = await fs.readdir(dir, { withFileTypes: true })
   let files: string[] = []
@@ -140,5 +170,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const filtered = sitemapEntries.filter((entry) => !entry.url.includes('/courses/thank-you'))
 
   // Sort by URL to ensure stable output
-  return [...filtered, ...courseEntries, ...lessonEntries].sort((a, b) => a.url.localeCompare(b.url))
+  return [...filtered, ...courseEntries, ...lessonEntries]
+    .map(normalizeEntry)
+    .sort((a, b) => a.url.localeCompare(b.url))
 }

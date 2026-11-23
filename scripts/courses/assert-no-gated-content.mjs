@@ -5,35 +5,38 @@
  * 站点是纯静态导出，`out/` 里的 HTML 等于公开文件：前端隐藏、CSS 遮挡、
  * JS 拦截都不算数。唯一可信的检查是「公开产物里根本找不到付费正文」。
  *
- * 本脚本做三件事：
- *   1. 反向检查（防泄露）：为每个付费课时从正文里抽 2 段特征串（探针），
+ * 本脚本做四件事：
+ *   1. 仓库检查（防放进公开仓）：`git ls-files` 里不允许出现付费正文文件。
+ *      这是拆分后最重要的一条——正文已经不在公开仓，但仍要被守住。
+ *   2. 反向检查（防泄露）：本 checkout 若存在付费正文，从里面抽 2 段特征串（探针），
  *      在整个 out/ 目录（html / json / js / xml）里搜索，命中即失败。
- *   2. 正向检查（防漏锁）：每个付费课时页必须渲染 `data-locked-lesson` 标记，
- *      否则说明分流没生效（正文可能被渲染出去了）。
- *   3. 对照检查（防误锁）：免费试听页必须仍然包含自己的正文探针，
- *      避免「一刀切锁完」把该公开的内容也锁掉。
+ *   3. 正向检查（防漏锁）：每个付费课时页必须渲染 `data-locked-lesson` 标记，
+ *      否则说明分流没生效，或者页面根本没生成（URL 会 404）。
+ *   4. 对照检查（防误锁）：免费试听页必须仍然包含自己的正文探针。
+ *
+ * 与拆分前的重要区别：付费清单改由 `content/courses/manifest.json` 提供。
+ * 以前从 `.mdx` 反推，正文一搬走付费清单就变成 0 条，脚本会打印 ✔ 但什么都没验。
+ * 现在即使本 checkout 里没有任何付费正文，第 1 条与第 3 条仍然在生效。
  *
  * 用法：
  *   node scripts/courses/assert-no-gated-content.mjs
  *   node scripts/courses/assert-no-gated-content.mjs --dir out --thorough
  *   node scripts/courses/assert-no-gated-content.mjs --report     # 打印探针
  *
- * 退出码：0 通过 / 1 有泄露或缺锁
+ * 退出码：0 通过 / 1 有泄露、缺锁或仓库里混入付费正文
  */
 
 import fs from "node:fs";
 import path from "node:path";
+import { execFileSync } from "node:child_process";
+
 import matter from "gray-matter";
 
-import {
-  compareLessons,
-  getAccessMode,
-  isFreeLesson,
-  isMembersBuild,
-} from "./access.mjs";
+import { getAccessMode, isMembersBuild, readAccessConfig } from "./access.mjs";
+import { lessonRoots, resolveLessonFile } from "./content-paths.mjs";
+import { readLessonManifest } from "./manifest.mjs";
 
 const ROOT = process.cwd();
-const COURSE_DIR = path.join(ROOT, "content/courses");
 
 const SCAN_EXTENSIONS = new Set([".html", ".htm", ".json", ".js", ".mjs", ".xml", ".txt"]);
 const MIN_FILE_BYTES = 64;
@@ -56,51 +59,54 @@ function parseArgs(argv) {
   return args;
 }
 
-/** 按 模块 → 节 排序收集某门课的正文 */
-function readLessons(locale, courseSlug) {
-  const dir = path.join(COURSE_DIR, locale, courseSlug);
-  if (!fs.existsSync(dir)) return [];
+/**
+ * 从 manifest 组装课时清单。
+ * body 只从当前构建模式可见的根里读（public 构建 = 只有公开根，所以正常情况下付费节 body 为空）。
+ */
+function collectLessons(manifest) {
+  const roots = lessonRoots();
+  const { freeLessonLimit } = readAccessConfig();
+  const rows = [];
 
-  return fs
-    .readdirSync(dir)
-    .filter((file) => file.endsWith(".mdx") && !file.startsWith("_"))
-    .map((file) => {
-      try {
-        const doc = matter(fs.readFileSync(path.join(dir, file), "utf8"));
-        return {
-          slug: path.basename(file, ".mdx"),
-          data: doc.data ?? {},
-          body: doc.content ?? "",
-        };
-      } catch {
-        return null;
-      }
-    })
-    .filter(Boolean)
-    .sort(compareLessons);
-}
-
-function collectLessons() {
-  const lessons = [];
-  for (const locale of ["zh", "en"]) {
-    const localeDir = path.join(COURSE_DIR, locale);
-    if (!fs.existsSync(localeDir)) continue;
-
-    for (const entry of fs.readdirSync(localeDir)) {
-      if (!fs.statSync(path.join(localeDir, entry)).isDirectory()) continue;
-      readLessons(locale, entry).forEach(({ slug, data, body }, index) => {
-        lessons.push({
+  for (const course of manifest.courses) {
+    for (const [locale, lessons] of Object.entries(course.locales ?? {})) {
+      lessons.forEach((lesson, index) => {
+        const file = resolveLessonFile({ locale, course: course.slug, slug: lesson.slug }, roots);
+        let body = "";
+        if (file) {
+          try {
+            body = matter(fs.readFileSync(file, "utf8")).content ?? "";
+          } catch {
+            body = "";
+          }
+        }
+        rows.push({
           locale,
-          courseSlug: entry,
-          slug,
-          title: String(data.title ?? slug),
+          courseSlug: course.slug,
+          slug: lesson.slug,
+          title: lesson.title ?? lesson.slug,
+          free: lesson.trial === true || index < freeLessonLimit,
           body,
-          free: isFreeLesson({ index, frontmatterFree: data.free === true }),
+          hasBody: Boolean(file) && body.trim().length > 0,
         });
       });
     }
   }
-  return lessons;
+
+  return rows;
+}
+
+/** 当前 checkout 里被 git 跟踪的课程文件（用于「付费正文不许进公开仓」检查） */
+function trackedCourseFiles() {
+  try {
+    const output = execFileSync("git", ["ls-files", "-z", "--", "content/courses"], {
+      cwd: ROOT,
+      encoding: "utf8",
+    });
+    return new Set(output.split("\0").filter(Boolean));
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -109,10 +115,6 @@ function collectLessons() {
  * （这些在 HTML 里会变成标签或实体，导致匹配不上，产生假阴性）。
  */
 function buildProbes(body, max = 2) {
-  // 探针取「渲染成 HTML 后仍然连续」的纯文本片段：
-  //   - 跳过代码块 / 表格行 / 图片；
-  //   - 行内代码与加粗会把段落切成多段，所以按它们切开，取其中足够长的一段；
-  //   - 含 & < > " ' 的片段在 HTML 里会变成实体，直接排除（否则必然匹配不上）。
   const candidates = [];
   let inFence = false;
 
@@ -184,20 +186,39 @@ function main() {
     return 1;
   }
 
-  const lessons = collectLessons();
+  const manifest = readLessonManifest();
+  if (!manifest) {
+    console.error("✖ 找不到 content/courses/manifest.json，无法确定付费课时清单");
+    console.error("  先跑 npm run courses:manifest（在带正文的环境里生成并提交）");
+    return 1;
+  }
+
+  const lessons = collectLessons(manifest);
   if (lessons.length === 0) {
-    console.error("✖ content/courses 下没有任何课时正文，无法校验");
+    console.error("✖ manifest 里没有任何课时，无法校验");
     return 1;
   }
 
   const gated = lessons.filter((lesson) => !lesson.free);
   const free = lessons.filter((lesson) => lesson.free);
+  const gatedWithBody = gated.filter((lesson) => lesson.hasBody);
+
+  // ---- 检查 1：公开仓里不允许出现付费正文文件 ----
+  const tracked = trackedCourseFiles();
+  const leakedInRepo = [];
+  if (tracked) {
+    for (const lesson of gated) {
+      const rel = `content/courses/${lesson.locale}/${lesson.courseSlug}/${lesson.slug}.mdx`;
+      if (tracked.has(rel)) leakedInRepo.push(rel);
+    }
+  }
 
   const files = walkFiles(outDir).filter((file) => fs.statSync(file).size >= MIN_FILE_BYTES);
+
+  // ---- 检查 2：付费正文探针不得出现在公开产物里 ----
   const needles = [];
   let noProbe = 0;
-
-  for (const lesson of gated) {
+  for (const lesson of gatedWithBody) {
     const probes = buildProbes(lesson.body, args.thorough ? 3 : 2);
     if (probes.length === 0) {
       noProbe += 1;
@@ -215,7 +236,6 @@ function main() {
     }
   }
 
-  // 1. 反向检查：付费正文是否出现在公开产物里
   const leaks = [];
   for (const file of files) {
     const buffer = fs.readFileSync(file);
@@ -232,14 +252,16 @@ function main() {
     }
   }
 
-  // 2. 正向检查：付费课时页必须渲染锁定标记
+  // ---- 检查 3：每个付费课时页都必须存在且渲染锁定标记 ----
   const missingLockedPages = [];
   for (const lesson of gated) {
     const candidates = pageFileCandidates(outDir, lesson);
     const existing = candidates.find((file) => fs.existsSync(file));
     if (!existing) {
-      // 只有中文课时有路由；英文正文尚未上线，缺失不算失败
-      if (lesson.locale === "zh") missingLockedPages.push(`${lesson.courseSlug}/${lesson.slug}（页面未生成）`);
+      // 英文课时路由尚未上线，缺页不算失败；中文必须逐节有页面
+      if (lesson.locale === "zh") {
+        missingLockedPages.push(`${lesson.courseSlug}/${lesson.slug}（页面未生成，URL 会 404）`);
+      }
       continue;
     }
     const html = fs.readFileSync(existing, "utf8");
@@ -248,9 +270,13 @@ function main() {
     }
   }
 
-  // 3. 对照检查：免费试听页必须仍带自己的正文
+  // ---- 检查 4：免费试听页必须仍带自己的正文 ----
   const missingFreeContent = [];
   for (const lesson of free) {
+    if (!lesson.hasBody) {
+      missingFreeContent.push(`${lesson.courseSlug}/${lesson.slug}（公开仓里没有免费正文）`);
+      continue;
+    }
     const candidates = pageFileCandidates(outDir, lesson);
     const existing = candidates.find((file) => fs.existsSync(file));
     if (!existing) continue; // 英文课时无路由
@@ -259,14 +285,31 @@ function main() {
     if (probes.length === 0) continue;
     const html = fs.readFileSync(existing, "utf8");
     if (!probes.some((probe) => html.includes(probe))) {
-      missingFreeContent.push(`${lesson.courseSlug}/${lesson.slug}`);
+      missingFreeContent.push(`${lesson.courseSlug}/${lesson.slug}（页面里找不到正文）`);
     }
   }
 
-  const problems = leaks.length + missingLockedPages.length + missingFreeContent.length;
+  const problems = leakedInRepo.length + leaks.length + missingLockedPages.length + missingFreeContent.length;
+
   console.log(
-    `付费墙闸门 · 扫描 ${files.length} 个文件 · 公开 ${free.length} 节 / 锁定 ${gated.length} 节 · 探针 ${needles.length} 条`,
+    `付费墙闸门 · 扫描 ${files.length} 个文件 · 公开 ${free.length} 节 / 锁定 ${gated.length} 节 · ` +
+      `仓库内付费正文 ${leakedInRepo.length} 个 · 探针 ${needles.length} 条`,
   );
+  if (tracked === null) {
+    console.log("  ⚠ 当前目录不是 git checkout，跳过「付费正文不得入库」检查");
+  }
+  if (gatedWithBody.length === 0) {
+    console.log(
+      `  说明：本 checkout 内没有付费正文（${gated.length} 节都在私有仓），探针检查无可检对象，` +
+        "泄露面由「仓库检查 + 锁定页检查」覆盖",
+    );
+  }
+
+  if (leakedInRepo.length > 0) {
+    console.error(`\n✖ 公开仓里混进了 ${leakedInRepo.length} 个付费正文文件：`);
+    for (const item of leakedInRepo.slice(0, 10)) console.error(`  · ${item}`);
+    if (leakedInRepo.length > 10) console.error(`  …其余 ${leakedInRepo.length - 10} 个省略`);
+  }
 
   if (leaks.length > 0) {
     console.error(`\n✖ 发现 ${leaks.length} 处付费正文泄露：`);
@@ -282,7 +325,7 @@ function main() {
   }
 
   if (missingFreeContent.length > 0) {
-    console.error(`\n✖ ${missingFreeContent.length} 个免费节的正文没出现在页面里（误锁）：`);
+    console.error(`\n✖ ${missingFreeContent.length} 个免费节的正文没出现在页面里（误锁或缺正文）：`);
     for (const item of missingFreeContent.slice(0, 10)) console.error(`  · ${item}`);
   }
 
@@ -293,11 +336,13 @@ function main() {
   }
 
   if (problems > 0) {
-    console.error("\n修复方向：付费正文必须只在 members 构建里渲染，见 docs/courses/07-access-control.md 第 3 节。");
+    console.error(
+      "\n修复方向：付费正文只应存在于私有仓，公开构建只渲染锁定页。见 docs/courses/09-content-repo-boundary.md。",
+    );
     return 1;
   }
 
-  console.log("✔ 公开产物中没有任何付费正文，锁定页与免费试听页均正常");
+  console.log("✔ 公开产物里没有付费正文，锁定页与免费试听页均正常");
   return 0;
 }
 

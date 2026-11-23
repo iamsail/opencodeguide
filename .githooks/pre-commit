@@ -81,7 +81,22 @@ for pattern in "${patterns[@]}"; do
 done
 
 # ---------------------------------------------------------------------------
-# 3. 汇总
+# 3. 付费课时正文护栏（课程正文的真相源在私有仓）
+# ---------------------------------------------------------------------------
+echo "Secret guard: checking staged course bodies…"
+
+if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^content/courses/(zh|en)/[^/]+/[^/]+\.mdx$'; then
+  if command -v node >/dev/null 2>&1 && [[ -f scripts/courses/check-staged-lessons.mjs ]]; then
+    if ! node scripts/courses/check-staged-lessons.mjs; then
+      fail=1
+    fi
+  else
+    report "暂存区里有课时正文，但找不到 node 或 check-staged-lessons.mjs，无法确认是否为付费节"
+  fi
+fi
+
+# ---------------------------------------------------------------------------
+# 4. 汇总
 # ---------------------------------------------------------------------------
 if [[ "${fail}" -eq 1 ]]; then
   echo ""

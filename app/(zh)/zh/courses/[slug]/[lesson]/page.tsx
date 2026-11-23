@@ -2,6 +2,7 @@ import { type Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { getCourse, getCourseContent, getCourseSlugs } from "@/lib/courses";
+import { shouldIndexLockedPages } from "@/lib/course-access";
 import {
   getCourseCurriculum,
   getCourseLesson,
@@ -34,6 +35,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const lesson = getCourseLesson(slug, lessonSlug, "zh");
   if (!course || !lesson) return { title: "课时未找到" };
 
+  // 与页面渲染用同一个判定：没有正文的节一律按锁定页处理
+  const locked = isLessonLocked(lesson) || !lesson.hasBody;
+
   const content = getCourseContent(course, "zh");
   const path = `/zh/courses/${slug}/${lessonSlug}`;
 
@@ -41,8 +45,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: `${lesson.title} · ${content.title}`,
     // 锁定页只留一句摘要（frontmatter 的 summary），不把付费正文写进 meta
     description: lesson.summary || content.seo.description,
-    // 锁定页保持可索引（它是转化入口，正文不含付费内容）；成员站另行 noindex
-    robots: { index: true, follow: true },
+    // 锁定页默认 noindex/follow：薄页面不参与索引，但链接权重照常传递。
+    // 想改回可索引（长尾词入口策略）：LOCKED_PAGE_INDEX=true。
+    robots:
+      locked && !shouldIndexLockedPages()
+        ? { index: false, follow: true }
+        : { index: true, follow: true },
     alternates: {
       canonical: path,
       languages: {
@@ -68,7 +76,9 @@ export default async function CourseLessonPage({ params }: PageProps) {
 
   const curriculum = getCourseCurriculum(slug, "zh");
   const { previous, next } = getLessonNeighbours(slug, lessonSlug, "zh");
-  const locked = isLessonLocked(lesson);
+  // 没有正文时一律渲染锁定页：members 构建缺正文属于异常（assert-members-complete 会拦），
+  // 但这里也不能渲染一篇空文章。
+  const locked = isLessonLocked(lesson) || !lesson.hasBody;
 
   return (
     <LessonView

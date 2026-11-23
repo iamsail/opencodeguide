@@ -24,6 +24,14 @@ import path from "node:path";
 import matter from "gray-matter";
 
 import { getAccessMode, isFreeLesson, readAccessConfig } from "./access.mjs";
+import {
+  lessonRoots,
+  privateRoot,
+  publicRoot,
+  requirePrivateRootForMembers,
+  resolveLessonFile,
+} from "./content-paths.mjs";
+import { readLessonManifest } from "./manifest.mjs";
 
 const ROOT = process.cwd();
 const COURSE_DIR = path.join(ROOT, "content/courses");
@@ -473,7 +481,241 @@ function normalizeTitle(value) {
     .toLowerCase();
 }
 
+/** 判断这一节在当前构建模式下缺正文是否算错误 */
+function missingBodyIsError() {
+  return getAccessMode() === "members";
+}
+
 function validateLessons(coursesBySlug) {
+  const manifest = readLessonManifest();
+
+  if (!manifest) {
+    if (getAccessMode() === "members") {
+      error(
+        "content/courses/manifest.json",
+        "-",
+        "members 构建必须有 manifest（否则成员站课表会退化成有正文的那几节），先跑 npm run courses:manifest",
+      );
+      return;
+    }
+    warn(
+      "content/courses/manifest.json",
+      "-",
+      "缺少课时清单，回退为按目录扫描课表（先跑 npm run courses:manifest 生成）",
+    );
+    validateLessonsFromFiles(coursesBySlug);
+    return;
+  }
+
+  validateLessonsFromManifest(manifest, coursesBySlug);
+}
+
+/**
+ * manifest 驱动的课时校验
+ * ------------------------------------------------------------
+ * 课表以 manifest 为准，正文以磁盘为准（公开仓只有免费节）。
+ * 缺正文：public 是正常状态（付费正文在私有仓），members 是错误。
+ */
+function validateLessonsFromManifest(manifest, coursesBySlug) {
+  // members 构建前先确认私有根可用，避免刷出上百条「缺正文」掩盖真正原因
+  if (missingBodyIsError()) {
+    try {
+      requirePrivateRootForMembers();
+    } catch (rootError) {
+      error("COURSE_PRIVATE_DIR", "-", String(rootError.message).split("\n")[0]);
+      return;
+    }
+  }
+
+  const roots = lessonRoots();
+  const members = missingBodyIsError();
+  const { freeLessonLimit } = accessConfig;
+  const known = new Set();
+
+  for (const course of manifest.courses) {
+    const courseJson = coursesBySlug.get(course.slug);
+    if (!courseJson) {
+      error(
+        `content/courses/${course.slug}.json`,
+        "-",
+        "manifest 里有这门课，但找不到对应的课程 JSON",
+      );
+    }
+
+    for (const [locale, lessons] of Object.entries(course.locales ?? {})) {
+      const outline = courseJson?.locales?.[locale]?.modules ?? [];
+      const slots = new Map();
+      outline.forEach((module, moduleIndex) => {
+        (module.lessons ?? []).forEach((title, lessonIndex) => {
+          slots.set(`${moduleIndex + 1}:${lessonIndex + 1}`, title);
+        });
+      });
+
+      const usedSlots = new Map();
+
+      lessons.forEach((lesson, index) => {
+        const rel = `content/courses/${locale}/${course.slug}/${lesson.slug}.mdx`;
+        lessonStats.total += 1;
+        known.add(`${locale}:${course.slug}:${lesson.slug}`);
+
+        if (!isString(lesson.title)) error(rel, "title", "manifest 里缺少标题");
+        if (!isString(lesson.summary)) warn(rel, "summary", "manifest 里缺少摘要");
+        else if (lesson.summary.length > 60) {
+          warn(rel, "summary", `长度 ${lesson.summary.length}，建议 ≤60 字（课程卡/搜索摘要会截断）`);
+        }
+
+        const slotKey = `${lesson.module}:${lesson.lesson}`;
+        if (slots.size > 0 && !slots.has(slotKey)) {
+          error(
+            rel,
+            "module/lesson",
+            `大纲里没有 模块 ${lesson.module} 第 ${lesson.lesson} 节（该语言现有模块数 ${outline.length}），这一节不会出现在课表里`,
+          );
+        } else if (usedSlots.has(slotKey)) {
+          error(rel, "module/lesson", `与 ${usedSlots.get(slotKey)} 指向同一节（${slotKey}）`);
+        } else {
+          usedSlots.set(slotKey, lesson.slug);
+          const outlineTitle = slots.get(slotKey);
+          if (
+            isString(lesson.title) &&
+            isString(outlineTitle) &&
+            normalizeTitle(lesson.title) !== normalizeTitle(outlineTitle)
+          ) {
+            warn(
+              rel,
+              "title",
+              `与大纲标题不一致：manifest「${lesson.title}」/ 大纲「${outlineTitle}」`,
+            );
+          }
+        }
+
+        if (!Number.isInteger(lesson.duration) || lesson.duration < 4 || lesson.duration > 25) {
+          warn(rel, "duration", "建议 4–25 的整数（分钟），用于阅读时长展示");
+        }
+
+        const file = resolveLessonFile({ locale, course: course.slug, slug: lesson.slug }, roots);
+        if (!file) {
+          lessonStats.missing += 1;
+          if (members) {
+            error(rel, "-", "members 构建缺正文：这一节会渲染成锁定页而不是正文，先补齐私有仓");
+          }
+          return;
+        }
+
+        lessonStats.ready += 1;
+
+        // 免费节同时存在于公开仓与私有仓：两边内容不同就是漂移，必须重新导出
+        if (members) {
+          const locator = { locale, course: course.slug, slug: lesson.slug };
+          const publicFile = resolveLessonFile(locator, [publicRoot()]);
+          const privateFile = resolveLessonFile(locator, [privateRoot()]);
+          if (
+            publicFile &&
+            privateFile &&
+            !fs.readFileSync(publicFile).equals(fs.readFileSync(privateFile))
+          ) {
+            error(
+              rel,
+              "-",
+              "公开根与私有根的同一节课内容不一致（免费节漂移），以私有仓为准重新导出免费节",
+            );
+          }
+        }
+
+        let parsed;
+        try {
+          parsed = matter(fs.readFileSync(file, "utf8"));
+        } catch (err) {
+          error(rel, "frontmatter", `解析失败：${err.message}`);
+          return;
+        }
+
+        const data = parsed.data ?? {};
+        const body = parsed.content.trim();
+
+        if (Number(data.module) !== lesson.module || Number(data.lesson) !== lesson.lesson) {
+          warn(
+            rel,
+            "module/lesson",
+            `正文 frontmatter（${data.module}:${data.lesson}）与 manifest（${lesson.module}:${lesson.lesson}）不一致，重新生成 manifest`,
+          );
+        }
+        if ((data.free === true) !== (lesson.trial === true)) {
+          warn(rel, "free", "frontmatter 的 free 与 manifest 的 trial 不一致，重新生成 manifest");
+        }
+        if (isString(data.title) && normalizeTitle(data.title) !== normalizeTitle(lesson.title)) {
+          warn(rel, "title", `正文标题「${data.title}」与 manifest「${lesson.title}」不一致`);
+        }
+
+        if (!Array.isArray(data.objectives) || data.objectives.length === 0) {
+          error(rel, "objectives", "至少要有 1 条可检验的学习目标");
+        } else if (data.objectives.length < 2) {
+          warn(rel, "objectives", "建议 2–3 条");
+        }
+
+        if (body.length < 400) {
+          error(rel, "body", `正文只有 ${body.length} 字符，太薄（目标 700–1100 汉字）`);
+        } else if (body.length < 700) {
+          warn(rel, "body", `正文 ${body.length} 字符，偏短（目标 700–1100 汉字）`);
+        }
+
+        const hasCode = body.includes("```");
+        const hasTable = /^\|.*\|$/m.test(body);
+        if (!hasCode && !hasTable) {
+          warn(rel, "body", "既没有代码块也没有表格：读者拿不到可复制的产物");
+        }
+
+        const headings = (body.match(/^## /gm) ?? []).length;
+        if (headings < 2) {
+          warn(rel, "body", `只有 ${headings} 个二级标题，建议 3–5 个`);
+        }
+      });
+
+      // 免费边界：按 manifest 顺序算，与课时页/sitemap/搜索索引用同一个「第几节」
+      const freeCount = lessons.filter(
+        (lesson, index) => lesson.trial === true || index < freeLessonLimit,
+      ).length;
+      lessonStats.free += freeCount;
+      lessonStats.gated += lessons.length - freeCount;
+
+      lessons.forEach((lesson, index) => {
+        if (lesson.trial === true && index >= freeLessonLimit) {
+          warn(
+            `content/courses/${locale}/${course.slug}/${lesson.slug}.mdx`,
+            "free",
+            `标了免费试听，但它是课表第 ${index + 1} 节，超出免费额度 ${freeLessonLimit} 节：公开站仍按付费节锁定`,
+          );
+        }
+      });
+    }
+  }
+
+  // 有正文但不在 manifest：永远不会被渲染，属于必须修的问题
+  for (const locale of ["zh", "en"]) {
+    for (const root of roots) {
+      const localeDir = path.join(root, locale);
+      if (!fs.existsSync(localeDir)) continue;
+      for (const courseEntry of fs.readdirSync(localeDir)) {
+        const courseDir = path.join(localeDir, courseEntry);
+        if (!fs.statSync(courseDir).isDirectory()) continue;
+        for (const file of fs.readdirSync(courseDir)) {
+          if (!file.endsWith(".mdx") || file.startsWith("_")) continue;
+          const slug = file.replace(/\.mdx$/, "");
+          if (!known.has(`${locale}:${courseEntry}:${slug}`)) {
+            error(
+              `content/courses/${locale}/${courseEntry}/${file}`,
+              "-",
+              "正文存在但不在 manifest 里，永远不会被渲染（重新跑 npm run courses:manifest）",
+            );
+          }
+        }
+      }
+    }
+  }
+}
+
+/** 兜底：manifest 缺失时按目录扫描（行为与拆分前一致） */
+function validateLessonsFromFiles(coursesBySlug) {
   for (const locale of ["zh", "en"]) {
     const localeDir = path.join(COURSE_DIR, locale);
     if (!fs.existsSync(localeDir)) continue;
@@ -653,7 +895,12 @@ function main() {
   const files = fs
     .readdirSync(COURSE_DIR)
     .filter(
-      (file) => file.endsWith(".json") && !file.startsWith("stripe-") && file !== path.basename(ACCESS_FILE),
+      (file) =>
+        file.endsWith(".json") &&
+        !file.startsWith("stripe-") &&
+        file !== path.basename(ACCESS_FILE) &&
+        // manifest 是课表元数据，不是课程数据，别当课程 JSON 校验
+        file !== "manifest.json",
     )
     .sort();
 
@@ -744,7 +991,10 @@ function report(args, fileCount) {
     console.log(
       `课程数据校验 · ${fileCount} 个课程 · 课时正文 ${lessonStats.ready}/${
         lessonStats.ready + lessonStats.missing
-      } 节 · 公开 ${lessonStats.free} 节 / 锁定 ${lessonStats.gated} 节（COURSE_ACCESS=${getAccessMode()}）`,
+      } 节 · 公开 ${lessonStats.free} 节 / 锁定 ${lessonStats.gated} 节（COURSE_ACCESS=${getAccessMode()}）` +
+        (lessonStats.missing > 0 && getAccessMode() === "public"
+          ? ` · 另有 ${lessonStats.missing} 节在私有仓（公开仓正常）`
+          : ""),
     );
     const byFile = new Map();
     for (const item of diagnostics) {

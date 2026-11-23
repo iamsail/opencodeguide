@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3012",
-    "build": "node scripts/build-search.mjs && node scripts/courses/validate-courses.mjs && next build && node scripts/courses/assert-no-gated-content.mjs",
+    "build": "node scripts/build-search.mjs && node scripts/courses/validate-courses.mjs && next build && node scripts/courses/assert-no-gated-content.mjs && node scripts/assert-sitemap.mjs",
     "build:members": "node scripts/courses/build-members.mjs",
     "start": "next start",
     "lint": "next lint",
@@ -17,7 +17,14 @@
     "courses:backfill": "node scripts/courses/backfill-entitlements.mjs",
     "courses:assert": "node scripts/courses/assert-no-gated-content.mjs",
     "workers:test": "cd workers/course-delivery && node --test",
-    "courses:meta": "node scripts/courses/sync-course-meta.mjs"
+    "courses:meta": "node scripts/courses/sync-course-meta.mjs",
+    "courses:manifest": "node scripts/courses/build-manifest.mjs",
+    "courses:export-free": "node scripts/courses/export-free-lessons.mjs",
+    "courses:export-free:check": "node scripts/courses/export-free-lessons.mjs --check",
+    "publish": "node scripts/content/publish.mjs",
+    "publish:content": "node scripts/content/publish.mjs --content",
+    "publish:metadata": "node scripts/content/publish.mjs --metadata",
+    "publish:check": "node scripts/content/publish.mjs --check"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.0.0",

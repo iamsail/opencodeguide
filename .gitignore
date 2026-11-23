@@ -53,3 +53,16 @@ content/courses/stripe-products.json
 # 模板要入库，否则新克隆不知道要填哪些变量
 !.dev.vars.example
 workers/**/.wrangler/
+
+# >>> 免费试听课时正文（由 npm run courses:export-free 生成，别手改） >>>
+# 课时正文默认全部忽略，只放行免费试听；付费节不可能被 git add -A 带上
+content/courses/zh/**/*.mdx
+!content/courses/zh/ai-coding-workflow/local-first-vs-cloud.mdx
+!content/courses/zh/ai-coding-workflow/setup-first-session.mdx
+!content/courses/zh/cross-border-store/platform-vs-dtc.mdx
+!content/courses/zh/cross-border-store/target-market-selection.mdx
+!content/courses/zh/global-site-seo/search-intent-quadrants.mdx
+!content/courses/zh/global-site-seo/new-site-six-month-expectations.mdx
+!content/courses/zh/indie-saas-launch/product-shapes-for-indies.mdx
+!content/courses/zh/indie-saas-launch/pain-point-inventory.mdx
+# <<< 免费试听课时正文 <<<

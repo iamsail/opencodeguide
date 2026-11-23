@@ -12,6 +12,7 @@
  */
 
 import { spawnSync } from "node:child_process";
+import { requirePrivateRootForMembers } from "./content-paths.mjs";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -49,6 +50,10 @@ function countCoursePages() {
 const searchBackup = fs.existsSync(SEARCH_INDEX) ? fs.readFileSync(SEARCH_INDEX) : null;
 
 try {
+  // 0) 成员站必须有私有正文：缺了会产出一个只剩免费节的「假成员站」，宁可直接失败
+  const privateRootUsed = requirePrivateRootForMembers("members");
+  console.log(`私有正文根：${privateRootUsed}`);
+
   // 1) 搜索索引：members 构建要能搜到付费正文（站点本身在登录态内）
   run("生成搜索索引", ["scripts/build-search.mjs"]);
   // 2) 课程数据校验（免费额度、双语完整度、课时对位）
