@@ -6,6 +6,7 @@
  */
 
 import { displayCourseName, planLabel } from "../config.js";
+import { getCatalogEntry } from "../catalog.js";
 import { createStore } from "../store.js";
 import { readSessionToken, verifySession } from "../auth.js";
 import { renderAccountPage, renderUnavailablePage, resolveLocale } from "../pages.js";
@@ -61,6 +62,7 @@ export async function handleAccountPage(request, env = {}) {
       courseSlug: row.course_slug,
       title: displayCourseName(row.course_slug, locale),
       planLabel: planLabel(row.plan_id, locale),
+      accent: getCatalogEntry(env, row.course_slug, row.plan_id)?.accent ?? null,
     });
   }
   courses.sort(

@@ -64,7 +64,7 @@ export async function handleBuyPage(request, env = {}) {
   const entry = getCatalogEntry(env, slug, plan);
   if (!entry) {
     console.warn(`[buy] 未配置的课程/计划：${slug}:${plan}`);
-    return htmlPage(renderErrorPage({ locale, next: "/account" }), 404);
+    return htmlPage(renderErrorPage({ locale, reason: "unknown-course" }), 404);
   }
 
   return htmlPage(
@@ -73,6 +73,7 @@ export async function handleBuyPage(request, env = {}) {
       courseTitle: entry.title,
       planLabel: entry.planLabel,
       total: formatPrice(entry, locale),
+      accent: entry.accent ?? null,
       form: { course: slug, plan },
     }),
   );
@@ -98,7 +99,7 @@ export async function handleCheckout(request, env = {}) {
   const entry = getCatalogEntry(env, slug, plan);
   if (!entry) {
     console.warn(`[checkout] 未配置的课程/计划：${slug}:${plan}`);
-    return htmlPage(renderErrorPage({ locale, next: "/account" }), 400);
+    return htmlPage(renderErrorPage({ locale, reason: "unknown-course" }), 400);
   }
 
   const settings = getSettings(env);

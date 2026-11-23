@@ -246,3 +246,22 @@ Google 控制台里的 Authorized redirect URI 必须是
 - 响应带 `no-store` / `no-referrer` / `noindex`。
 
 **尚未接线**：`gate.js` 挂到静态资源属于 P2.3（`assets` 绑定 + 成员站构建）。
+
+## 页面样式（P2.4，2026-11-23）
+
+Worker 自己渲染的 6 类页面（登录 / 确认订单 / 我的课程 / 无权访问 / 服务不可用 / 错误）与公开站共用一套视觉语言：
+
+| 文件 | 职责 |
+| :--- | :--- |
+| `src/ui.js` | 设计 token（zinc 色板、字体、圆角）、组件类（`.card` `.btn` `.facts` `.course-grid`）、头部/页脚、主题脚本、`shell()` 骨架 |
+| `src/pages.js` | 只负责各页内容与中英文案 |
+
+约定：
+
+- **零外部依赖**：CSS/JS/字体全部内联，不请求任何外部资源，离线可渲染、CSP 友好；
+- **主题与公开站一致**：`<html class="dark">`，`localStorage.theme` 键名与 next-themes 默认值相同；首屏前用内联脚本定主题，避免白闪；
+- **课程配色**：购买页的渐变头来自 catalog 的 `accent` 字段（由 `sync-worker-catalog.mjs` 从 `content/courses/*.json` 同步，白名单校验，非法值回退默认渐变）；
+- **错误文案按原因区分**：`renderErrorPage({ reason })` 支持 `login` / `unknown-course` / `payment`，避免「买课 404」显示成「登录失败」；
+- **根路径** `/` 直接 302 到 `/account`（未登录会再跳 `/login`）。
+
+测试：`test/pages.test.js` 覆盖骨架、noindex、文案分支、accent 回退与转义。

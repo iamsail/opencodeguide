@@ -55,6 +55,11 @@ export default {
   async fetch(request, env = {}) {
     const url = new URL(request.url);
 
+    // 根路径没有独立首页：直接送进账户页（未登录会再 302 到 /login）
+    if (url.pathname === "/" && request.method === "GET") {
+      return new Response(null, { status: 302, headers: { location: "/account", "cache-control": "no-store" } });
+    }
+
     if (url.pathname === HEALTH_PATH && request.method === "GET") return handleHealth(env);
     if (url.pathname === WEBHOOK_PATH && request.method === "POST") return handleWebhook(request, env);
     if (url.pathname === RESEND_PATH && request.method === "POST") return handleResend(request, env);

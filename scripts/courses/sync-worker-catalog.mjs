@@ -59,6 +59,8 @@ for (const course of courses) {
       planLabelEn: label.en,
       amount: Math.round(Number(plan.priceUSD) * 100),
       currency: "usd",
+      // 与 content/courses/*.json 的 accent 一致，成员站购买页用它渲染渐变头
+      accent: course.accent ?? null,
       priceId,
     };
   }
