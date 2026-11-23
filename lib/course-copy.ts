@@ -72,6 +72,7 @@ export const COURSE_COPY = {
       faqTitle: "常见问题",
       pricingTitle: "选择版本",
       pricingLead: "两个版本内容相同，Pro 版额外提供模板仓库、答疑与 1:1 诊断。",
+      loginNote: "购买前需用 Google 账号登录，课程权限绑定该账号邮箱。",
       guaranteeFallback: "7 天无理由退款。",
       paymentTitle: "支付方式",
       paymentMethods:
@@ -228,6 +229,7 @@ export const COURSE_COPY = {
       faqTitle: "FAQ",
       pricingTitle: "Choose your plan",
       pricingLead: "Same content in both plans; Pro adds the private repo, support and 1:1 review.",
+      loginNote: "Sign in with Google before checkout — access is tied to that account's email.",
       guaranteeFallback: "7-day no-questions refund.",
       paymentTitle: "Payment",
       paymentMethods:

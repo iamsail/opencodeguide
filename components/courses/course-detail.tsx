@@ -12,6 +12,7 @@ import {
   GraduationCap,
   Layers,
   Lock,
+  LogIn,
   RefreshCcw,
   ShieldCheck,
   Sparkles,
@@ -22,6 +23,7 @@ import {
   PLAN_LABELS,
   STATUS_LABELS,
   TRACKS,
+  CHECKOUT_REQUIRES_LOGIN,
   formatCNYRef,
   formatUSD,
   getBundle,
@@ -389,6 +391,13 @@ export function CourseDetail({
                   {copy.detail.pricingLead}
                 </p>
 
+                {CHECKOUT_REQUIRES_LOGIN && (
+                  <p className="flex items-start gap-1.5 text-[11px] leading-relaxed text-gray-500 dark:text-gray-400">
+                    <LogIn className="mt-0.5 h-3 w-3 shrink-0" />
+                    {copy.detail.loginNote}
+                  </p>
+                )}
+
                 {plans.map(({ plan, checkout }) => (
                   <div
                     key={plan.id}
@@ -445,6 +454,7 @@ export function CourseDetail({
                         fallbackHref={fallback.href}
                         fallbackLabel={fallback.label}
                         emphasis={plan.id === "pro" || course.plans.length === 1}
+                        newTab={!checkout.requiresLogin}
                       />
                     </div>
                   </div>

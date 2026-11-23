@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { ArrowRight, CreditCard, Mail } from "lucide-react";
 
 interface BuyButtonProps {
-  /** Stripe Payment Link（带跟踪参数）；未配置时为 null */
+  /** 购买入口地址：成员站 `/buy/...`（需登录）或 Stripe Payment Link；未配置时为 null */
   href: string | null;
   label: string;
   courseSlug: string;
@@ -15,6 +15,8 @@ interface BuyButtonProps {
   fallbackHref: string;
   fallbackLabel: string;
   emphasis?: boolean;
+  /** 是否在新标签页打开：直连 Stripe 收银台时用 true，同站成员站入口用 false */
+  newTab?: boolean;
 }
 
 declare global {
@@ -25,7 +27,9 @@ declare global {
 }
 
 /**
- * 购买按钮：Stripe Payment Link 是纯跳转，无需后端，因此与 output: 'export' 兼容。
+ * 购买按钮。
+ * 默认指向成员站 `/buy/<slug>/<plan>`（必须先 Google 登录，权益绑定登录邮箱）；
+ * 应急回退模式下才直连 Stripe Payment Link（纯跳转，与 output: 'export' 兼容）。
  * 点击时上报 GA4 begin_checkout（含课程与计划），便于和 Stripe 收款记录对账。
  */
 export function BuyButton({
@@ -38,6 +42,7 @@ export function BuyButton({
   fallbackHref,
   fallbackLabel,
   emphasis = false,
+  newTab = false,
 }: BuyButtonProps) {
   const track = useCallback(() => {
     try {
@@ -75,8 +80,8 @@ export function BuyButton({
   return (
     <a
       href={href}
-      target="_blank"
-      rel="noopener noreferrer"
+      target={newTab ? "_blank" : undefined}
+      rel={newTab ? "noopener noreferrer" : undefined}
       onClick={track}
       className={
         emphasis

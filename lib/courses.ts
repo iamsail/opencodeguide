@@ -156,10 +156,36 @@ function envKeyFor(slug: string, planId: string): string {
     .toUpperCase()}`;
 }
 
+/** 成员站地址：购买入口走它的 `/buy/<slug>/<plan>`，未登录会先跳 Google 登录 */
+const LEARN_URL = (
+  process.env.NEXT_PUBLIC_LEARN_URL?.trim() || "https://learn.opencodeguide.com"
+).replace(/\/+$/, "");
+
+/**
+ * 购买入口模式
+ * ------------------------------------------------------------
+ * - `learn`（默认）：跳成员站 `/buy/<slug>/<plan>`。必须先 Google 登录，
+ *   由服务端创建 Checkout Session 并把「登录邮箱」锁进 metadata，
+ *   权益归属始终与登录身份一致（见 workers/course-delivery/src/routes/buy.js）。
+ * - `stripe`：直连 Stripe Payment Link（旧行为）。仅作应急回退——买家无需登录，
+ *   权益会落到他在 Stripe 页面填写的邮箱上，可能与之后的登录账号不一致。
+ */
+const CHECKOUT_MODE: "learn" | "stripe" =
+  (process.env.NEXT_PUBLIC_CHECKOUT_MODE ?? "").trim().toLowerCase() === "stripe"
+    ? "stripe"
+    : "learn";
+
+/** 购买是否强制先登录（页面据此显示提示，并决定按钮打开方式） */
+export const CHECKOUT_REQUIRES_LOGIN = CHECKOUT_MODE === "learn";
+
+export type CheckoutSource = "learn" | "stripe-links.json" | "env" | "none";
+
 export interface CheckoutTarget {
   url: string | null;
-  /** 链接来源：便于后台排查是配置文件还是环境变量生效 */
-  source: "stripe-links.json" | "env" | "none";
+  /** 链接来源：便于后台排查是成员站、配置文件还是环境变量生效 */
+  source: CheckoutSource;
+  /** true = 购买前必须登录（成员站入口） */
+  requiresLogin: boolean;
 }
 
 /**
@@ -168,12 +194,26 @@ export interface CheckoutTarget {
  */
 export function getCheckoutTarget(slug: string, planId: string): CheckoutTarget {
   const envValue = process.env[envKeyFor(slug, planId)];
-  if (envValue) return { url: envValue, source: "env" };
+  if (envValue) return { url: envValue, source: "env", requiresLogin: false };
 
   const link = readStripeLinks().plans?.[`${slug}:${planId}`];
-  if (link) return { url: link, source: "stripe-links.json" };
+  if (link) return { url: link, source: "stripe-links.json", requiresLogin: false };
 
-  return { url: null, source: "none" };
+  return { url: null, source: "none", requiresLogin: false };
+}
+
+/**
+ * 成员站购买页地址：`<learn>/buy/<slug>/<plan>?lang=zh&utm_...`
+ * 带上 lang 是因为成员站按 `?lang=` 决定中英文（见 workers/.../pages.js）。
+ */
+function learnBuyUrl(slug: string, planId: string, locale: Locale): string {
+  const target = new URL(`${LEARN_URL}/buy/${slug}/${planId}`);
+  target.searchParams.set("lang", locale);
+  target.searchParams.set("utm_source", "opencodeguide");
+  target.searchParams.set("utm_medium", "course_page");
+  target.searchParams.set("utm_campaign", slug);
+  target.searchParams.set("utm_content", `${locale}_${planId}`);
+  return target.toString();
 }
 
 /**
@@ -202,10 +242,19 @@ export function getCheckoutUrl(
   plan: CoursePlan,
   locale: Locale,
 ): CheckoutTarget {
+  // 默认走成员站：先登录（Google）再建 Checkout Session，邮箱锁定、权益可追溯。
+  if (CHECKOUT_MODE === "learn") {
+    return {
+      url: learnBuyUrl(course.slug, plan.id, locale),
+      source: "learn",
+      requiresLogin: true,
+    };
+  }
+
   const target = getCheckoutTarget(course.slug, plan.id);
   if (!target.url) return target;
   return {
-    source: target.source,
+    ...target,
     url: withCheckoutTracking(target.url, {
       slug: course.slug,
       planId: plan.id,
