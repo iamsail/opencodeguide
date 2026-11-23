@@ -1,0 +1,109 @@
+---
+title: "安装 OpenCode 并跑通第一个会话（macOS / Windows WSL / Linux）"
+summary: "用一条命令装好 OpenCode，并完成一次不改文件的只读会话"
+module: 1
+lesson: 2
+duration: 8
+free: false
+objectives:
+  - "能在 macOS、Linux 或 WSL 上用官方方式安装并确认可执行文件位置"
+  - "能在一个真实仓库里完成只读会话：附加文件、跑 shell、切换模型"
+  - "能写出最小的 opencode.jsonc 与 AGENTS.md 并被会话正确加载"
+---
+
+装完 OpenCode 却不知道下一步做什么，比装不上更常见：在 home 目录里打开它，让它「优化一下项目」，结果它读了一堆无关文件，改了两个不该改的地方。第一个会话应该是一次只读侦察：先看它怎么理解仓库，再决定让它动哪里。
+
+## 选一种安装方式，别叠加
+
+macOS、Linux 和 WSL 用同一条命令即可，包管理器适合已经统一了工具链的机器。
+
+```bash
+# 官方安装脚本
+curl -fsSL https://opencode.ai/v2/install | bash
+
+# macOS 用 Homebrew
+brew install anomalyco/tap/opencode-v2
+
+# 已有 Node 工具链
+npm install -g @opencode/cli
+```
+
+npm 包通过 postinstall 选择对应平台的原生二进制；Bun 和 pnpm 需要显式允许运行该脚本，分别是 `bun install -g --trust @opencode/cli` 和 `pnpm add -g --allow-build=@opencode/cli @opencode/cli`。同一台机器上装两份会出现两个不同版本的可执行文件，切换前先 `opencode uninstall`，不要靠改 PATH 顺序猜。
+
+Windows 没有包管理器安装方式：官方不支持 Windows 包管理器，要么下载独立二进制，要么走 WSL，后者是文档推荐的方式。
+
+## Windows：先决定代码放在哪个文件系统
+
+WSL 能直接读 `/mnt/c/...`，但跨文件系统的 I/O 会让大型仓库的文件遍历明显变慢。把仓库 clone 到 WSL 自己的文件系统里再打开。
+
+```bash
+# 在 WSL 终端中
+cd ~/code
+git clone git@github.com:your-org/your-repo.git
+cd your-repo
+opencode
+```
+
+配置、会话和数据库都落在 WSL 用户目录下（数据库默认在 `~/.local/share/opencode/opencode.db`），不在 Windows 的 `%APPDATA%` 里，重装 WSL 发行版会一起丢掉，备份要按 WSL 路径做。想在 Windows 桌面上用界面连接 WSL 里的服务时，`opencode serve --hostname 0.0.0.0` 必须同时设置 `OPENCODE_SERVER_PASSWORD`，否则等于把无认证的服务暴露在局域网里。
+
+## 第一个会话：先只读，再动手
+
+进入仓库根目录运行 `opencode`，它会打开全屏终端界面。第一句话不要许愿，给它一个可验证的只读任务，并要求它引用文件。
+
+```text
+Explain the build and test commands in this repository, cite the files you read.
+
+Review @src/auth.ts#20-45 for error handling problems.
+
+!git status
+```
+
+`@` 用于附加文件，路径后可以带行号范围；`!` 开头进入 shell 模式，命令输出会留在会话里，后续提问能引用它。换行用 `Shift+Enter` 或 `Ctrl+J`，直接按 `Enter` 是发送。`/` 列出斜杠命令，常用的有 `/new`、`/sessions`、`/models`、`/agents` 和 `/undo`。
+
+第一次打开时可能没有可用模型，先运行 `/connect` 选择提供商并粘贴密钥，再用 `/models` 选一个，这个选择只作用于当前会话，不会改写配置。会话中途想换模型，按 `F2` 在最近用过的模型间循环，或再执行一次 `/models`。
+
+## 动手前先放两个文件
+
+只读阶段确认它读懂了，再补上最小配置，让后续会话有稳定默认值和项目约束。
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "anthropic/claude-sonnet-5-5"
+}
+```
+
+`opencode.jsonc` 放在仓库根目录或 `.opencode/` 下，采用 JSONC，写注释与尾随逗号都合法。加上 `$schema` 后编辑器会补全字段名，也能提前发现拼错。
+
+```md title="AGENTS.md"
+# Project instructions
+
+- Run `bun typecheck` after changing TypeScript.
+- Keep database queries in `src/database`.
+- Do not edit generated files directly.
+```
+
+`AGENTS.md` 会被自动加载：先读全局的 `~/.config/opencode/AGENTS.md`，再从工作区向上逐级合并项目里的文件。V2 只识别 `AGENTS.md`，不会回退去读 `CLAUDE.md`，从别的工具迁过来时这一步最容易漏。
+
+## 验收：四个检查点
+
+| 检查项 | 命令 | 期望结果 |
+| --- | --- | --- |
+| 可执行文件位置 | `opencode debug paths bin` | 打印的目录里存在 `opencode` |
+| 会话数据库 | `opencode debug paths db` | 输出 `~/.local/share/opencode/opencode.db` |
+| 配置加载 | `opencode debug paths config` | 输出实际的配置目录 |
+| 模型可用 | TUI 中执行 `/models` | 出现已连接提供商的 `provider/model` |
+
+`opencode debug paths` 不带选择器时会打印全部路径。它不会启动服务器，也不会打开数据库，可以放心在 CI 里跑。验证规则是否生效，新开一个会话直接问「你加载了哪些项目指令」，回答里应该出现 `AGENTS.md` 的具体条目，而不是泛泛而谈。
+
+## 落地动作
+
+1. 用官方脚本装好，执行 `opencode debug paths db` 记下数据库路径，写进备份脚本或忽略列表。
+2. 在常用的一个仓库里新建 `AGENTS.md`，只写构建、测试、禁止事项三段，然后 `/new` 开新会话确认它被引用。
+3. 把 `opencode.jsonc` 与 `AGENTS.md` 一起提交，并在 README 里补一行启动命令，减少同事踩坑。
+
+## 常见坑
+
+- **现象**：`opencode: command not found`，但安装脚本报告成功。 → **原因**：脚本装到用户级 bin 目录，当前终端的 PATH 还没刷新；npm 全局 bin 也可能不在 PATH 里。 → **对策**：新开终端，用 `opencode debug paths bin` 找到目录后手动加入 PATH，而不是重复安装。
+- **现象**：在 `/mnt/c` 下的仓库里，工具执行和文件搜索都明显变慢。 → **原因**：跨 Windows 与 WSL 文件系统的 I/O 开销。 → **对策**：把仓库迁到 `~/code` 下重新 clone，Windows 侧用 VS Code 的 WSL 扩展打开，不要两边各留一份工作区。
+- **现象**：第一句就让它「重构整个模块」，它改了十几个无关文件。 → **原因**：没有只读阶段，也没有明确的文件范围与验收命令。 → **对策**：先用 `@` 指定文件与行号、要求引用证据，用 `/undo` 回退最近的改动，并把范围与验收命令写进 `AGENTS.md`。
