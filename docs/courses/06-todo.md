@@ -167,4 +167,5 @@
 3. **公开站购买按钮切换**：`lib/courses.ts` / `BuyButton` 从 Payment Link 改指 `learn./buy/<slug>/<plan>`，重新构建发布。
 4. **英文正文**：0/123，先定策略（全量翻译 vs 英文站只放目录 + 中文正文）。
 5. **正式收款**：以上就绪后切 live 密钥重新生成支付链接 + 早鸟码。
-6. **课程内容的仓库边界（方案 B，阻塞发布）**：仓库公开，付费正文源码已在 `dev` 分支可读。方向已定（元数据公开、正文私有），思路与硬约束见 [`09-content-repo-boundary.md`](./09-content-repo-boundary.md)；**拆分完成前不要把课程合到 `main`**。
+6. **课程内容的仓库边界（方案 B：已完成）**：付费正文已从公开仓历史移除（`dev` 现只保留 8 节免费正文），私有仓 `iamsail/opencodeCourse` 收下完整旧历史；`manifest.json` 已成为课表真相源，公开仓在只有 8 节正文的情况下仍输出 123 个课时 URL（115 个锁定页）。详见 [TASK108](../../memory-bank/tasks/TASK108-course-content-split.md) 与 [`09-content-repo-boundary.md`](./09-content-repo-boundary.md)。
+7. **发布链路（Phase 1 完成，等部署基线）**：`npm run publish` 已把「元数据同步 + 成员构建 + 自检 + 部署」收成一条命令；部署上传量待 `wrangler` 登录后实测，再决定是否改成运行时下发。详见 [TASK109](../../memory-bank/tasks/TASK109-publish-pipeline.md) 与 [`10-publish-baseline.md`](./10-publish-baseline.md)。

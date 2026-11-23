@@ -121,4 +121,132 @@ C2 不是被否决，而是**留作后续演进**：真要做按订阅级别下�
 - 进度看板：[06-todo.md](./06-todo.md)
 - 仓库密钥护栏（`.githooks/pre-commit`）：[../GIT_HOOKS_SETUP.md](../GIT_HOOKS_SETUP.md)
 
-> 本文只定方向与边界。具体脚本改动、manifest schema、历史重写命令等，待决策后另开任务卡。
+> 本文只定方向与边界。具体脚本改动、manifest schema、历史重写命令等见 [TASK108](../../memory-bank/tasks/TASK108-course-content-split.md)。
+
+---
+
+## 8. 实施记录（2026-11-23）
+
+**止血已完成**
+
+| 动作 | 结果 |
+| :--- | :--- |
+| 备份 | 改写前的全量镜像 + 123 个 `.mdx` 副本 |
+| 私有仓 | `iamsail/opencodeCourse` 收下完整旧历史（`dev` = `5336b94`） |
+| 公开仓 | `main` + `dev` 一起 `filter-repo` 改写后强推；`dev` 现在只有 8 节免费正文 + 7 个课程 JSON |
+| 免费课 | 8 节（每门前 2 节）以新提交恢复，历史从零开始 |
+| 本地 | 115 节正文留在工作区、写进 `.git/info/exclude`，`git status` 干净，`courses:validate` 仍 123/123 |
+
+**实施时发现的三个坑（§5 未覆盖）**
+
+1. **构建期闸门会静默空转**：`assert-no-gated-content.mjs` 的付费清单是从 `.mdx` 反推的，正文搬走后 `gated` 变成 0 条，脚本仍打印 ✔。
+2. **拆完是 404，不是课表退化**：课时 URL 由 `generateStaticParams` 扫正文生成，文件不在则页面不存在，`dynamicParams = false` 直接 404。
+3. **`main` 必须一起改写**：`main` 上有 64 个带 `gpgsig` 的网页合并提交，只改 `dev` 会让两条分支对同一次提交产生两个哈希（`main..dev` 从 18 条涨到 141 条），以后无法 merge。
+
+**残留风险与决定**
+
+强推后旧对象仍可按 SHA 访问（实测 `/commit/48b66bc`、`/blob/48b66bc/...` 返回 200），GitHub 不会主动回收。决定**不删库**：收益只覆盖"手里已有 SHA 的人"，代价却是 62 个 PR、Actions secret 与 Pages 配置。若要零残留，走 GitHub Support 请求 GC。
+
+**当前状态：公开仓是半成品。** 课表会退化到 8 节、115 个课时 URL 404。manifest 是下一步；在它落地前**不要把课程合到 `main`**。
+
+---
+
+## 9. 接入架构（2026-11-23 落地）
+
+§8 只做到「正文搬走」；§9 是搬走之后站点怎么继续完整。
+
+### 9.1 两个仓库的分工
+
+| 仓库 | 内容 | 谁消费 |
+| :--- | :--- | :--- |
+| **公开仓** `iamsail/opencodeguide` | 站点代码、课程 JSON（价格/卖点）、`access.json`、`manifest.json`、8 节免费正文 | GitHub Pages（公开站） |
+| **私有仓** `iamsail/opencodeCourse` | 123 节正文（`.mdx`，含 8 节免费节的源），未来英文正文 | 本地/成员的 members 构建 |
+| **成员站** learn.opencodeguide.com | 由「公开仓代码 + 私有仓正文」构建出的 `out-members/` | Cloudflare Worker + D1 门禁 |
+
+代码只有一份（公开仓）。私有仓只存正文——不做整站 fork，避免两份代码漂移。
+
+### 9.2 构建期怎么取正文：双根 + 模式分流
+
+实现：`lib/course-paths.ts`（应用侧）/ `scripts/courses/content-paths.mjs`（脚本侧，两份要同步）。
+
+| 构建模式 | 正文查找顺序 | 说明 |
+| :--- | :--- | :--- |
+| `COURSE_ACCESS=public`（默认） | 只读公开根 | 公开构建永远看不到私有正文，这条不变量在没有私有仓的机器上也成立 |
+| `COURSE_ACCESS=members` | **私有根 → 公开根** | 私有优先；私有根不存在直接报错，绝不产出「只有 8 节的成员站」 |
+
+私有根默认 `../opencodeCourse/content/courses`（两个仓同级 clone 时零配置），可用 `COURSE_PRIVATE_DIR` 覆盖。
+
+`manifest.json` 决定**课表**（123 节），文件系统决定**哪几节有正文**——两者解耦，所以「公开仓只有 8 节正文」和「课表完整 + 115 个锁定页」同时成立。manifest 刻意不含正文，也不含 `hasBody`。
+
+### 9.3 免费试听是派生产物
+
+公开仓里那 8 节不手拷，由 `npm run courses:export-free` 从私有仓导出：
+
+- 规则：manifest 顺序每门前 `access.json` 的 `freeLessonLimit` 节 + frontmatter 显式 `free: true`
+- 产物：复制/删除公开根里的课时文件，顺带刷新 `.gitignore` 的免费试听区块
+- `npm run courses:export-free:check` 只比对不写入，给 CI 用
+
+### 9.4 三层护栏
+
+| 层 | 机制 | 拦什么 |
+| :--- | :--- | :--- |
+| 仓库 | `.gitignore` 里自动生成的区块：`content/courses/zh/**/*.mdx` 整体忽略，只放行 8 节 | 付费正文被 `git add -A` 带上 |
+| 提交 | `.githooks/pre-commit` → `scripts/courses/check-staged-lessons.mjs` | 强制 `git add -f` 进来的付费正文 |
+| 构建 | `courses:assert`：manifest 付费清单 + `git ls-files` 检查 + 115 个锁定页必须存在 | 产物泄露、锁定页缺失、仓库混入 |
+
+### 9.5 日常操作
+
+| 要做什么 | 命令 |
+| :--- | :--- |
+| 改一节正文 | 在私有仓改 `.mdx` |
+| 让课表/标题变更生效 | `npm run courses:manifest`（在私有环境）→ 提交公开仓的 `manifest.json` |
+| 免费试听节有变动 | `npm run courses:export-free` → 一起提交 |
+| 本地起公开站 | `npm run build`（不读私有根） |
+| 本地起成员站 | `npm run build:members`（默认读 `../opencodeCourse`） |
+
+### 9.6 验证矩阵（2026-11-23 实测）
+
+| 场景 | 结果 |
+| :--- | :--- |
+| 公开仓只有 8 节正文 → `npm run build` | ✅ 通过；课时页 123、锁定页 115、正文页 8；sitemap 课时 URL 8 条 |
+| `courses:assert` | ✅ 公开 8 / 锁定 115 / 仓库内付费正文 0 |
+| 往 git 索引塞一节付费正文 | ✅ exit 1 |
+| 把付费正文拷进公开根（不 add） | ✅ 被 `.gitignore` 忽略，`check-ignore` 命中第 59 行 |
+| 强制 `git add -f` 后提交 | ✅ pre-commit exit 1，点名文件 |
+| 成员构建（私有根默认路径） | ✅ `out-members/` 课时页 123、锁定页 0、付费课页面含正文 |
+| members 缺私有根 | ✅ exit 1，给出应设置的路径 |
+| `tsc --noEmit` | ✅ 0 错误 |
+
+---
+
+## 10. 发布流程（2026-11-23）
+
+内容改动只做一次动作：
+
+| 想做什么 | 命令 |
+| :--- | :--- |
+| 改了一节课正文 | `npm run publish` |
+| 只发正文，不动公开站 | `npm run publish:content` |
+| 只同步 manifest / 免费试听节 | `npm run publish:metadata` |
+| CI 校验一致性（不写不部署） | `npm run publish:check` |
+| 先看看会做什么 | `npm run publish -- --dry-run` |
+| 只构建 + 自检，不部署 | `npm run publish -- --skip-deploy` |
+
+`npm run publish` 内部顺序（任一步失败即停止）：
+
+1. **preflight**：确认私有正文根可读（`COURSE_PRIVATE_DIR` 或 `../opencodeCourse`）
+2. **元数据**：`courses:manifest` + `courses:export-free`
+3. **提交**：只 stage `content/courses/manifest.json`、`content/courses/zh`、`.gitignore` 三处，**绝不 `git add -A`**
+4. **成员站**：`build:members` → `assert-members-pages`（123 节逐页确认有正文、无锁定页、无死链）
+5. **部署**：`wrangler deploy`
+6. **推送**：默认**不推**；`--push` 才推，且必须带 `GIT_PUSH_CONFIRMED=yes GIT_PUSH_NETWORK=<网络名>`
+
+两条设计取舍：
+
+- **公开站只在元数据/免费边界变化时重建**。改一节正文不会触发公开仓提交，因此不会重建公开站——
+  正文只在成员站生效，公开站的锁定页本来就与正文无关。
+- **部署前一定自检**。成员站最危险的失败不是报错，而是"静默降级成只有 8 节的站点"：
+  付费用户点进去看到锁定页。`assert-members-pages` 用「每节正文抽多条探针」做逐页确认。
+
+发布基线（实测）见 [`10-publish-baseline.md`](./10-publish-baseline.md)：
+公开站构建 12–26 秒、成员站构建 19 秒、自检 0.2 秒；部署上传耗时待凭据就绪后补测。

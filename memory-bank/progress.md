@@ -236,6 +236,24 @@
 - **实测**: 88 节 → 公开 6 / 锁定 82；1563 个产物文件、162 条探针，0 泄露；注入正文的负向测试会 exit 1。
 - **未做**: P2.1 权益表、P2.2 magic link、P2.3 成员站。因此**暂不可开启真实收款**。
 
+## 课程内容拆仓与 manifest (2026-11-23)
+- **问题**: 付费墙只在构建期生效，而仓库公开——123 节正文（115 节付费）已随 `dev` 分支可读；同时课表由 MDX 文件驱动，直接删正文会让商品页退化成 8 节。
+- **止血**: 私有仓 `iamsail/opencodeCourse` 收下完整旧历史；公开仓 `main` + `dev` **一起** `filter-repo` 改写后强推（只改 `dev` 会让两条分支对同一次提交产生两个哈希：`main` 上有 64 个带 `gpgsig` 的网页合并提交）；`dev` 现只保留 8 节免费正文。
+- **本地**: 正文改由 `../opencodeCourse` 提供，公开仓工作区真的只剩 8 节；`.git/info/exclude` 那套临时规则已删除。
+- **manifest**: 新增 `content/courses/manifest.json`（123 节纯元数据，46KB）+ `scripts/courses/build-manifest.mjs`；课表、课时 URL、sitemap、搜索索引、付费清单全部改读 manifest，正文是否存在只看磁盘（刻意不设 `hasBody` 字段）。
+- **闸门重写**: `assert-no-gated-content.mjs` 的付费清单改由 manifest 提供，并新增「公开仓不允许出现付费正文文件」检查；**修掉空转**——以前正文搬走后 `gated=0` 仍打印 ✔。
+- **护栏**: 双根解析（public 只读公开根；members 私有根优先）、`export-free-lessons` 把 8 节试听变派生产物并维护 `.gitignore` 区块、pre-commit 拦付费正文、members 构建缺正文 fail fast。
+- **实测**: 只有 8 节正文时 `npm run build` 通过、课时页 123、锁定页 115、sitemap 课时 URL 8、assert 通过；members 构建 123 页 / 0 锁定页；`tsc --noEmit` 0 错误。
+- **残留**: 强推后旧对象仍可按 SHA 访问（实测 `/commit/48b66bc` 仍 200），GitHub 不主动回收；决定不删库（收益只覆盖「手里已有 SHA 的人」，代价是 62 个 PR 与 Actions secret）。
+
+## 发布链路一条命令 (2026-11-23)
+- **问题**: 改一节课要跨 2 个仓库、4 个产物、6 个手工步骤。
+- **实现**: `npm run publish`（另有 `:content` / `:metadata` / `:check`，开关 `--dry-run` / `--skip-deploy` / `--push`）；只 stage `manifest.json`、`content/courses/zh`、`.gitignore` 三处，默认**不 push**；部署前 `assert-members-pages` 逐节自检（123 页有正文、无锁定页、无死链）。
+- **顺带修**: `build-manifest.mjs` 之前只扫公开根，会生成只有 8 节的 manifest（已改双根，私有优先）；sitemap 148 条 URL 全部缺尾斜杠（已修 + 构建期 `assert-sitemap`）；115 个薄锁定页改 `noindex, follow`（`LOCKED_PAGE_INDEX=true` 可回退）。
+- **基线**: 公开站构建 12.3s（冷）/ 25.6s（热）、成员站 19.0s、自检 0.2s、`publish --content --skip-deploy` 19.3s；**部署上传量未测**（本机无 wrangler、Cloudflare 未登录）。
+- **待定**: 是否改成「内容运行时下发」取决于部署实测——单节部署 ≤90s 且 ≤10MB 就保持静态方案（规则见 `docs/courses/10-publish-baseline.md`）。
+- **任务**: [TASK108](tasks/TASK108-course-content-split.md)（拆仓）、[TASK109](tasks/TASK109-publish-pipeline.md)（发布链路）。
+
 ## Known Issues
 -   Screenshots are still text-based placeholders.
 -   Chinese documentation depth still needs to be expanded for Providers/Configuration sections.
