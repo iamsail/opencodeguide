@@ -124,7 +124,8 @@ export async function handleCheckout(request, env = {}) {
     const checkout = await stripe.createCheckoutSession({
       customerId: customer.id,
       priceId: entry.priceId,
-      successUrl: `${origin}/account?paid=1`,
+      // 带上 session_id：付完跳回来时账户页可以主动对账，不必等异步 webhook
+      successUrl: `${origin}/account?paid=1&session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${origin}/buy/${slug}/${plan}`,
       locale,
       metadata: {

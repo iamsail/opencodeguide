@@ -97,6 +97,20 @@ test("body 不是 JSON：400", async () => {
   assert.equal(response.status, 400);
 });
 
+test("/health 报告 Stripe 密钥模式，但仍不泄露密钥", async () => {
+  const live = createTestEnv({
+    db: createFakeD1(),
+    overrides: { STRIPE_SECRET_KEY: "sk_live_secret_value" },
+  });
+  const livePayload = await (await worker.fetch(new Request("https://worker.test/health"), live)).json();
+  assert.equal(livePayload.bindings.stripeMode, "live");
+  assert.ok(!JSON.stringify(livePayload).includes("sk_live_secret_value"));
+
+  const unset = createTestEnv({ db: createFakeD1(), overrides: { STRIPE_SECRET_KEY: "" } });
+  const unsetPayload = await (await worker.fetch(new Request("https://worker.test/health"), unset)).json();
+  assert.equal(unsetPayload.bindings.stripeMode, "unset");
+});
+
 test("/health 只暴露布尔开关，不泄露密钥", async () => {
   const db = createFakeD1();
   const env = createTestEnv({ db });
@@ -162,4 +176,88 @@ test("/admin/resend 订单不存在：404", async () => {
     env,
   );
   assert.equal(response.status, 404);
+});
+
+test("根级 /courses/… 302 到带语言前缀的路径，保留查询串", async () => {
+  const env = createTestEnv({ db: createFakeD1() });
+
+  const zh = await worker.fetch(
+    new Request("https://worker.test/courses/ai-coding-workflow?utm_source=email"),
+    env,
+  );
+  assert.equal(zh.status, 302);
+  assert.equal(zh.headers.get("location"), "/zh/courses/ai-coding-workflow?utm_source=email");
+
+  const en = await worker.fetch(new Request("https://worker.test/courses?lang=en"), env);
+  assert.equal(en.status, 302);
+  assert.equal(en.headers.get("location"), "/en/courses?lang=en");
+});
+
+test("/admin/orders 未带 token：401", async () => {
+  const env = createTestEnv({ db: createFakeD1() });
+  const response = await worker.fetch(
+    new Request("https://worker.test/admin/orders?email=buyer@example.com"),
+    env,
+  );
+  assert.equal(response.status, 401);
+});
+
+test("/admin/orders 按邮箱返回订单与权益", async () => {
+  const db = createFakeD1();
+  const env = createTestEnv({ db });
+  await postWebhook(env, checkoutEvent());
+
+  const response = await worker.fetch(
+    new Request("https://worker.test/admin/orders?email=buyer%40example.com", {
+      headers: { authorization: "Bearer admin_test" },
+    }),
+    env,
+  );
+  const payload = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(payload.orders.length, 1);
+  assert.equal(payload.orders[0].email_status, "sent");
+  assert.equal(payload.entitlements.length, 1);
+  assert.equal(payload.entitlements[0].course_slug, "ai-coding-workflow");
+});
+
+test("/admin/grant 手工补权益（order_id 带 manual: 前缀）", async () => {
+  const db = createFakeD1();
+  const env = createTestEnv({ db });
+
+  const response = await worker.fetch(
+    new Request("https://worker.test/admin/grant", {
+      method: "POST",
+      headers: { authorization: "Bearer admin_test", "content-type": "application/json" },
+      body: JSON.stringify({
+        email: "Manual@Example.com",
+        courseSlug: "global-site-seo",
+        planId: "single",
+      }),
+    }),
+    env,
+  );
+  const payload = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(payload.email, "manual@example.com");
+  assert.ok(payload.orderId.startsWith("manual:"));
+
+  const row = [...db._entitlements.values()][0];
+  assert.equal(row.email, "manual@example.com");
+  assert.equal(row.course_slug, "global-site-seo");
+});
+
+test("/admin/grant 课程 slug 非法：400", async () => {
+  const env = createTestEnv({ db: createFakeD1() });
+  const response = await worker.fetch(
+    new Request("https://worker.test/admin/grant", {
+      method: "POST",
+      headers: { authorization: "Bearer admin_test", "content-type": "application/json" },
+      body: JSON.stringify({ email: "buyer@example.com", courseSlug: "../../etc/passwd" }),
+    }),
+    env,
+  );
+  assert.equal(response.status, 400);
 });

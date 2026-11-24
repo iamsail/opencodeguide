@@ -87,8 +87,14 @@ npx wrangler deploy
 ```
 
 只强制要求 `watch`（观看入口）；`repo` / `community` 没有时邮件里不会出现空行。
-缺 `watch` 时判定「无法自动交付」：订单落库为 `needs_manual_delivery`，并发告警给运营，
-**不会**给买家发一封没有观看链接的邮件。
+
+**交付主入口是成员站，不是邮件**（TASK111，2026-11-24）：权益写进 `entitlements` 之后，
+买家登录 `/account` 就能看到课程正文与 `repo` / `community` 链接。因此：
+
+- 缺 `watch` 时 `watch` 回退成 `<LEARN_URL>/account`，邮件照发（文案会变成
+  「用购买时的 Google 账号登录即可阅读」），订单**不再**落成 `needs_manual_delivery`；
+- 只有「拿不到邮箱」和「识别不出课程」才进人工交付队列 —— 那两种情况下权益本身写不进去；
+- 没配 `RESEND_API_KEY` 时订单标记 `skipped_no_resend`（不是 `failed`），也不发运营告警。
 
 ## 本地联调
 
@@ -121,14 +127,32 @@ curl -X POST http://127.0.0.1:8787/stripe/webhook \
 测试（零依赖，Node 内置 runner）：
 
 ```bash
-cd workers/course-delivery && node --test     # 40 项：签名、幂等、退款、邮件模板、路由
+cd workers/course-delivery && node --test     # 143 项：签名、幂等、对账、退款、邮件模板、页面、路由、管理接口
 # 或在仓库根目录
 npm run workers:test
 ```
 
 ## 运营 SOP
 
-**用户说没收到开通邮件**：先在 D1 查 `email_status`，`failed` / `needs_manual_delivery` 时用补发接口。
+**用户说「付了钱看不到课」**：先让他登录 `/account`（权益在 D1，与邮件无关）。
+仍看不到时按邮箱查订单与权益：
+
+```bash
+curl -H "authorization: Bearer $ADMIN_TOKEN" \
+  "https://<worker>/admin/orders?email=buyer@example.com"
+```
+
+**确实需要补权益**（webhook 彻底没到、或买家换了 Google 账号）：
+
+```bash
+curl -X POST https://<worker>/admin/grant \
+  -H "authorization: Bearer $ADMIN_TOKEN" \
+  -H "content-type: application/json" \
+  -d '{"email":"buyer@example.com","courseSlug":"ai-coding-workflow","planId":"single"}'
+```
+
+**用户说没收到开通邮件**：邮件只是通知。先在 D1 查 `email_status`：`failed` 用补发接口，
+`skipped_no_resend` 说明还没配 Resend（不影响阅读）。
 
 ```bash
 curl -X POST https://<worker>/admin/resend \
@@ -245,7 +269,8 @@ Google 控制台里的 Authorized redirect URI 必须是
 - 门禁 `src/gate.js` 默认拒绝，正文/`index.txt`/`search.json` 都要求登录并查权益；
 - 响应带 `no-store` / `no-referrer` / `noindex`。
 
-**尚未接线**：`gate.js` 挂到静态资源属于 P2.3（`assets` 绑定 + 成员站构建）。
+**门禁接线**：P2.3 已完成 —— `wrangler.toml` 的 `[assets]` + `run_worker_first = true`，
+正文由 `handleMemberAsset` 先判权限、放行后才回源 `out-members/`。
 
 ## 页面样式（P2.4，2026-11-23）
 
@@ -264,4 +289,16 @@ Worker 自己渲染的 6 类页面（登录 / 确认订单 / 我的课程 / 无�
 - **错误文案按原因区分**：`renderErrorPage({ reason })` 支持 `login` / `unknown-course` / `payment`，避免「买课 404」显示成「登录失败」；
 - **根路径** `/` 直接 302 到 `/account`（未登录会再跳 `/login`）。
 
-测试：`test/pages.test.js` 覆盖骨架、noindex、文案分支、accent 回退与转义。
+测试：`test/pages.test.js` 覆盖骨架、noindex、文案分支、accent 回退、付款状态条与转义。
+
+## 付款后可见性（TASK111，2026-11-24）
+
+权益由异步 webhook 写入，而 Stripe 付完就跳回 `/account` —— 中间有空窗。现在的处理：
+
+| 环节 | 做法 |
+| :--- | :--- |
+| success_url | `/account?paid=1&session_id={CHECKOUT_SESSION_ID}` |
+| 账户页 | 渲染前先 `reconcileCheckoutSession()`：取会话 → 校验 `metadata.email` 与登录邮箱一致 → 复用 `processEvent` 补订单与权益（`insertOrder` 幂等） |
+| 状态条 | `paid`（已开通）/ `pending`（正在开通，最多自动刷新 3 次）/ `unpaid`（异步支付处理中） |
+| 交付链接 | 课程卡直接给正文入口 + `repo` / `community`，不再只靠邮件 |
+| 根级 `/courses/…` | 302 到 `/zh|courses/…`，兜住旧邮件里的无语言前缀链接 |

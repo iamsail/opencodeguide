@@ -37,6 +37,16 @@ const STRINGS = {
     noCoursesLead: "购买后课程会出现在这里，也可以直接回公开站看看课程大纲与试听。",
     browse: "去看看课程",
     continueLearning: "继续学习",
+    accountPaidTitle: "支付成功，课程已开通",
+    accountPaidLead: "下面就是你的课程，点进去即可开始阅读；开通邮件稍后也会发到你的邮箱。",
+    accountPendingTitle: "支付已收到，正在开通",
+    accountPendingLead: "通常几秒内完成，这个页面会自动刷新；也可以点下面的「手动刷新」。",
+    accountUnpaidTitle: "支付处理中",
+    accountUnpaidLead: "银行转账等支付方式到账后会自动开通，不需要重复付款。",
+    accountRefreshing: "正在刷新…",
+    accountRefreshNow: "手动刷新",
+    accountRepo: "私有模板仓库",
+    accountCommunity: "社群邀请",
     deniedTitle: "需要购买",
     deniedHeading: "这门课还没开通",
     deniedLead: "这个账号没有这门课的阅读权。购买后立即可读；如果刚买过，稍等 1 分钟再刷新。",
@@ -84,6 +94,16 @@ const STRINGS = {
     noCoursesLead: "Purchased courses show up here. You can also browse the public catalogue and free previews.",
     browse: "Browse courses",
     continueLearning: "Continue learning",
+    accountPaidTitle: "Payment received — your courses are ready",
+    accountPaidLead: "Open a course below to start reading. Your receipt email is on its way too.",
+    accountPendingTitle: "Payment received, unlocking now",
+    accountPendingLead: "This usually takes a few seconds and the page refreshes itself. You can also refresh manually.",
+    accountUnpaidTitle: "Payment is processing",
+    accountUnpaidLead: "Bank transfers unlock automatically once settled — no need to pay again.",
+    accountRefreshing: "Refreshing…",
+    accountRefreshNow: "Refresh now",
+    accountRepo: "Private template repo",
+    accountCommunity: "Community",
     deniedTitle: "Purchase required",
     deniedHeading: "You don't have access to this course",
     deniedLead:
@@ -211,9 +231,21 @@ export function renderBuyPage({
 /* 我的课程                                                            */
 /* ------------------------------------------------------------------ */
 
-export function renderAccountPage({ locale = "zh", email, courses = [] } = {}) {
+export function renderAccountPage({
+  locale = "zh",
+  email,
+  courses = [],
+  status = null,
+  retry = 0,
+  refreshHref = null,
+} = {}) {
   const t = strings(locale);
+  const lang = normalizeLocale(locale);
   const count = t.accountCount.replace("{count}", String(courses.length));
+
+  // pending 时自动刷新，但最多 3 次：真卡住就停下来，别把人锁在刷新循环里
+  const autoRefresh = status === "pending" && retry < 3 && Boolean(refreshHref);
+  const head = autoRefresh ? '<meta http-equiv="refresh" content="4">' : "";
 
   const grid =
     courses.length === 0
@@ -224,16 +256,30 @@ export function renderAccountPage({ locale = "zh", email, courses = [] } = {}) {
           <a class="btn btn-ghost btn-auto" href="${escapeHtml(coursesHome(locale))}" style="margin-top:8px">${escapeHtml(t.browse)}</a>
         </div>`
       : `<div class="course-grid">${courses
-          .map(
-            (course) => `<article class="course-card">
+          .map((course) => {
+            const href = `/${lang}/courses/${escapeHtml(course.courseSlug ?? "")}`;
+            const extras = [
+              course.repo
+                ? `<a class="course-sub" href="${escapeHtml(course.repo)}" target="_blank" rel="noopener">${escapeHtml(t.accountRepo)}</a>`
+                : "",
+              course.community
+                ? `<a class="course-sub" href="${escapeHtml(course.community)}" target="_blank" rel="noopener">${escapeHtml(t.accountCommunity)}</a>`
+                : "",
+            ]
+              .filter(Boolean)
+              .join("");
+            return `<article class="course-card">
           <div class="course-icon" style="background-image:${accentFor({ accent: course.accent })}">${ICONS.book}</div>
           <div>
             <h2 class="course-title">${escapeHtml(course.title)}</h2>
             <p class="course-meta">${escapeHtml(course.planLabel || "")}</p>
           </div>
-          <a class="course-link" href="/${normalizeLocale(locale)}/courses/${escapeHtml(course.courseSlug ?? "")}">${escapeHtml(t.continueLearning)} →</a>
-        </article>`,
-          )
+          <div class="course-links">
+            <a class="course-link" href="${href}">${escapeHtml(t.continueLearning)} →</a>
+            ${extras}
+          </div>
+        </article>`;
+          })
           .join("")}</div>`;
 
   const body = `
@@ -246,9 +292,32 @@ export function renderAccountPage({ locale = "zh", email, courses = [] } = {}) {
         <button class="btn btn-ghost btn-auto" type="submit" style="padding:8px 12px;font-size:13px">${escapeHtml(t.logout)}</button>
       </form>
     </div>
+    ${noticeFor({ status, t, refreshHref })}
     <p class="lead">${escapeHtml(t.accountLead)}</p>
     ${grid}`;
-  return shell({ locale, title: t.accountTitle, body, active: "account" });
+  return shell({ locale, title: t.accountTitle, body, active: "account", head });
+}
+
+/** 付款状态条；status 为 null 时完全不出现在页面上 */
+function noticeFor({ status, t, refreshHref }) {
+  const labels = {
+    paid: { className: "notice-ok", title: t.accountPaidTitle, lead: t.accountPaidLead },
+    pending: { className: "notice-wait", title: t.accountPendingTitle, lead: t.accountPendingLead },
+    unpaid: { className: "notice-wait", title: t.accountUnpaidTitle, lead: t.accountUnpaidLead },
+  };
+  const entry = labels[status];
+  if (!entry) return "";
+  const refresh = refreshHref
+    ? `<a href="${escapeHtml(refreshHref)}">${escapeHtml(t.accountRefreshNow)}</a>`
+    : "";
+  const hint = status === "pending" ? `<span class="muted">${escapeHtml(t.accountRefreshing)}</span>` : "";
+  return `<div class="notice ${entry.className}">
+      <div>
+        <strong>${escapeHtml(entry.title)}</strong>
+        <p>${escapeHtml(entry.lead)}</p>
+        ${refresh || hint ? `<div class="notice-foot">${refresh}${hint}</div>` : ""}
+      </div>
+    </div>`;
 }
 
 /* ------------------------------------------------------------------ */

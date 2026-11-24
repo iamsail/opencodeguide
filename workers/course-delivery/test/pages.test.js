@@ -122,3 +122,58 @@ test("accentFor 只接受白名单类名", () => {
 test("escapeHtml 覆盖引号与尖括号", () => {
   assert.equal(escapeHtml(`<a href="x">'&'</a>`), "&lt;a href=&quot;x&quot;&gt;&#39;&amp;&#39;&lt;/a&gt;");
 });
+
+test("账户页：模板仓库 / 社群链接与支付成功提示", () => {
+  const html = renderAccountPage({
+    locale: "zh",
+    email: "buyer@example.com",
+    courses: [
+      {
+        courseSlug: "ai-coding-workflow",
+        title: "AI 编程实战",
+        planLabel: "单课版",
+        repo: "https://github.com/example/invitations",
+        community: "https://discord.gg/example",
+      },
+    ],
+    status: "paid",
+    retry: 0,
+    refreshHref: null,
+  });
+
+  assert.match(html, /支付成功，课程已开通/);
+  assert.match(html, /私有模板仓库/);
+  assert.match(html, /社群邀请/);
+  assert.match(html, /github\.com\/example\/invitations/);
+  assert.match(html, /discord\.gg\/example/);
+  assert.match(html, /\/zh\/courses\/ai-coding-workflow/);
+  assert.doesNotMatch(html, /http-equiv="refresh"/);
+});
+
+test("账户页：pending 自动刷新有上限，unpaid 不自动刷新", () => {
+  const base = {
+    locale: "zh",
+    email: "buyer@example.com",
+    courses: [],
+    refreshHref: "/account?paid=1&retry=1&session_id=cs_x",
+  };
+
+  const pending = renderAccountPage({ ...base, status: "pending", retry: 0 });
+  assert.match(pending, /支付已收到，正在开通/);
+  assert.match(pending, /http-equiv="refresh" content="4"/);
+  assert.match(pending, /\/account\?paid=1&amp;retry=1/);
+
+  // 刷了 3 次还不行就停下来，别把人锁在刷新循环里
+  const exhausted = renderAccountPage({ ...base, status: "pending", retry: 3 });
+  assert.match(exhausted, /支付已收到，正在开通/);
+  assert.doesNotMatch(exhausted, /http-equiv="refresh"/);
+
+  const unpaid = renderAccountPage({ ...base, status: "unpaid", refreshHref: null });
+  assert.match(unpaid, /支付处理中/);
+  assert.doesNotMatch(unpaid, /http-equiv="refresh"/);
+});
+
+test("账户页：没有状态时不出提示条", () => {
+  const html = renderAccountPage({ locale: "zh", email: "a@b.c", courses: [] });
+  assert.doesNotMatch(html, /class="notice/);
+});

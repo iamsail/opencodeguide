@@ -122,6 +122,18 @@ p{margin:0 0 14px;color:var(--muted)}
 .empty{padding:40px 24px;text-align:center;border:1px dashed var(--border);border-radius:16px}
 .empty svg{width:28px;height:28px;color:var(--muted);margin-bottom:10px}
 
+/* 状态提示条（付款成功 / 正在开通 / 处理中） */
+.notice{display:flex;gap:10px;align-items:flex-start;padding:14px 16px;border-radius:12px;
+  border:1px solid var(--border);background:var(--surface-2);margin:0 0 20px;font-size:13px}
+.notice strong{display:block;font-size:14px;color:inherit;margin-bottom:2px}
+.notice p{margin:0;color:inherit;opacity:.9}
+.notice-foot{display:flex;gap:12px;align-items:center;margin-top:8px;font-size:12px}
+.notice-foot a{color:inherit;text-decoration:underline}
+.notice-ok{border-color:#a7f3d0;background:#ecfdf5;color:#065f46}
+.dark .notice-ok{border-color:#064e3b;background:#062e25;color:#6ee7b7}
+.notice-wait{border-color:#fde68a;background:#fffbeb;color:#92400e}
+.dark .notice-wait{border-color:#78350f;background:#2a1c05;color:#fcd34d}
+
 /* 账户页头部 */
 .account-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .account-email{font-size:13px;color:var(--muted);margin:4px 0 0}
@@ -133,6 +145,9 @@ p{margin:0 0 14px;color:var(--muted)}
 .buy-price{font-size:32px;font-weight:700;letter-spacing:-.03em;margin:0 0 4px}
 .buy-actions{display:flex;flex-direction:column;gap:12px}
 .course-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--fg);text-decoration:none}
+.course-links{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-top:auto}
+.course-sub{font-size:12px;color:var(--muted);text-decoration:none}
+.course-sub:hover{color:var(--fg);text-decoration:underline}
 .course-link:hover{text-decoration:underline}
 
 /* 页脚 */
@@ -267,9 +282,9 @@ const THEME_ICON_CSS = `#theme-toggle .sun{display:block}#theme-toggle .moon{dis
 
 /**
  * 统一页面骨架
- * @param {{ locale?: string, title: string, body: string, narrow?: boolean, active?: string }} options
+ * @param {{ locale?: string, title: string, body: string, narrow?: boolean, active?: string, head?: string }} options
  */
-export function shell({ locale = "zh", title, body, narrow = false, active = null }) {
+export function shell({ locale = "zh", title, body, narrow = false, active = null, head = "" }) {
   const lang = locale === "en" ? "en" : "zh";
   return `<!doctype html>
 <html lang="${lang === "en" ? "en" : "zh-CN"}">
@@ -279,6 +294,7 @@ export function shell({ locale = "zh", title, body, narrow = false, active = nul
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="light dark">
 <title>${escapeHtml(title)}</title>
+${head}
 ${themeScript()}
 <style>${PAGE_CSS}${THEME_ICON_CSS}</style>
 </head>

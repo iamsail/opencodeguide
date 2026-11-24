@@ -79,24 +79,31 @@ test("没有邮箱：不发信，记录 needs_manual_delivery 并告警运营", 
   assert.equal(order.delivery_note, "missing_customer_email");
 });
 
-test("交付链接没配置：不发给买家，改为告警运营", async () => {
+test("交付链接没配置：仍发开通邮件，入口回退到成员站账户页", async () => {
   const { mailer, deps } = setup({ envOverrides: { COURSE_DELIVERY: "{}" } });
 
   const result = await processEvent(checkoutEvent(), deps);
 
-  assert.equal(result.outcome, "needs_manual_delivery");
-  assert.equal(result.reason, "delivery_links_not_configured");
-  assert.equal(mailer.sent[0].to, "ops@example.com");
-  assert.match(mailer.sent[0].text, /delivery_links_not_configured/);
+  // 交付主入口在站内（/account），邮件只是通知：没有交付链接也要发出去
+  assert.equal(result.outcome, "granted");
+  assert.equal(mailer.sent.length, 1);
+  assert.equal(mailer.sent[0].to, "buyer@example.com");
+  assert.match(mailer.sent[0].html, /https:\/\/learn\.example\.com\/account/);
+  assert.match(mailer.sent[0].text, /Google 账号登录后即可阅读/);
 });
 
-test("COURSE_DELIVERY 不是合法 JSON 时给出配置错误提示", async () => {
+test("COURSE_DELIVERY 不是合法 JSON：不阻塞交付，回退账户页并记录配置错误", async () => {
+  const warnings = [];
   const { mailer, deps } = setup({ envOverrides: { COURSE_DELIVERY: "{not json" } });
 
-  const result = await processEvent(checkoutEvent(), deps);
+  const result = await processEvent(checkoutEvent(), {
+    ...deps,
+    logger: { info() {}, warn: (message) => warnings.push(String(message)), error() {} },
+  });
 
-  assert.equal(result.outcome, "needs_manual_delivery");
-  assert.match(mailer.sent[0].text, /不是合法 JSON/);
+  assert.equal(result.outcome, "granted");
+  assert.equal(mailer.sent[0].to, "buyer@example.com");
+  assert.ok(warnings.some((line) => line.includes("不是合法 JSON")));
 });
 
 test("邮件服务挂掉：订单仍落库，标记失败并告警，不抛错", async () => {
@@ -351,4 +358,23 @@ test("订单落库成功但写权益失败：事件重投时补齐权益，且�
     0,
     "重投不应重发开通邮件",
   );
+});
+
+test("没有 RESEND_API_KEY：不发信、不告警，标记 skipped_no_resend，权益照常", async () => {
+  const { db, mailer, deps } = setup({
+    envOverrides: { RESEND_API_KEY: "", EMAIL_DRY_RUN: "0" },
+  });
+
+  const result = await processEvent(checkoutEvent(), deps);
+
+  assert.equal(result.outcome, "granted");
+  assert.equal(result.email, "skipped_no_resend");
+  assert.equal(mailer.sent.length, 0, "没有邮件通道时不该产生任何邮件（含告警）");
+
+  const order = [...db._orders.values()][0];
+  assert.equal(order.email_status, "skipped_no_resend");
+  assert.equal(order.delivery_note, "email_not_configured");
+
+  // 交付不依赖邮件：权益必须照常写入
+  assert.equal(db._entitlements.size, 1);
 });

@@ -76,9 +76,15 @@ export function buildGrantEmail({ locale, order, courseTitle, planLabel, deliver
   }${amount ? ` · ${escapeHtml(amount)}` : ""}</div>` : "";
 
   if (locale === "zh") {
-    const subject = `《${courseTitle}》已开通 · 观看链接与社群邀请`;
+    const subject = delivery.accountFallback
+      ? `《${courseTitle}》已开通 · 登录后即可阅读`
+      : `《${courseTitle}》已开通 · 观看链接与社群邀请`;
     const rows = [
-      accessRow("课程观看入口", delivery.watch, "永久访问，建议收藏本邮件"),
+      accessRow(
+        "课程观看入口",
+        delivery.watch,
+        delivery.accountFallback ? "用购买时的 Google 账号登录即可阅读" : "永久访问，建议收藏本邮件",
+      ),
       delivery.repo ? accessRow("私有模板仓库", delivery.repo, "首次访问需接受 GitHub 邀请") : "",
       delivery.community ? accessRow("社群邀请", delivery.community, "30 天答疑期内有效") : "",
     ]
@@ -96,7 +102,7 @@ export function buildGrantEmail({ locale, order, courseTitle, planLabel, deliver
         )}）。</p>
         ${orderLine}
         <table style="width:100%;border-collapse:collapse;margin:18px 0 4px;">${rows}</table>
-        <div style="margin:22px 0 0;">${button(delivery.watch, "开始学习")}</div>
+        <div style="margin:22px 0 0;">${button(delivery.watch, delivery.accountFallback ? "进入我的课程" : "开始学习")}</div>
         <div style="margin-top:22px;padding-top:18px;border-top:1px solid #f3f4f6;font-size:13px;color:#6b7280;">
           <p style="margin:0 0 8px;"><strong style="color:#374151;">${settings.refundDays} 天无理由退款。</strong>
           在 ${settings.refundDays} 天内，如果不适合你，回复本邮件即可全额退款，不需要理由。</p>
@@ -114,6 +120,7 @@ export function buildGrantEmail({ locale, order, courseTitle, planLabel, deliver
       `《${courseTitle}》（${planLabel}）已开通。`,
       "",
       `观看入口：${delivery.watch}`,
+      delivery.accountFallback ? "（用购买时的 Google 账号登录后即可阅读）" : null,
       delivery.repo ? `私有模板仓库：${delivery.repo}` : null,
       delivery.community ? `社群邀请：${delivery.community}` : null,
       "",
@@ -130,7 +137,11 @@ export function buildGrantEmail({ locale, order, courseTitle, planLabel, deliver
 
   const subject = `${courseTitle} — your access is ready`;
   const rows = [
-    accessRow("Course access", delivery.watch, "Lifetime access — bookmark this email"),
+    accessRow(
+      "Course access",
+      delivery.watch,
+      delivery.accountFallback ? "Sign in with the Google account you bought with" : "Lifetime access — bookmark this email",
+    ),
     delivery.repo ? accessRow("Private template repo", delivery.repo, "Accept the GitHub invite on first visit") : "",
     delivery.community ? accessRow("Community invite", delivery.community, "Valid for 30 days") : "",
   ]
@@ -148,7 +159,7 @@ export function buildGrantEmail({ locale, order, courseTitle, planLabel, deliver
       )} (${escapeHtml(planLabel)}).</p>
       ${orderLine}
       <table style="width:100%;border-collapse:collapse;margin:18px 0 4px;">${rows}</table>
-      <div style="margin:22px 0 0;">${button(delivery.watch, "Start learning")}</div>
+      <div style="margin:22px 0 0;">${button(delivery.watch, delivery.accountFallback ? "Open my courses" : "Start learning")}</div>
       <div style="margin-top:22px;padding-top:18px;border-top:1px solid #f3f4f6;font-size:13px;color:#6b7280;">
         <p style="margin:0 0 8px;"><strong style="color:#374151;">${settings.refundDays}-day refund, no questions asked.</strong>
         If the course isn't for you, reply to this email within ${settings.refundDays} days for a full refund.</p>

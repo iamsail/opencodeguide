@@ -150,5 +150,12 @@ export function createStore(db) {
       return result?.results ?? [];
     },
 
+    /** 运营排查：按邮箱查订单（含 email_status / delivery_note，便于判断是否漏发） */
+    async listOrdersByEmail(email) {
+      const statement = db.prepare("select * from orders where email = ? order by created_at desc");
+      const result = await statement.bind(email).all();
+      return result?.results ?? [];
+    },
+
   };
 }

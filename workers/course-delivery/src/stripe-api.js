@@ -87,5 +87,10 @@ export function createStripeClient({ secretKey, fetchImpl = fetch, apiVersion = 
         metadata,
       });
     },
+
+    /** 对账用：按 session id 取回会话（含 payment_status 与 metadata） */
+    async retrieveCheckoutSession(sessionId) {
+      return request("GET", `/checkout/sessions/${encodeURIComponent(sessionId)}`);
+    },
   };
 }

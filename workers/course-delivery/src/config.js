@@ -208,6 +208,38 @@ export function resolveDelivery(env, courseSlug, planId) {
   };
 }
 
+/**
+ * 邮件里「课程入口」的兜底地址：成员站账户页。
+ *
+ * 正文交付的主入口是成员站（登录即可阅读），邮件只是通知。所以即使没配
+ * COURSE_DELIVERY，也不该让买家收不到任何入口 —— 退到 /account 即可。
+ */
+export function learningEntry(env = {}) {
+  const base = (env.LEARN_URL || env.SITE_URL || "https://opencodeguide.com").replace(/\/+$/, "");
+  return `${base}/account`;
+}
+
+/**
+ * 给邮件用的交付信息：缺 watch 时回退到账户页，并标记 accountFallback，
+ * 让模板把「观看链接 / 建议收藏本邮件」换成「登录后即可阅读」。
+ *
+ * 与 resolveDelivery 的区别：后者回答「运营配了哪些交付物」（complete 用来判断
+ * 是否要人工介入），这里回答「这封信里能放什么」。交付不再依赖邮件之后，
+ * 前者不该再决定订单是否需要人工处理。
+ */
+export function resolveEmailDelivery(env = {}, courseSlug, planId) {
+  const delivery = resolveDelivery(env, courseSlug, planId);
+  const accountFallback = !delivery.watch;
+  return {
+    watch: delivery.watch || learningEntry(env),
+    repo: delivery.repo,
+    community: delivery.community,
+    accountFallback,
+    configError: delivery.configError,
+    complete: true,
+  };
+}
+
 export function formatMoney(amountCents, currency = "usd") {
   const amount = Number(amountCents || 0) / 100;
   try {

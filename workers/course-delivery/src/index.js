@@ -16,11 +16,12 @@ import {
   formatMoney,
   getSettings,
   planLabel,
-  resolveDelivery,
+  resolveEmailDelivery,
 } from "./config.js";
 import { createMailer } from "./email.js";
 import { processEvent } from "./handlers.js";
 import { createStore } from "./store.js";
+import { normalizeEmail } from "./entitlements.js";
 import { buildGrantEmail } from "./templates.js";
 import { verifyStripeSignature } from "./stripe.js";
 import { handleAccountPage } from "./routes/account.js";
@@ -33,12 +34,37 @@ const WEBHOOK_PATH = "/stripe/webhook";
 const RESEND_PATH = "/admin/resend";
 const HEALTH_PATH = "/health";
 const TOLERANCE_SECONDS = 300;
+const ADMIN_ORDERS_PATH = "/admin/orders";
+const ADMIN_GRANT_PATH = "/admin/grant";
+const COURSE_PATH = /^\/courses(?:\/|$)/;
+const COURSE_SLUG = /^[a-z0-9-]{1,64}$/;
 
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
     status,
     headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
   });
+}
+
+/** 管理接口统一鉴权：ADMIN_TOKEN 未配置时整个后台禁用（宁可不可用，也不要裸奔） */
+function requireAdmin(request, env) {
+  const settings = getSettings(env);
+  if (!settings.adminToken) {
+    return json({ error: "ADMIN_TOKEN 未配置，管理接口已禁用" }, 503);
+  }
+  const authorization = request.headers.get("authorization") || "";
+  const token = authorization.replace(/^Bearer\s+/i, "").trim();
+  if (!timingSafeEqual(token, settings.adminToken)) {
+    return json({ error: "unauthorized" }, 401);
+  }
+  return null;
+}
+
+/** 根级 /courses/… → /zh|courses/…（保留查询串，?lang=en 走英文） */
+function redirectToLocalizedCourse(url) {
+  const lang = url.searchParams.get("lang") === "en" ? "en" : "zh";
+  const location = `/${lang}${url.pathname}${url.search}`;
+  return new Response(null, { status: 302, headers: { location, "cache-control": "no-store" } });
 }
 
 /** 定长比较，避免 token 比对的时间差泄露 */
@@ -60,9 +86,17 @@ export default {
       return new Response(null, { status: 302, headers: { location: "/account", "cache-control": "no-store" } });
     }
 
+    // 邮件里可能配成根级 /courses/…（没有语言前缀），而静态产物只有 /zh|en/courses/…
+    // 门禁认这两种形状，但文件只存在于带前缀的目录：这里补一次重定向兜住。
+    if (COURSE_PATH.test(url.pathname) && request.method === "GET") {
+      return redirectToLocalizedCourse(url);
+    }
+
     if (url.pathname === HEALTH_PATH && request.method === "GET") return handleHealth(env);
     if (url.pathname === WEBHOOK_PATH && request.method === "POST") return handleWebhook(request, env);
     if (url.pathname === RESEND_PATH && request.method === "POST") return handleResend(request, env);
+    if (url.pathname === ADMIN_ORDERS_PATH && request.method === "GET") return handleAdminOrders(request, env);
+    if (url.pathname === ADMIN_GRANT_PATH && request.method === "POST") return handleAdminGrant(request, env);
 
     // P2.2 登录、购买、账户：这些都是 Worker 自己渲染的页面，不需要静态资源。
     // 成员站正文（out-members/）在下面走门禁，见 handleMemberAsset。
@@ -104,6 +138,12 @@ function handleHealth(env) {
       learnUrl: Boolean(env.LEARN_URL),
       googleOauth: Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET),
       stripeKey: Boolean(env.STRIPE_SECRET_KEY),
+      // 只报模式，不报密钥：换 live 之后靠这一项自检，不用翻 wrangler 配置
+      stripeMode: String(env.STRIPE_SECRET_KEY || "").startsWith("sk_live_")
+        ? "live"
+        : String(env.STRIPE_SECRET_KEY || "").startsWith("sk_test_")
+          ? "test"
+          : "unset",
       catalog: Boolean(env.COURSE_CATALOG),
       assets: Boolean(env.ASSETS),
       dryRun: env.EMAIL_DRY_RUN === "1",
@@ -177,16 +217,10 @@ async function handleWebhook(request, env) {
 }
 
 async function handleResend(request, env) {
-  const settings = getSettings(env);
-  if (!settings.adminToken) {
-    return json({ error: "ADMIN_TOKEN 未配置，管理接口已禁用" }, 503);
-  }
+  const denied = requireAdmin(request, env);
+  if (denied) return denied;
 
-  const authorization = request.headers.get("authorization") || "";
-  const token = authorization.replace(/^Bearer\s+/i, "").trim();
-  if (!timingSafeEqual(token, settings.adminToken)) {
-    return json({ error: "unauthorized" }, 401);
-  }
+  const settings = getSettings(env);
 
   let payload;
   try {
@@ -209,17 +243,8 @@ async function handleResend(request, env) {
   if (!order) return json({ error: "order not found", sessionId }, 404);
   if (!order.email) return json({ error: "order has no email, deliver manually", orderId: order.id }, 409);
 
-  const delivery = resolveDelivery(env, order.course_slug, order.plan_id);
-  if (!delivery.complete) {
-    return json(
-      {
-        error: "delivery links not configured",
-        hint: "设置 COURSE_DELIVERY 或 DEFAULT_WATCH_URL 后重试",
-        orderId: order.id,
-      },
-      409,
-    );
-  }
+  // 没配交付链接也能补发：入口回退到成员站账户页（登录后即可阅读）
+  const delivery = resolveEmailDelivery(env, order.course_slug, order.plan_id);
 
   const locale = order.locale || "en";
   const template = buildGrantEmail({
@@ -251,6 +276,69 @@ async function handleResend(request, env) {
   });
 
   return json({ ok: true, orderId: order.id, to: order.email });
+}
+
+/** 运营排查：按邮箱查订单与权益（付款到了但页面没课、或怀疑漏发时用） */
+async function handleAdminOrders(request, env) {
+  const denied = requireAdmin(request, env);
+  if (denied) return denied;
+
+  const email = normalizeEmail(new URL(request.url).searchParams.get("email") || "");
+  if (!email) return json({ error: "missing or invalid email" }, 400);
+
+  let store;
+  try {
+    store = createStore(env.DB);
+  } catch (error) {
+    return json({ error: error.message }, 500);
+  }
+
+  const orders = await store.listOrdersByEmail(email);
+  const entitlements = await store.listEntitlementsByEmail(email);
+  return json({ email, orders, entitlements });
+}
+
+/**
+ * 手工补权益：webhook 彻底没到、或买家换了 Google 账号时的人工出口。
+ * order_id 用 manual:<uuid> 留痕，退款按订单号撤销时不会误伤人工授权。
+ */
+async function handleAdminGrant(request, env) {
+  const denied = requireAdmin(request, env);
+  if (denied) return denied;
+
+  let payload;
+  try {
+    payload = await request.json();
+  } catch {
+    return json({ error: "body must be JSON" }, 400);
+  }
+
+  const email = normalizeEmail(payload?.email || "");
+  const courseSlug = typeof payload?.courseSlug === "string" ? payload.courseSlug.trim() : "";
+  const planId =
+    typeof payload?.planId === "string" && payload.planId.trim() ? payload.planId.trim() : "manual";
+  if (!email) return json({ error: "missing or invalid email" }, 400);
+  if (!COURSE_SLUG.test(courseSlug)) return json({ error: "missing or invalid courseSlug" }, 400);
+
+  let store;
+  try {
+    store = createStore(env.DB);
+  } catch (error) {
+    return json({ error: error.message }, 500);
+  }
+
+  const orderId = `manual:${crypto.randomUUID()}`;
+  const grantedAt = new Date().toISOString();
+  await store.grantEntitlement({
+    id: crypto.randomUUID(),
+    email,
+    courseSlug,
+    planId,
+    orderId,
+    grantedAt,
+  });
+  console.info(`[admin] 手动授权 ${email} → ${courseSlug}（${planId}，${orderId}）`);
+  return json({ ok: true, email, courseSlug, planId, orderId, grantedAt });
 }
 
 /**

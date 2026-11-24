@@ -16,7 +16,7 @@ import {
   getSettings,
   planLabel,
   courseTitle,
-  resolveDelivery,
+  resolveEmailDelivery,
   resolveLocale,
   resolvePurchase,
 } from "./config.js";
@@ -105,12 +105,17 @@ async function onCheckoutCompleted(event, context) {
   }
 
   const orderId = idFactory();
-  const delivery = courseSlug && planId ? resolveDelivery(context.env, courseSlug, planId) : null;
+  // 交付主入口是成员站（登录即可读），邮件只是通知：没配 COURSE_DELIVERY 时
+  // watch 会回退到 /account，所以它不再算「需要人工交付」。
+  const delivery = courseSlug && planId ? resolveEmailDelivery(context.env, courseSlug, planId) : null;
 
   let deliveryNote = null;
   if (!email) deliveryNote = "missing_customer_email";
   else if (!courseSlug || !planId) deliveryNote = "unresolved_course_reference";
-  else if (!delivery?.complete) deliveryNote = "delivery_links_not_configured";
+
+  if (delivery?.configError) {
+    logger.warn(`[delivery] COURSE_DELIVERY 配置有误，邮件入口回退到账户页：${delivery.configError}`);
+  }
 
   const inserted = await store.insertOrder({
     id: orderId,
@@ -185,6 +190,23 @@ async function onCheckoutCompleted(event, context) {
     delivery,
     settings,
   });
+
+  // 「没配邮件通道」和「邮件发失败」是两件事：前者不该每单都刷失败状态 + 运营
+  // 告警（告警本身也发不出去）。买家登录 /account 就能读，不阻塞交付。
+  if (!settings.dryRun && !settings.resendApiKey) {
+    await store.updateOrder(orderId, {
+      emailStatus: "skipped_no_resend",
+      delivery_note: "email_not_configured",
+      updatedAt: timestamp,
+    });
+    logger.info(`[delivery] 未配置 RESEND_API_KEY，订单 ${orderId} 跳过邮件；买家可在 /account 阅读`);
+    return {
+      outcome: "granted",
+      orderId,
+      entitlements: entitlement.granted.length,
+      email: "skipped_no_resend",
+    };
+  }
 
   try {
     await mailer.send({

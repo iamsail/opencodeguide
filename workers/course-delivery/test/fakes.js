@@ -78,6 +78,13 @@ export function createFakeD1() {
       return first([...orders.values()].filter((row) => row.stripe_session_id === params[0]));
     }
 
+    if (statement.startsWith("select * from orders where email = ?")) {
+      const rows = [...orders.values()]
+        .filter((row) => row.email === params[0])
+        .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+      return { rows };
+    }
+
     if (statement.includes("where stripe_payment_intent = ?")) {
       const matches = [...orders.values()]
         .filter((row) => row.stripe_payment_intent === params[0])

@@ -299,3 +299,129 @@ test("/health 暴露 Google / Stripe / 目录绑定开关", async () => {
   assert.equal(payload.bindings.catalog, true);
   assert.ok(!JSON.stringify(payload).includes("sk_test_fake"));
 });
+
+/** 只需应答 Stripe 的会话查询，其它请求一律视为意外 */
+function stubStripeSession(session) {
+  const calls = [];
+  const original = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    const href = String(url);
+    calls.push(href);
+    if (href.includes("/v1/checkout/sessions/")) return jsonResponse(session);
+    throw new Error(`unexpected fetch: ${href}`);
+  };
+  return {
+    calls,
+    restore: () => {
+      globalThis.fetch = original;
+    },
+  };
+}
+
+function stripeSession(overrides = {}) {
+  return {
+    id: "cs_test_paid",
+    object: "checkout.session",
+    mode: "payment",
+    payment_status: "paid",
+    amount_total: 7900,
+    currency: "usd",
+    locale: "zh",
+    payment_intent: "pi_paid",
+    customer_details: { email: "buyer@example.com" },
+    metadata: {
+      email: "buyer@example.com",
+      course_slug: "ai-coding-workflow",
+      plan_id: "single",
+    },
+    ...overrides,
+  };
+}
+
+test("/account?paid=1&session_id=… 主动对账：webhook 还没到也能看到课程与交付链接", async () => {
+  const env = makeEnv();
+  const stub = stubStripeSession(stripeSession());
+  try {
+    const response = await worker.fetch(
+      new Request("https://learn.test/account?paid=1&session_id=cs_test_paid", {
+        headers: { cookie: await sessionCookie(env) },
+      }),
+      env,
+    );
+    const html = await response.text();
+
+    assert.equal(response.status, 200);
+    assert.equal(stub.calls.filter((href) => href.includes("/v1/checkout/sessions/")).length, 1);
+    assert.match(html, /支付成功，课程已开通/);
+    assert.match(html, /\/zh\/courses\/ai-coding-workflow/);
+    // 交付物直接出现在账户页，不再只靠开通邮件
+    assert.match(html, /github\.com\/example\/course\/invitations/);
+    assert.match(html, /discord\.gg\/example/);
+  } finally {
+    stub.restore();
+  }
+});
+
+test("/account：支付方式未结清时提示处理中，不自动刷新", async () => {
+  const env = makeEnv();
+  const stub = stubStripeSession(stripeSession({ payment_status: "unpaid" }));
+  try {
+    const response = await worker.fetch(
+      new Request("https://learn.test/account?paid=1&session_id=cs_test_paid", {
+        headers: { cookie: await sessionCookie(env) },
+      }),
+      env,
+    );
+    const html = await response.text();
+
+    assert.equal(response.status, 200);
+    assert.match(html, /支付处理中/);
+    assert.doesNotMatch(html, /http-equiv="refresh"/);
+    assert.match(html, /这个邮箱还没有已购课程/);
+  } finally {
+    stub.restore();
+  }
+});
+
+test("/account：别人的 session_id 不认领，也不显示开通提示", async () => {
+  const env = makeEnv();
+  const stub = stubStripeSession(stripeSession({ metadata: { email: "other@example.com", course_slug: "ai-coding-workflow", plan_id: "single" } }));
+  try {
+    const response = await worker.fetch(
+      new Request("https://learn.test/account?paid=1&session_id=cs_test_paid", {
+        headers: { cookie: await sessionCookie(env) },
+      }),
+      env,
+    );
+    const html = await response.text();
+
+    assert.equal(response.status, 200);
+    assert.match(html, /这个邮箱还没有已购课程/);
+    // 注意：不能直接匹配文案 —— PAGE_CSS 的注释里也有「正在开通」，会误命中
+    assert.doesNotMatch(html, /class="notice/);
+  } finally {
+    stub.restore();
+  }
+});
+
+test("/account：非法 session_id 不打 Stripe 接口", async () => {
+  const env = makeEnv();
+  const original = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = async () => {
+    calls += 1;
+    throw new Error("should not call stripe");
+  };
+  try {
+    const response = await worker.fetch(
+      new Request("https://learn.test/account?paid=1&session_id=javascript:alert(1)", {
+        headers: { cookie: await sessionCookie(env) },
+      }),
+      env,
+    );
+    assert.equal(response.status, 200);
+    assert.equal(calls, 0);
+  } finally {
+    globalThis.fetch = original;
+  }
+});
