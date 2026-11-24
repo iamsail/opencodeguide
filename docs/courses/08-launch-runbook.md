@@ -118,76 +118,149 @@ npx wrangler secret put GOOGLE_CLIENT_SECRET
 
 ## 3. Stripe（收款）
 
-### 3.1 账户与密钥
+> 2026-11-24 更新：live 模式**已开通**（账号 `deeplove`，已有其它产品的真实流水）。
+> 课程侧目前仍是 test 密钥 / test priceId / 测试模式 webhook，换 live 的完整顺序见 §3.7。
 
-1. Stripe Dashboard → 激活账户（主体信息、银行账户、KYB）。
-2. **Developers → API keys → Reveal live key**，拿到 `sk_live_...`。
-   - 这是**服务端**密钥，只进 `wrangler secret`，绝不进仓库、绝不加 `NEXT_PUBLIC_`。
-3. Settings → Public business info：把 **Statement descriptor** 设为可识别字符串（如 `OPENCODEGUIDE`），降低拒付。
-4. 税务：按主体所在地决定是否开 Stripe Tax；课程属数字服务，对 EU 个人买家通常要收 VAT。见 [04-stripe-integration.md](./04-stripe-integration.md) §6。
+### 3.1 账号结构（已定：单账号，多产品）
 
-### 3.2 建商品与价格（决定 `/checkout` 能不能用）
+一个 Stripe 账号 = 一个法人/收款主体（对应 KYB、银行账户、税号、提现）；Product / Price 只是账号里的目录项。
 
-新版购买回路不再依赖 Payment Link，而是用 **priceId** 创建 Checkout Session：
+- **不要按产品开账号**：管理成本翻倍，而且同 owner 的账号会被 Stripe 关联，不能用来隔离风险或规避限额；
+- **「创建组织」不是品牌隔离工具**：组织用于管理多个账号与团队权限；
+- 只有这几种情况才值得开独立账号：不同法人/不同国家、需要不同提现银行卡、品牌完全独立且愿意再做一次 KYB。
 
-```js
-// workers/course-delivery/src/routes/buy.js
-const checkout = await stripe.createCheckoutSession({
-  customerId: customer.id,
-  priceId: entry.priceId,   // ← 来自 COURSE_CATALOG
-  successUrl: `${origin}/account?paid=1`,
-  ...
-});
-```
+共用一个账号的三个副作用，上线前要接受：
 
-`priceId` 的来源链路：`scripts/courses/stripe-payment-links.mjs` 建 Product + Price，写 `content/courses/stripe-products.json` → `sync-worker-catalog.mjs` 合成 `COURSE_CATALOG` 注入 Worker。
+| 副作用 | 处理 |
+| :--- | :--- |
+| 结账页 / 发票 / 银行账单显示**账号级业务名**（当前是 `deeplove`），课程买家会疑惑 | 改 Settings → Business details 的 **Public business name**；或给课程这笔支付加账单后缀（见 §3.2） |
+| 余额与报表混在一起（「今天 £X」包含其它产品） | 对账看 `orders` 表，或按 Stripe metadata `course_slug` / `plan_id` 筛；**不要用余额差算课程收入** |
+| 争议率、风险评级共享 | 无法隔离，只能靠退款与沟通质量控制 |
 
-**注意：`content/courses/stripe-products.json` 目前不存在**（说明还没用 live 密钥跑过）。先 dry-run 核对，再真跑：
+> 切换成本提醒：我们是一次性买断、没有订阅，所以「以后想分账号」的代价几乎为零
+> （重建 9 个 Product/Price + 换两次 secret）。不必现在为了「万一」拆号。
+
+### 3.2 密钥与账户设置
+
+1. Developers → API keys → Reveal **live** key（`sk_live_…`）。只进 `wrangler secret`，绝不进仓库、绝不加 `NEXT_PUBLIC_`。
+2. Settings → Public business info：
+   - **Statement descriptor 是账号级的**。直接改成课程品牌，会把你其它产品在客户账单上的名字一起改掉；
+   - 需要区分时用 `payment_intent_data[statement_descriptor_suffix]`（创建 Checkout 时传，账单显示「账号前缀 * 后缀」）。
+3. 税务：课程是数字服务，对 EU 个人买家通常要收 VAT；按主体所在地决定是否开 Stripe Tax（见 [04-stripe-integration.md](./04-stripe-integration.md) §6）。
+4. 收据：Dashboard → Customer emails 打开 receipt，让付款凭证由 Stripe 直发 —— 这样即使 Resend 一直没接，买家也有凭证。
+
+### 3.3 建商品与价格（必须带 `--force`）
+
+`/checkout` 用 **priceId** 创建 Checkout Session，priceId 来自 `COURSE_CATALOG`。
 
 ```bash
-npm run courses:stripe:dry                              # 只打印，不调 API
-STRIPE_SECRET_KEY=sk_live_xxx npm run courses:stripe    # 建商品/价格/Payment Link
+# 1) 先核对：应为 9 条（4 门课 × 单课/Pro + 全站通）
+STRIPE_SECRET_KEY=sk_live_<你的密钥> node scripts/courses/stripe-payment-links.mjs --dry-run --force
 
-node scripts/courses/sync-worker-catalog.mjs            # 检查 COURSE_CATALOG（会列出缺 priceId 的项）
-node scripts/courses/sync-worker-catalog.mjs --apply    # wrangler secret bulk 注入
+# 2) 真正创建
+STRIPE_SECRET_KEY=sk_live_<你的密钥> node scripts/courses/stripe-payment-links.mjs --force
 ```
+
+> ⚠️ **`--force` 不能省**。脚本的跳过逻辑是「`stripe-products.json` 里已有 url 就 skip」，
+> 而那份文件里现在全是 **test** 记录。不带 `--force` 会 9 条全部 skip，然后拿旧的 test URL
+> 重写一遍文件 —— 看着成功，实际一个都没换。
 
 跑完会生成两个文件，**都要提交**：
 
 - `content/courses/stripe-products.json`（priceId，`/checkout` 必需）
-- `content/courses/stripe-links.json`（Payment Link，公开站降级/兼容用）
+- `content/courses/stripe-links.json`（Payment Link，仅在 `NEXT_PUBLIC_CHECKOUT_MODE=stripe` 时作回退）
 
-> 老的 Payment Link 仍然保留：公开站按钮切到 `learn./buy/...` 之前，它是唯一的兜底入口；切完之后仅作为 `STRIPE_LINK_*` 覆盖用。
+### 3.4 注入 COURSE_CATALOG
 
-### 3.3 Webhook（决定「付了钱能不能读」）
+```bash
+node scripts/courses/sync-worker-catalog.mjs           # 检查有没有缺 priceId
+node scripts/courses/sync-worker-catalog.mjs --apply   # wrangler secret bulk
+```
 
-Dashboard → **Developers → Webhooks → Add endpoint**
+> **顺序：catalog 必须在换密钥之前（或同一分钟内）完成。** 先换 live 密钥而 catalog 还是
+> test 的 priceId，`/checkout` 会报 `No such price`，购买页直接 502。
 
-- Endpoint URL：
-  ```
-  https://learn.opencodeguide.com/stripe/webhook
-  ```
-- 只勾这三个事件（代码只处理这三个，多勾只是浪费）：
+### 3.5 Webhook（决定「付了钱能不能读」）
+
+Dashboard → Developers → Webhooks → **Add endpoint**（注意要在 **live 模式**下建，测试模式那个列表里的不算）
+
+- Endpoint URL：`https://learn.opencodeguide.com/stripe/webhook`
+- 事件：勾满这 5 个
   - `checkout.session.completed`
+  - `checkout.session.async_payment_succeeded`
+  - `checkout.session.async_payment_failed`
   - `charge.refunded`
   - `charge.dispute.created`
-- 建好后 Reveal **Signing secret**（`whsec_...`）→ 注入：
+
+> ⚠️ **为什么必须勾 async 那两个**：支付宝 / 微信等是**异步**支付方式，`checkout.session.completed`
+> 触发时 `payment_status` 还是 `unpaid`，真正的开通靠 `async_payment_succeeded`。
+> 只勾三个事件的话，这类买家付了钱永远拿不到权益。
+
+建好后 Reveal **Signing secret**（`whsec_…`）并注入：
 
 ```bash
 cd workers/course-delivery
 npx wrangler secret put STRIPE_WEBHOOK_SECRET
 ```
 
-### 3.4 已有的 Stripe 相关 secret 清单
+### 3.6 本机与账号前提
+
+- 需要 `wrangler` 已登录且能部署（本仓库的部署基线是在 macOS 本机测的；WSL 里要先用 `npx wrangler login`）；
+- live 密钥只在这台机器的终端里出现，别贴进聊天、别写进 `.env`、别提交；
+- 换 live 会改写 `stripe-products.json` / `stripe-links.json`（test ID → live ID），这两个文件被 git 跟踪，记得一起提交。
+
+### 3.7 换 live 的执行顺序（照抄，别跳）
+
+```bash
+cd ~/code/xtest/hacker/opencodeguide
+
+# 1. 建 live 的 Product + Price + Payment Link（9 条）
+STRIPE_SECRET_KEY=sk_live_<...> node scripts/courses/stripe-payment-links.mjs --dry-run --force
+STRIPE_SECRET_KEY=sk_live_<...> node scripts/courses/stripe-payment-links.mjs --force
+
+# 2. 合成并注入 COURSE_CATALOG（用 live priceId）
+node scripts/courses/sync-worker-catalog.mjs
+node scripts/courses/sync-worker-catalog.mjs --apply
+
+# 3. 注入 live 服务端密钥（交互式输入，别写进 shell 历史）
+cd workers/course-delivery && npx wrangler secret put STRIPE_SECRET_KEY
+
+# 4. 注入新 webhook 的签名密钥
+npx wrangler secret put STRIPE_WEBHOOK_SECRET
+
+# 5. 部署（带上 TASK111 的对账代码与 /courses 重定向）
+npx wrangler deploy
+```
+
+### 3.8 验收
+
+```bash
+curl -sS https://learn.opencodeguide.com/health | grep -o '"stripeMode":"[a-z]*"'
+# 期望 "live"；仍是 "test" 说明密钥没换成功
+```
+
+然后逐项确认：
+
+| # | 动作 | 期望 |
+| :--- | :--- | :--- |
+| 1 | 真卡买最便宜的一门（$79） | 跳回 `/account?paid=1&session_id=…`，**立刻**看到课程（TASK111 对账生效，不等 webhook） |
+| 2 | D1 `orders` 查最新一单 | 有记录；`email_status` 可能是 `skipped_no_resend`（Resend 没接，不影响阅读） |
+| 3 | Stripe Dashboard → 该 endpoint 的投递记录 | `200 {"received":true,…}`，不应有 `processing failed` |
+| 4 | Dashboard 全额退款 | `entitlements.revoked_at` 非空；1 分钟内该用户访问正文 → 403 |
+| 5 | `npm run build` | 不再出现 `stripe-links.json mode=test` 警告 |
+
+### 3.9 现有 secret 清单（2026-11-24 实测）
 
 | 名称 | 用途 | 现状 |
 | :--- | :--- | :--- |
-| `STRIPE_WEBHOOK_SECRET` | Webhook 验签 | ✅ 已注入（旧值，换 endpoint 后要重设） |
-| `STRIPE_SECRET_KEY` | 服务端建 Customer / Checkout Session | ❌ 未注入 |
-| `COURSE_CATALOG` | 课程标题 + 价格 + priceId | ❌ 未注入（`--apply` 注入） |
+| `STRIPE_SECRET_KEY` | 服务端建 Customer / Checkout Session | ⚠️ 已注入，但是 **test** 值，待换 live |
+| `STRIPE_WEBHOOK_SECRET` | Webhook 验签 | ⚠️ 已注入，对应**测试模式** endpoint，换 live 时重设 |
+| `COURSE_CATALOG` | 课程标题 + 价格 + priceId | ⚠️ 已注入，9 条全是 **test** priceId |
 | `SESSION_SECRET` | 会话 JWT 签名 | ✅ 已注入（**不要轮换**，换了所有人登出） |
-| `ADMIN_TOKEN` | `/admin/resend` 管理接口 | ✅ 已注入 |
-| `COURSE_DELIVERY` | 开通信里的学习入口 | ✅ 已注入 |
+| `ADMIN_TOKEN` | `/admin/*` 管理接口 | ✅ 已注入 |
+| `COURSE_DELIVERY` | 交付入口（模板仓/社群） | ✅ 已注入（配的是根级 `/courses/…`，Worker 会 302 到 `/zh/…`） |
+| `RESEND_API_KEY` | 开通邮件 | ❌ 未注入；**不影响交付**（`/account` 可读，订单记 `skipped_no_resend`） |
+| `GOOGLE_CLIENT_ID` / `SECRET` | 登录 | ✅ 已注入 |
 
 ---
 
@@ -277,9 +350,9 @@ npx wrangler login                                   # 浏览器授权一次
 npx wrangler d1 migrations apply course-delivery --remote   # 应用 0003（删除 magic link 表）
 npx wrangler secret put GOOGLE_CLIENT_ID
 npx wrangler secret put GOOGLE_CLIENT_SECRET
-npx wrangler secret put STRIPE_SECRET_KEY
-npx wrangler secret put STRIPE_WEBHOOK_SECRET
-npx wrangler secret put RESEND_API_KEY
+npx wrangler secret put STRIPE_SECRET_KEY      # live 值，见 §3.7
+npx wrangler secret put STRIPE_WEBHOOK_SECRET  # live endpoint 的 whsec
+npx wrangler secret put RESEND_API_KEY         # 可选：没有它也能交付，只是不发信
 cd ../..
 node scripts/courses/sync-worker-catalog.mjs --apply  # 需要 stripe-products.json 已生成
 COURSE_ACCESS=members npm run build                   # 产出 out-members/
@@ -292,7 +365,8 @@ cd workers/course-delivery && npx wrangler deploy
 curl -sS https://learn.opencodeguide.com/health
 ```
 
-`bindings` 里这些必须全为 `true`：`db`、`webhookSecret`、`resend`、`adminToken`、`sessionSecret`、`learnUrl`、`googleOauth`、`stripeKey`、`catalog`。
+`bindings` 里这些必须全为 `true`：`db`、`webhookSecret`、`adminToken`、`sessionSecret`、`learnUrl`、`googleOauth`、`stripeKey`、`catalog`、`assets`。
+`resend` 允许为 `false`（TASK111 之后交付走站内，邮件只是通知）；`stripeMode` 必须是 `live`。
 
 然后按顺序点：
 
@@ -302,9 +376,9 @@ curl -sS https://learn.opencodeguide.com/health
 | 2 | 点「使用 Google 继续」 | 跳 Google，回跳后落在 `/account`，cookie `ocg_session` 为 HttpOnly+Secure |
 | 3 | 未购买用户看课时 | 只能读前 2 节，其余是锁定页 + 购买 CTA |
 | 4 | `/buy/<slug>/single` → 点购买 | 302 到 Stripe Checkout，金额正确、email 已锁定（不可改） |
-| 5 | 用测试卡付一笔（建议先 `sk_test`，再小额 live） | 回到 `/account?paid=1`，看到该课程 |
+| 5 | 用测试卡付一笔（建议先 `sk_test`，再小额 live） | 回到 `/account?paid=1&session_id=…`，**立刻**看到该课程（对账补权益，不等 webhook） |
 | 6 | Stripe Dashboard 看 webhook 投递 | `200 {"received":true,...}`，D1 `entitlements` 有新行 |
-| 7 | 收件箱 | 收到开通信，链接指向 `learn.` 对应课程 |
+| 7 | 收件箱（**仅当已配 Resend**） | 收到开通信；未配时订单为 `skipped_no_resend`，以 `/account` 为准 |
 | 8 | Dashboard 全额退款 | `entitlements.revoked_at` 非空；1 分钟内该用户访问 → 403 + 提示 |
 | 9 | `curl -I` 任意成员页 | 含 `x-robots-tag: noindex`、`cache-control: no-store` |
 | 10 | `curl https://learn.opencodeguide.com/search.json`（未登录） | 302/403，**不能**返回 200 |
@@ -328,7 +402,7 @@ curl -sS https://learn.opencodeguide.com/health
 | Cloudflare 登录 / D1 迁移 / 部署 / secret 注入 | | ✅ 已完成登录与迁移 0003（2026-11-20） |
 | DNS / SSL 模式确认 | 已完成（`Full (strict)`、apex 灰云） | |
 | Google Cloud 建项目 / OAuth client | ✅ | |
-| Stripe 账户激活 / KYB / live 密钥 | ✅ | |
+| Stripe 账户激活 / KYB / live 密钥 | live 已开通（2026-11-24），密钥待注入 | |
 | Resend 域名验证（点 Verify） | ✅ | |
 | 法务页补主体信息 | ✅ | |
 | P2.3 四处代码接线 + 成员构建 + noindex | | ✅ 已完成（2026-11-20） |

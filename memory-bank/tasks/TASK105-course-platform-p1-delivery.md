@@ -2,7 +2,7 @@
 
 **Status:** In Progress
 **Added:** 2026-11-18
-**Updated:** 2026-11-18
+**Updated:** 2026-11-24
 
 ## Original Request
 课程板块 P0 已完成（[TASK104]）。按 `docs/courses/05-rollout-plan.md` 的分期计划，下一步进入 P1：打通正式收款与付款后的自动交付。
@@ -53,7 +53,7 @@
 ### Subtasks
 | ID | Description | Status | Updated | Notes |
 |----|-------------|--------|---------|-------|
-| 1.1 | 正式 Payment Link 生成与验证 | Blocked | 2026-11-18 | 等 Stripe 密钥与主体；脚本已 dry-run 通过 |
+| 1.1 | 正式 Payment Link 生成与验证 | In Progress | 2026-11-24 | live 模式已开通，等 `--force` 跑 live 商品/价格；dry-run 已核对 9 条 |
 | 1.2 | 交付 Worker + Webhook | Code Complete | 2026-11-18 | 40 项测试通过，待真实 webhook 联调 |
 | 1.3 | 开通邮件（Resend） | Code Complete | 2026-11-18 | 待域名 SPF/DKIM 验证后发真信 |
 | 1.4 | 试听内容与更新日志 | Not Started | 2026-11-18 | 依赖录制进度 |
@@ -62,6 +62,12 @@
 | 1.7 | 课程数据校验 | Done | 2026-11-18 | 接入 build，当前 0 错误 12 警告 |
 
 ## Progress Log
+### 2026-11-24
+- Stripe **live 模式已开通**（账号 `deeplove`，已有其它产品的真实流水）；课程侧仍是 test 密钥 / test priceId / 测试模式 webhook。
+- 定下**账号结构**：单账号多产品，不按产品开账号（详见 `docs/courses/08-launch-runbook.md` §3.1 与 `memory-bank/activeContext.md` 的 Active Decisions）。
+- 重写 runbook §3：补账号结构决策、`--force` 的必要性（不带会把 9 条全 skip）、live webhook 必须勾 5 个事件（支付宝/微信是异步支付，只勾 3 个会永远拿不到权益）、`stripeMode` 自检项。
+- 交付侧已不依赖邮件（TASK111），所以 `RESEND_API_KEY` 不再阻塞收款。
+
 ### 2026-11-18
 - 创建任务文件，登记 P1 范围与阻塞项（Stripe 密钥、交付物）。
 - 详细清单同步在 `docs/courses/06-todo.md` 第 3 节。

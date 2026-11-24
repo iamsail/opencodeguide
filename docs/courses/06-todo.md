@@ -126,6 +126,7 @@
 - [x] 本地登录闭环：`npm run dev:proxy`（Miniflare + Node 侧代理）实测 `localhost:3022/login` → Google → `/account` 通过（2026-11-22）
 - [x] 成员站部署：`wrangler login` → 注入 secret → `wrangler deploy` + §5.3 验收（2026-11-23；`/health` 绑定齐全、登录 302、search.json 401、noindex 头均通过；Resend 仍缺）
 - [x] 成员站页面样式对齐公开站（P2.4，2026-11-23）：`src/ui.js` 设计系统 + 登录/购买/账户/错误页重做，暗色与公开站同策略，`/` 302 到 `/account`
+- [x] **交付改为站内为主（TASK111，2026-11-24）**：`/account?paid=1&session_id=…` 主动对账（Stripe 取会话 → 校验邮箱 → 复用 `processEvent` 补权益），课程卡直出正文 + 模板仓/社群链接，付款状态条（成功/正在开通/处理中，pending 自动刷新上限 3 次）；没配 Resend 也能完整交付（`skipped_no_resend`）；管理端 `GET /admin/orders`、`POST /admin/grant`；根级 `/courses/*` 302 到带语言前缀路径。worker 测试 121→143
 - [x] 基础设施：D1 `orders`（0001）/ `entitlements` / `magic_links` / `auth_attempts`（0002，不需要 Supabase）
 - [x] Checkout Session 接口替换 Payment Link：Worker 端 `/checkout` + 公开站按钮已切换（`learn` 模式），旧 Payment Link 保留为 `NEXT_PUBLIC_CHECKOUT_MODE=stripe` 应急回退
 - [x] Webhook 入库：`checkout.session.completed`、`charge.refunded`、`charge.dispute.created`（`invoice.paid` 属订阅，P3）
@@ -163,13 +164,15 @@
 
 ## 7. 下一步建议（优先级排序）
 
-> 更新于 2026-11-23：成员站已部署、凭据已注入、购买入口已切换。以下只剩「对外发版」与「真实收款」。
+> 更新于 2026-11-24：交付已改为「成员站为主、邮件为辅」（[TASK111](../../memory-bank/tasks/TASK111-in-system-delivery.md)），
+> Resend 从「上线阻塞项」降级为「体验项」。现在真正挡在收费前的只有 live 密钥。
 
-1. **Resend 接入（唯一阻塞「付款后收不到信」的问题）**：注入 `RESEND_API_KEY` + 在 Cloudflare 验证 `opencodeguide.com`（`resend._domainkey` TXT、合并 SPF、建议加 DMARC）。当前订单与权益会正常写入，只是 `email_status=failed`。
-2. **本地跑通一笔真实测试支付**：`npm run dev:proxy`（本地 D1 + `stripe listen` 转发 webhook）→ 登录 → `/buy` → 测试卡 `4242…` → `/account` 看到课程；随后在 Stripe 测试模式退款，验证 `revoked_at` 与门禁即时失效。
-3. **公开站发版**：`dev` 领先 `main` 21 个提交，合并后 GitHub Actions 会构建并部署 `opencodeguide.com`（课程页目前线上仍 404）。发布前确认 `NEXT_PUBLIC_CHECKOUT_MODE` 取默认 `learn`。
-4. **切正式收款**：`sk_live_` 注入 Worker → 重建 Stripe webhook（live）与 `COURSE_CATALOG` → `stripe-payment-links.mjs --force` 生成 live 链接。注意 `stripe-links.json` 被 git 跟踪，提交的必须是 live 链接。
-5. **英文正文**：0/123，先定策略（全量翻译 vs 英文站只放目录 + 中文正文）。
-6. **交付邮件链接核对**：`COURSE_DELIVERY` 的 `watch` 指向 `/courses/<slug>`，而产物只有 `/zh/courses/<slug>`；部署后实测一次，必要时加重定向。
-7. **课程内容的仓库边界（方案 B：已完成）**：付费正文已从公开仓历史移除（`dev` 现只保留 8 节免费正文），私有仓 `iamsail/opencodeCourse` 收下完整旧历史；`manifest.json` 已成为课表真相源。详见 [TASK108](../../memory-bank/tasks/TASK108-course-content-split.md) 与 [`09-content-repo-boundary.md`](./09-content-repo-boundary.md)。
-8. **发布链路（Phase 1 完成，部署基线已补）**：`npm run publish` 收口「元数据同步 + 成员构建 + 自检 + 部署」；实测全量部署 131.7s（超 Phase 2 的 90s 阈值）、纯 Worker 改动 7.6s，是否改运行时下发待一条「改一节」的实测。详见 [TASK109](../../memory-bank/tasks/TASK109-publish-pipeline.md)、[TASK110](../../memory-bank/tasks/TASK110-member-ui-and-release.md) 与 [`10-publish-baseline.md`](./10-publish-baseline.md)。
+1. **公开站发版**：`dev` 仍领先 `main`（课程页线上 404）。发布前确认 `NEXT_PUBLIC_CHECKOUT_MODE` 取默认 `learn`；注意 Stripe 还是测试模式，发版后点「购买」能进 Checkout 但真卡付不了。
+2. **切正式收款**：live 模式已开通（2026-11-24），按 [`08-launch-runbook.md`](./08-launch-runbook.md) §3.7 执行：`stripe-payment-links.mjs --force` 建 9 个 live 商品 → `sync-worker-catalog.mjs --apply` → 注入 `STRIPE_SECRET_KEY` / 新的 `STRIPE_WEBHOOK_SECRET`（live endpoint 要勾满 **5 个事件**，含两个 `async_payment_*`）→ `wrangler deploy` → `curl /health` 确认 `stripeMode` 变成 `live`。`stripe-products.json` / `stripe-links.json` 会被改写成 live ID，需要一起提交。
+3. **Resend 接入（体验项，不再阻塞交付）**：`RESEND_API_KEY` + 在 Cloudflare 验证 `opencodeguide.com`（`resend._domainkey` TXT、合并 SPF、建议加 DMARC）。配好后无需改代码，新订单自动从 `skipped_no_resend` 转为正常发信；历史订单用 `POST /admin/resend` 补发。
+4. **本地跑通一笔真实测试支付**：`npm run dev:proxy`（本地 D1 + `stripe listen`）→ 登录 → `/buy` → 测试卡 `4242…` → `/account` **立即**看到课程（对账生效）→ 测试退款验证 `revoked_at` 与门禁即时失效。
+5. **Stripe 收据**：Dashboard 打开 receipt email，让付款凭证由 Stripe 直接发，不依赖我们自己的邮件通道。
+6. **英文正文**：0/123，先定策略（全量翻译 vs 英文站只放目录 + 中文正文）。
+7. **发布链路（Phase 1 完成，部署基线已补）**：`npm run publish` 收口「元数据同步 + 成员构建 + 自检 + 部署」；全量部署 131.7s、纯 Worker 改动 7.6s，是否改运行时下发仍待一条「改一节」的实测。详见 [TASK109](../../memory-bank/tasks/TASK109-publish-pipeline.md)、[TASK110](../../memory-bank/tasks/TASK110-member-ui-and-release.md) 与 [`10-publish-baseline.md`](./10-publish-baseline.md)。
+8. **课程内容的仓库边界（已完成）**：付费正文已从公开仓历史移除（`dev` 只保留 8 节免费正文），私有仓 `iamsail/opencodeCourse` 收下完整旧历史；`manifest.json` 是课表真相源。详见 [TASK108](../../memory-bank/tasks/TASK108-course-content-split.md) 与 [`09-content-repo-boundary.md`](./09-content-repo-boundary.md)。
+
