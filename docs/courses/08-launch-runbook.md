@@ -119,7 +119,8 @@ npx wrangler secret put GOOGLE_CLIENT_SECRET
 ## 3. Stripe（收款）
 
 > 2026-11-24 更新：live 模式**已开通**（账号 `deeplove`，已有其它产品的真实流水）。
-> 课程侧目前仍是 test 密钥 / test priceId / 测试模式 webhook，换 live 的完整顺序见 §3.7。
+> 课程侧目前仍是 test 密钥 / 测试模式 webhook；结账已改为 `price_data` 现场报价（§3.3），
+> **不再需要预建 9 个商品**，换 live 的完整顺序见 §3.7。
 
 ### 3.1 账号结构（已定：单账号，多产品）
 
@@ -149,36 +150,49 @@ npx wrangler secret put GOOGLE_CLIENT_SECRET
 3. 税务：课程是数字服务，对 EU 个人买家通常要收 VAT；按主体所在地决定是否开 Stripe Tax（见 [04-stripe-integration.md](./04-stripe-integration.md) §6）。
 4. 收据：Dashboard → Customer emails 打开 receipt，让付款凭证由 Stripe 直发 —— 这样即使 Resend 一直没接，买家也有凭证。
 
-### 3.3 建商品与价格（必须带 `--force`）
+### 3.2.1 密钥类型：标准密钥 vs 受限密钥（2026-11-24 补充）
 
-`/checkout` 用 **priceId** 创建 Checkout Session，priceId 来自 `COURSE_CATALOG`。
+界面上有两类可用的 live 密钥，**都能用**，代码与 `/health` 从 2026-11-24 起两种前缀都认：
 
-```bash
-# 1) 先核对：应为 9 条（4 门课 × 单课/Pro + 全站通）
-STRIPE_SECRET_KEY=sk_live_<你的密钥> node scripts/courses/stripe-payment-links.mjs --dry-run --force
+| 类型 | 前缀 | 位置 | 适合 |
+| :--- | :--- | :--- | :--- |
+| 标准密钥 | `sk_live_…` | 开发人员 → API 密钥 → 标准密钥 → Reveal | 本地临时排查、跑一次性脚本；不长期保存 |
+| 受限密钥 | `rk_live_…` | 开发人员 → API 密钥 → **受限的密钥** → 创建受限的密钥 | 注入 Worker 长期使用（推荐） |
 
-# 2) 真正创建
-STRIPE_SECRET_KEY=sk_live_<你的密钥> node scripts/courses/stripe-payment-links.mjs --force
-```
+**受限密钥的权限是按「资源类型 + 账号级」给的，不能按产品隔离**：给它 `Products` 写权限，就是能改这个账号里所有产品。所以推荐这样分工：
 
-> ⚠️ **`--force` 不能省**。脚本的跳过逻辑是「`stripe-products.json` 里已有 url 就 skip」，
-> 而那份文件里现在全是 **test** 记录。不带 `--force` 会 9 条全部 skip，然后拿旧的 test URL
-> 重写一遍文件 —— 看着成功，实际一个都没换。
+- **Worker 长期用的那把**：只给 `Customers`（Write）+ `Checkout Sessions`（Write）。对应 `ensureCustomer` / `createCheckoutSession` / `retrieveCheckoutSession`，不接受退款、不碰资金；
+- **不需要为「建目录」放宽权限**：结账用 `price_data` 现场报价（见 §3.3），所以 `Products` / `Prices` / `Payment Links` 这三类写权限一次都用不上；
+- **不要**给 Worker 那把加 IP 白名单（访问策略列显示「无」是对的）：Cloudflare 出口 IP 不固定，绑了 IP 会直接 403；
+- **不要**复用账号里原有的 `autoxhs-*` / `pindou-*` / `originteaware-*`：它们各自服务其它产品，混用会把泄露面放大到一个 key；给课程单独一把，建议命名 `opencodeguide-course-live`；
+- 列表里那把 `CLI key for SaildeMacBook-Air.local` 是 Stripe CLI 的密钥（自带过期时间，51 天后失效），只在本地 `stripe listen` 调 webhook 时用，不用就删掉。
 
-跑完会生成两个文件，**都要提交**：
+> 为什么改代码：原来两处前缀判断只认 `sk_`，`rk_live_` 会被脚本直接拒绝（"必须以 sk_test_ 或 sk_live_ 开头"）、`/health` 还会误报 `stripeMode: unset`。现已统一成 `/^[sr]k_(live|test)_/`。
 
-- `content/courses/stripe-products.json`（priceId，`/checkout` 必需）
-- `content/courses/stripe-links.json`（Payment Link，仅在 `NEXT_PUBLIC_CHECKOUT_MODE=stripe` 时作回退）
+### 3.3 报价方式：动态价格（不需要预建商品）
+
+`/checkout` 用 **`price_data` 现场报价**，金额来自 `COURSE_CATALOG`（最终源头是 `content/courses/*.json` 的 `priceUSD`）。
+
+- 不在 Stripe 建 9 个 Product / Price / Payment Link；
+- 换 live 只换密钥，不存在「catalog 变了、price 还是 test」导致的 `No such price`；
+- 改价 = 改内容文件 → `node scripts/courses/sync-worker-catalog.mjs --apply`，不碰 Stripe 后台。
+
+> 为什么不用 Payment Link / 预建 Price：Payment Link 是匿名的，买家自己填邮箱，权益会落到与登录账号无关的地址；课程又是买断制，没有订阅那种「必须有 Price」的约束（订阅那一档才需要，见 [04-stripe-integration.md](./04-stripe-integration.md)）。
+>
+> 代价要接受：Stripe 后台没有「按 Product 分组」的收入报表 —— 对账看 D1 `orders`，或在 Dashboard 按 `metadata.course_slug` / `plan_id` 筛；发票与收据上的行项目名来自 `product_data.name`（形如 `OpenCode Guide · AI 编程实战 · 单课版`）。
+>
+> `scripts/courses/stripe-payment-links.mjs` 与 `content/courses/stripe-{products,links}.json` 降级为 **legacy**：只有把公开站切回 `NEXT_PUBLIC_CHECKOUT_MODE=stripe` 才用得上，默认路径不碰。
 
 ### 3.4 注入 COURSE_CATALOG
 
 ```bash
-node scripts/courses/sync-worker-catalog.mjs           # 检查有没有缺 priceId
+node scripts/courses/sync-worker-catalog.mjs           # 打印 9 条：金额 / 币种 / 标题
 node scripts/courses/sync-worker-catalog.mjs --apply   # wrangler secret bulk
 ```
 
-> **顺序：catalog 必须在换密钥之前（或同一分钟内）完成。** 先换 live 密钥而 catalog 还是
-> test 的 priceId，`/checkout` 会报 `No such price`，购买页直接 502。
+> catalog 里只有 `title / titleEn / planLabel / amount / currency / accent`，**没有 priceId**。金额为 0 或缺失时脚本直接失败 —— 0 元订单比报错更糟。
+>
+> 这一步与换密钥**不再有先后依赖**（原来「catalog 必须先于密钥」的约束随 priceId 一起消失了），改价后单独重跑即可。
 
 ### 3.5 Webhook（决定「付了钱能不能读」）
 
@@ -207,30 +221,27 @@ npx wrangler secret put STRIPE_WEBHOOK_SECRET
 
 - 需要 `wrangler` 已登录且能部署（本仓库的部署基线是在 macOS 本机测的；WSL 里要先用 `npx wrangler login`）；
 - live 密钥只在这台机器的终端里出现，别贴进聊天、别写进 `.env`、别提交；
-- 换 live 会改写 `stripe-products.json` / `stripe-links.json`（test ID → live ID），这两个文件被 git 跟踪，记得一起提交。
+- 换 live **不改任何被 git 跟踪的文件**：金额来自 `content/courses/*.json`，密钥只在 `wrangler secret` 里。
 
 ### 3.7 换 live 的执行顺序（照抄，别跳）
 
 ```bash
-cd ~/code/xtest/hacker/opencodeguide
+cd /Users/sail/repo/opencodeguide
 
-# 1. 建 live 的 Product + Price + Payment Link（9 条）
-STRIPE_SECRET_KEY=sk_live_<...> node scripts/courses/stripe-payment-links.mjs --dry-run --force
-STRIPE_SECRET_KEY=sk_live_<...> node scripts/courses/stripe-payment-links.mjs --force
+# 1. 部署新代码（含 TASK111 对账、动态报价与 /courses 重定向）
+cd workers/course-delivery && npx wrangler deploy
 
-# 2. 合成并注入 COURSE_CATALOG（用 live priceId）
-node scripts/courses/sync-worker-catalog.mjs
-node scripts/courses/sync-worker-catalog.mjs --apply
+# 2. 注入 live 服务端密钥（交互式输入，别写进 shell 历史）
+npx wrangler secret put STRIPE_SECRET_KEY        # sk_live_… 或 rk_live_…
 
-# 3. 注入 live 服务端密钥（交互式输入，别写进 shell 历史）
-cd workers/course-delivery && npx wrangler secret put STRIPE_SECRET_KEY
+# 3. 注入 live webhook 的签名密钥
+npx wrangler secret put STRIPE_WEBHOOK_SECRET    # whsec_…
 
-# 4. 注入新 webhook 的签名密钥
-npx wrangler secret put STRIPE_WEBHOOK_SECRET
-
-# 5. 部署（带上 TASK111 的对账代码与 /courses 重定向）
-npx wrangler deploy
+# 4. 自检
+curl -sS https://learn.opencodeguide.com/health
 ```
+
+> 1→3 之间别对公网宣传：旧版本代码 + live 密钥会拿 test priceId 去建会话（必然失败），新版本代码 + test 密钥会把买家导到测试结账页。两步连着做，中间没人访问就没事。
 
 ### 3.8 验收
 
@@ -247,15 +258,17 @@ curl -sS https://learn.opencodeguide.com/health | grep -o '"stripeMode":"[a-z]*"
 | 2 | D1 `orders` 查最新一单 | 有记录；`email_status` 可能是 `skipped_no_resend`（Resend 没接，不影响阅读） |
 | 3 | Stripe Dashboard → 该 endpoint 的投递记录 | `200 {"received":true,…}`，不应有 `processing failed` |
 | 4 | Dashboard 全额退款 | `entitlements.revoked_at` 非空；1 分钟内该用户访问正文 → 403 |
-| 5 | `npm run build` | 不再出现 `stripe-links.json mode=test` 警告 |
+| 5 | `/buy/ai-coding-workflow/single` 与 Stripe 结账页的金额 | 两处一致（$79），行项目名形如 `OpenCode Guide · AI 编程实战 · 单课版` |
 
 ### 3.9 现有 secret 清单（2026-11-24 实测）
 
 | 名称 | 用途 | 现状 |
 | :--- | :--- | :--- |
-| `STRIPE_SECRET_KEY` | 服务端建 Customer / Checkout Session | ⚠️ 已注入，但是 **test** 值，待换 live |
+| `STRIPE_SECRET_KEY` | 服务端建 Customer / Checkout Session | ⚠️ 已注入，但是 **test** 值，待换 live（`sk_live_` 与 `rk_live_` 均可） |
 | `STRIPE_WEBHOOK_SECRET` | Webhook 验签 | ⚠️ 已注入，对应**测试模式** endpoint，换 live 时重设 |
-| `COURSE_CATALOG` | 课程标题 + 价格 + priceId | ⚠️ 已注入，9 条全是 **test** priceId |
+| `COURSE_CATALOG` | 课程标题 + 金额（无 priceId） | ⚠️ 已注入；换代码后建议重跑一次 `sync-worker-catalog.mjs --apply` |
+| `STRIPE_AUTOMATIC_TAX` | 可选：`1` 时开启 Stripe Tax | ❌ 未设 = 不代扣税 |
+| `STRIPE_TAX_BEHAVIOR` | 可选：`exclusive`（默认）/ `inclusive` | ❌ 未设 |
 | `SESSION_SECRET` | 会话 JWT 签名 | ✅ 已注入（**不要轮换**，换了所有人登出） |
 | `ADMIN_TOKEN` | `/admin/*` 管理接口 | ✅ 已注入 |
 | `COURSE_DELIVERY` | 交付入口（模板仓/社群） | ✅ 已注入（配的是根级 `/courses/…`，Worker 会 302 到 `/zh/…`） |
@@ -354,7 +367,7 @@ npx wrangler secret put STRIPE_SECRET_KEY      # live 值，见 §3.7
 npx wrangler secret put STRIPE_WEBHOOK_SECRET  # live endpoint 的 whsec
 npx wrangler secret put RESEND_API_KEY         # 可选：没有它也能交付，只是不发信
 cd ../..
-node scripts/courses/sync-worker-catalog.mjs --apply  # 需要 stripe-products.json 已生成
+node scripts/courses/sync-worker-catalog.mjs --apply  # 金额/标题来自 content/courses/*.json
 COURSE_ACCESS=members npm run build                   # 产出 out-members/
 cd workers/course-delivery && npx wrangler deploy
 ```

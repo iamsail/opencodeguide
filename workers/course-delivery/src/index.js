@@ -123,6 +123,20 @@ export default {
   },
 };
 
+/**
+ * Stripe 密钥模式（只用于自检，不碰密钥内容）。
+ *
+ * 标准密钥是 `sk_live_` / `sk_test_`，受限密钥是 `rk_live_` / `rk_test_` —— 两者都能
+ * 正常调用 API，只是受限密钥的权限更窄。只认 `sk_` 会让「给 Worker 单独发一把受限
+ * 密钥」的部署在 /health 里报 `unset`，看起来像没配密钥，实际是误报。
+ */
+function stripeModeForKey(key) {
+  const value = String(key || "");
+  if (/^[sr]k_live_/.test(value)) return "live";
+  if (/^[sr]k_test_/.test(value)) return "test";
+  return "unset";
+}
+
 function handleHealth(env) {
   return json({
     ok: true,
@@ -139,11 +153,7 @@ function handleHealth(env) {
       googleOauth: Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET),
       stripeKey: Boolean(env.STRIPE_SECRET_KEY),
       // 只报模式，不报密钥：换 live 之后靠这一项自检，不用翻 wrangler 配置
-      stripeMode: String(env.STRIPE_SECRET_KEY || "").startsWith("sk_live_")
-        ? "live"
-        : String(env.STRIPE_SECRET_KEY || "").startsWith("sk_test_")
-          ? "test"
-          : "unset",
+      stripeMode: stripeModeForKey(env.STRIPE_SECRET_KEY),
       catalog: Boolean(env.COURSE_CATALOG),
       assets: Boolean(env.ASSETS),
       dryRun: env.EMAIL_DRY_RUN === "1",

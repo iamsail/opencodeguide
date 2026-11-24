@@ -10,7 +10,7 @@
  */
 
 import { readSessionToken, verifySession } from "../auth.js";
-import { formatPrice, getCatalogEntry } from "../catalog.js";
+import { displayTitle, formatPrice, getCatalogEntry } from "../catalog.js";
 import { getSettings } from "../config.js";
 import { createStripeClient } from "../stripe-api.js";
 import {
@@ -107,8 +107,8 @@ export async function handleCheckout(request, env = {}) {
     console.error("[checkout] STRIPE_SECRET_KEY 未配置");
     return htmlPage(renderUnavailablePage({ locale }), 503);
   }
-  if (!entry.priceId) {
-    console.error(`[checkout] ${slug}:${plan} 缺少 priceId（COURSE_CATALOG 未同步？）`);
+  if (!Number.isFinite(entry.amount) || entry.amount <= 0) {
+    console.error(`[checkout] ${slug}:${plan} 金额未配置（COURSE_CATALOG 未同步？）`);
     return htmlPage(renderUnavailablePage({ locale }), 503);
   }
 
@@ -123,11 +123,16 @@ export async function handleCheckout(request, env = {}) {
 
     const checkout = await stripe.createCheckoutSession({
       customerId: customer.id,
-      priceId: entry.priceId,
+      // 现场报价：金额来自 COURSE_CATALOG，客户端传不了价
+      amount: entry.amount,
+      currency: entry.currency,
+      title: displayTitle(entry, locale, settings.brandName),
       // 带上 session_id：付完跳回来时账户页可以主动对账，不必等异步 webhook
       successUrl: `${origin}/account?paid=1&session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${origin}/buy/${slug}/${plan}`,
       locale,
+      automaticTax: settings.stripeAutomaticTax,
+      taxBehavior: settings.stripeTaxBehavior,
       metadata: {
         // 关键：权益归属用登录邮箱，而不是 Stripe 页面收集的邮箱
         email: session.email,

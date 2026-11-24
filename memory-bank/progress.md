@@ -263,6 +263,17 @@
 - **未完成**: Resend 未配（开信发不出，订单/权益仍写入）；Stripe 仍测试模式；公开站未发版（`dev` 领先 `main` 21 个提交，线上课程页 404）；英文正文 0/123。
 - **任务**: [TASK110](tasks/TASK110-member-ui-and-release.md)。
 
+## 结账改动态报价 (2026-11-24)
+- **问题**: 换 live 前要先建 9 个 live Product/Price/Payment Link，还要把生成的 `stripe-products.json` / `stripe-links.json` 提交；漏 `--force`、catalog 与密钥不同步都会变成 `No such price` / 静默 skip 这类「看着成功其实没生效」的故障。
+- **参照**: `pindou/pindouonline` 的 `shop-checkout` —— 没有 `stripePriceId` 时用 `line_items[0][price_data]` 现场报价；只有订阅那档才预建 Price（subscription 模式必须有）。
+- **实现**: `createCheckoutSession({ amount, currency, title })` → `price_data`（`unit_amount` / `currency` / `product_data.name`）；金额来自 `COURSE_CATALOG`（源头 `content/courses/*.json` 的 `priceUSD`）。金额 ≤ 0 时 503 且不打 Stripe。
+- **顺带修**: `catalog.js` 去掉 `priceId`，补回被 `normalize()` 丢掉的 `titleEn` / `accent`（购买页渐变头此前一直没生效）；新增 `displayTitle()` 生成发票/收据行项目名（`OpenCode Guide · 课程 · 计划`，标题已含计划名时不重复）。
+- **税务**: 新增 `STRIPE_AUTOMATIC_TAX` / `STRIPE_TAX_BEHAVIOR` 开关（默认关）；开启时同时下发 `automatic_tax` 与 `price_data.tax_behavior`。动态报价让「以后开 Stripe Tax」不再需要重建商品。
+- **脚本**: `sync-worker-catalog.mjs` 不再读 `stripe-products.json`，改为校验金额 > 0；`validate-courses.mjs` 仅在 `NEXT_PUBLIC_CHECKOUT_MODE=stripe` 时校验 legacy 支付链接（构建警告 12 → 8）。`stripe-payment-links.mjs` 降级为 legacy 回退。
+- **取舍**: Stripe 后台失去 Product 维度报表（按 `metadata.course_slug` 筛或看 D1 `orders`）；Payment Link 直链回退失效（公开站保持 learn 模式）。换来：换 live 只注入 2 个 secret + 部署，且 Worker 那把受限密钥只需 `Customers` + `Checkout Sessions` 写权限。
+- **验证**: `workers:test` 143 → 147（动态价格字段、英文行项目名、金额为 0、自动计税开关）；`npm run build` 通过（148 URL，付费墙 0 泄露）；`courses:validate` 0 错误 8 警告。
+- **待做**: `wrangler deploy`（线上仍是 11-23 的构建，缺 TASK111 对账与 `stripeMode`）→ 建 live webhook（5 个事件）→ 注入 `STRIPE_SECRET_KEY`(`sk_live_`/`rk_live_`) 与 `STRIPE_WEBHOOK_SECRET` → `/health` 验 `stripeMode=live` → 真卡小额 + 退款验收。
+
 ## Known Issues
 -   Screenshots are still text-based placeholders.
 -   Chinese documentation depth still needs to be expanded for Providers/Configuration sections.

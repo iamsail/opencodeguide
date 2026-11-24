@@ -109,6 +109,26 @@ test("/health 报告 Stripe 密钥模式，但仍不泄露密钥", async () => {
   const unset = createTestEnv({ db: createFakeD1(), overrides: { STRIPE_SECRET_KEY: "" } });
   const unsetPayload = await (await worker.fetch(new Request("https://worker.test/health"), unset)).json();
   assert.equal(unsetPayload.bindings.stripeMode, "unset");
+
+  // 受限密钥（rk_）也是 live/test，不能因为前缀不同就报 unset
+  const restricted = createTestEnv({
+    db: createFakeD1(),
+    overrides: { STRIPE_SECRET_KEY: "rk_live_restricted_value" },
+  });
+  const restrictedPayload = await (
+    await worker.fetch(new Request("https://worker.test/health"), restricted)
+  ).json();
+  assert.equal(restrictedPayload.bindings.stripeMode, "live");
+  assert.ok(!JSON.stringify(restrictedPayload).includes("rk_live_restricted_value"));
+
+  const restrictedTest = createTestEnv({
+    db: createFakeD1(),
+    overrides: { STRIPE_SECRET_KEY: "rk_test_restricted_value" },
+  });
+  const restrictedTestPayload = await (
+    await worker.fetch(new Request("https://worker.test/health"), restrictedTest)
+  ).json();
+  assert.equal(restrictedTestPayload.bindings.stripeMode, "test");
 });
 
 test("/health 只暴露布尔开关，不泄露密钥", async () => {

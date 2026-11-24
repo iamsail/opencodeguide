@@ -7,7 +7,7 @@
 | [01-market-analysis.md](./01-market-analysis.md) | 为什么做课程、卖给谁、竞品与价格带、需求验证与收入模型 |
 | [02-feature-design.md](./02-feature-design.md) | 页面结构、功能清单（含优先级）、数据模型、用户旅程、SEO 与埋点 |
 | [03-curriculum.md](./03-curriculum.md) | 四门课程的完整大纲、交付物、制作规范与后续课程池 |
-| [04-stripe-integration.md](./04-stripe-integration.md) | 为什么用 Payment Link、如何接入、如何升级到 Checkout + Webhook、税务与合规 |
+| [04-stripe-integration.md](./04-stripe-integration.md) | Payment Link 时代的原始设计（现为回退方案）+ 升级到 Checkout + Webhook 的路径、税务与合规 |
 | [05-rollout-plan.md](./05-rollout-plan.md) | 分期上线路线图（P0-P3）、验收标准、指标与风险 |
 | [06-todo.md](./06-todo.md) | **进度看板与 TODO**：已完成 / 待人工 / P1-P3 任务清单 |
 | [07-access-control.md](./07-access-control.md) | 付费墙与会员中心设计：双构建、权益表、门禁、验收标准 |
@@ -18,7 +18,8 @@
 
 - 路由：`/zh/courses`、`/en/courses`，课程详情页与付款成功页；中英双语。
 - 数据：`content/courses/*.json`（一门课一个文件），`lib/courses.ts` 负责读取、定价与支付链接解析。
-- 支付：Stripe Payment Links（静态导出兼容），链接由 `scripts/courses/stripe-payment-links.mjs` 生成，落在 `content/courses/stripe-links.json`。
+- 支付：默认走成员站 `learn./buy/<slug>/<plan>` → Worker 创建 Checkout Session，用 **`price_data` 现场报价**（金额来自 `content/courses/*.json`，注入为 `COURSE_CATALOG`），不需要预建 Product / Price。
+  - Payment Link（`scripts/courses/stripe-payment-links.mjs` + `content/courses/stripe-links.json`）**降级为 legacy 回退**，仅在 `NEXT_PUBLIC_CHECKOUT_MODE=stripe` 时生效。
 - 没有配置 Stripe 时：页面照常上线，购买按钮自动降级为「开售提醒 / 联系我们」，可以先跑预售。
 - SEO：`Course` 结构化数据、hreflang alternate、sitemap 收录（感谢页 noindex）。
 - 埋点：GA4 `begin_checkout`，带课程 slug、plan 与价格。

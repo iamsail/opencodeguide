@@ -2,9 +2,12 @@
 /**
  * 生成 Worker 运行时用的课程目录（COURSE_CATALOG）。
  *
- * 为什么需要：Worker 读不到仓库里的 content/courses/*.json，但购买页要显示
- * 课程名、价格，Checkout Session 还需要 Stripe 的 price id。这里把三份数据
- * 合成一个 JSON，注入 Worker 环境变量，避免手动维护两份价格。
+ * 为什么需要：Worker 读不到仓库里的 content/courses/*.json，但购买页要显示课程名、
+ * 价格，结账时还要用金额现报（`price_data`），所以把课程名 / 计划名 / 金额 / 币种 /
+ * 主题色合成一个 JSON 注入 Worker。
+ *
+ * 这里**不含** Stripe priceId：结账用动态报价，不再预建 Product / Price / Payment Link，
+ * 所以改价格只需要改 `content/courses/*.json` 再跑一次本脚本，不用碰 Stripe 后台。
  *
  * 用法：
  *   node scripts/courses/sync-worker-catalog.mjs           # 打印并写入 .tmp/
@@ -17,7 +20,6 @@ import { spawnSync } from "node:child_process";
 
 const ROOT = process.cwd();
 const COURSE_DIR = path.join(ROOT, "content/courses");
-const PRODUCTS_FILE = path.join(COURSE_DIR, "stripe-products.json");
 const OUT_FILE = path.join(ROOT, ".tmp", "course-catalog.json");
 const PLAN_LABELS = {
   single: { zh: "单课版", en: "Single" },
@@ -35,9 +37,8 @@ function readJson(file, fallback) {
   }
 }
 
-const products = readJson(PRODUCTS_FILE, {});
 const catalog = {};
-const missing = [];
+const invalid = [];
 
 const courses = fs
   .readdirSync(COURSE_DIR)
@@ -48,8 +49,9 @@ const courses = fs
 for (const course of courses) {
   for (const plan of course.plans ?? []) {
     const key = `${course.slug}:${plan.id}`;
-    const priceId = products[key]?.priceId ?? null;
-    if (!priceId) missing.push(key);
+    const amount = Math.round(Number(plan.priceUSD) * 100);
+    // 0 元或非数字会直接变成 0 元订单，必须在注入前拦住
+    if (!Number.isFinite(amount) || amount <= 0) invalid.push(`${key}（priceUSD=${plan.priceUSD}）`);
 
     const label = PLAN_LABELS[plan.id] ?? { zh: plan.id, en: plan.id };
     catalog[key] = {
@@ -57,11 +59,10 @@ for (const course of courses) {
       titleEn: course.locales?.en?.title ?? course.locales?.zh?.title ?? course.slug,
       planLabel: label.zh,
       planLabelEn: label.en,
-      amount: Math.round(Number(plan.priceUSD) * 100),
+      amount,
       currency: "usd",
       // 与 content/courses/*.json 的 accent 一致，成员站购买页用它渲染渐变头
       accent: course.accent ?? null,
-      priceId,
     };
   }
 }
@@ -73,10 +74,11 @@ fs.writeFileSync(OUT_FILE, `${JSON.stringify(payload, null, 2)}\n`, { mode: 0o60
 
 console.log(`课程计划：${Object.keys(catalog).length} 条`);
 for (const [key, entry] of Object.entries(catalog)) {
-  console.log(`  ${key.padEnd(32)} ${String(entry.amount).padStart(6)} ${entry.currency}  ${entry.priceId ?? "（缺 priceId）"}`);
+  const price = `${String(entry.amount).padStart(6)} ${entry.currency}`;
+  console.log(`  ${key.padEnd(32)} ${price}  ${entry.title} · ${entry.planLabel}`);
 }
-if (missing.length > 0) {
-  console.error(`\n✖ 以下计划缺少 priceId（先跑 stripe-provision）：${missing.join(", ")}`);
+if (invalid.length > 0) {
+  console.error(`\n✖ 以下计划金额无效（priceUSD 必须是正数）：${invalid.join(", ")}`);
   process.exit(1);
 }
 

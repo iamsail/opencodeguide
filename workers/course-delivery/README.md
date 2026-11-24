@@ -255,7 +255,7 @@ npx wrangler secret put SESSION_SECRET          # 会话签名
 npx wrangler secret put GOOGLE_CLIENT_ID
 npx wrangler secret put GOOGLE_CLIENT_SECRET
 npx wrangler secret put STRIPE_SECRET_KEY       # 服务端创建 Checkout Session
-node scripts/courses/sync-worker-catalog.mjs --apply   # COURSE_CATALOG（标题/价格/priceId）
+node scripts/courses/sync-worker-catalog.mjs --apply   # COURSE_CATALOG（标题/金额，无 priceId）
 ```
 
 Google 控制台里的 Authorized redirect URI 必须是

@@ -1,6 +1,6 @@
 # 06 · TODO 与进度看板
 
-> 更新时间：2026-11-19（付费墙 + 权益 + Google 登录已完成；文章版内容 **123/123 节**）· 分支 `dev`
+> 更新时间：2026-11-24（付费墙 + 权益 + Google 登录 + 站内交付已完成；结账改为 `price_data` 动态报价；文章版内容 **123/123 节**）· 分支 `dev`
 > 状态图例：`[x]` 已完成 · `[ ]` 未开始 · `[~]` 进行中 · `[!]` 需外部输入
 
 ## 0. 总览
@@ -8,7 +8,7 @@
 | 阶段 | 范围 | 状态 | 完成度 |
 | :--- | :--- | :--- | :--- |
 | P0 基建与预售 | 课程页、数据层、Stripe 接入、文档 | 已完成 | 100% |
-| P1 首发成交 | 正式收款、优惠码、邮件交付、发票 | 进行中（代码已就绪，等密钥与交付物） | 45% |
+| P1 首发成交 | 正式收款、优惠码、站内交付、发票 | 进行中（动态报价 + 站内交付已就绪，等 live 密钥注入与部署） | 60% |
 | P2 会员中心 | 登录、权益、播放页、Webhook | 进行中（P2.0 分流 + P2.1 权益 + P2.2 登录 + P2.3 成员站接线已完成；Google 登录本地验证通过） | 80% |
 | 文章版内容 | 4 门课 123 节正文 + 课时阅读页 | 已完成 | 100%（123/123） |
 | P3 规模化 | 订阅、企业采购、联盟、训练营 | 未开始 | 0% |
@@ -39,6 +39,7 @@
 - [x] 课程数据层 `lib/courses.ts` + 文案层 `lib/course-copy.ts`
 - [x] 课程内容 `content/courses/*.json`（110 节课大纲，中英双语）
 - [x] Stripe Payment Link 生成脚本（幂等、`--dry-run`、`--only`、`--force`、`--redirect-locale`）
+  - 2026-11-24 起降级为 legacy：结账改走 Worker 的 Checkout Session + `price_data`，不再预建商品
 - [x] 支付链接解析优先级：环境变量 > `stripe-links.json` > 降级（等待名单 / 联系）
 - [x] 跟踪参数：`client_reference_id` + 4 个 utm 参数
 - [x] GA4 `begin_checkout` 埋点
@@ -67,8 +68,9 @@
 
 ### 3.1 支付与订单
 
-- [ ] 生成正式 Payment Link，逐条核对价格、币种、回执跳转
-- [ ] 用真实小额订单跑通「支付 → 回执 → 邮件 → 退款」全链路
+- [x] 结账改为动态报价（`price_data`）：不预建 Product/Price，金额来自 `content/courses/*.json` → `COURSE_CATALOG`（2026-11-24）
+- [ ] 用真实小额订单跑通「支付 → /account 对账 → 退款撤权」全链路（live 密钥注入后）
+- [ ] 核对购买页金额与 Stripe 结账页一致（$79 / $149 / $399 等 9 档）
 - [ ] 配置 Statement descriptor（银行账单可识别，降低拒付）
 - [ ] 生成早鸟优惠码（限时 + 限量），在详情页展示入口
 - [~] 对账脚本：导出 Stripe Payments（按 `client_reference_id` 分组）与课程维度的订单表
@@ -168,7 +170,7 @@
 > Resend 从「上线阻塞项」降级为「体验项」。现在真正挡在收费前的只有 live 密钥。
 
 1. **公开站发版**：`dev` 仍领先 `main`（课程页线上 404）。发布前确认 `NEXT_PUBLIC_CHECKOUT_MODE` 取默认 `learn`；注意 Stripe 还是测试模式，发版后点「购买」能进 Checkout 但真卡付不了。
-2. **切正式收款**：live 模式已开通（2026-11-24），按 [`08-launch-runbook.md`](./08-launch-runbook.md) §3.7 执行：`stripe-payment-links.mjs --force` 建 9 个 live 商品 → `sync-worker-catalog.mjs --apply` → 注入 `STRIPE_SECRET_KEY` / 新的 `STRIPE_WEBHOOK_SECRET`（live endpoint 要勾满 **5 个事件**，含两个 `async_payment_*`）→ `wrangler deploy` → `curl /health` 确认 `stripeMode` 变成 `live`。`stripe-products.json` / `stripe-links.json` 会被改写成 live ID，需要一起提交。
+2. **切正式收款**：live 模式已开通（2026-11-24），结账已改为 `price_data` 动态报价，**不需要建 9 个 live 商品**。按 [`08-launch-runbook.md`](./08-launch-runbook.md) §3.7 执行：`wrangler deploy` → 注入 `STRIPE_SECRET_KEY`（`sk_live_` 或 `rk_live_`）/ 新的 `STRIPE_WEBHOOK_SECRET`（live endpoint 要勾满 **5 个事件**，含两个 `async_payment_*`）→ `curl /health` 确认 `stripeMode` 变成 `live`。换 live 不改任何被 git 跟踪的文件。
 3. **Resend 接入（体验项，不再阻塞交付）**：`RESEND_API_KEY` + 在 Cloudflare 验证 `opencodeguide.com`（`resend._domainkey` TXT、合并 SPF、建议加 DMARC）。配好后无需改代码，新订单自动从 `skipped_no_resend` 转为正常发信；历史订单用 `POST /admin/resend` 补发。
 4. **本地跑通一笔真实测试支付**：`npm run dev:proxy`（本地 D1 + `stripe listen`）→ 登录 → `/buy` → 测试卡 `4242…` → `/account` **立即**看到课程（对账生效）→ 测试退款验证 `revoked_at` 与门禁即时失效。
 5. **Stripe 收据**：Dashboard 打开 receipt email，让付款凭证由 Stripe 直接发，不依赖我们自己的邮件通道。

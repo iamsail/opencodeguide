@@ -32,6 +32,13 @@ export function getSettings(env = {}) {
     learnUrl: env.LEARN_URL || null,
     /** 服务端创建 Checkout Session 用（wrangler secret put STRIPE_SECRET_KEY） */
     stripeSecretKey: env.STRIPE_SECRET_KEY || null,
+    /**
+     * 自动计税（Stripe Tax）。默认关闭：开启前要在 Stripe 里登记税号/地区，
+     * 否则买家看到的是 0 税但账单仍是你自己申报。开关放在 env 里，改口径不用改代码。
+     */
+    stripeAutomaticTax: env.STRIPE_AUTOMATIC_TAX === "1",
+    /** 税率口径：exclusive = 标价不含税（默认，价格页显示多少就收多少 + 税） */
+    stripeTaxBehavior: env.STRIPE_TAX_BEHAVIOR === "inclusive" ? "inclusive" : "exclusive",
     /** Google OAuth 客户端 */
     googleClientId: env.GOOGLE_CLIENT_ID || null,
     googleClientSecret: env.GOOGLE_CLIENT_SECRET || null,

@@ -9,7 +9,7 @@
  * 校验范围：
  *   1. 课程 JSON 的结构、枚举、价格、双语完整度
  *   2. 与代码的联动：icon 是否在 CourseIcon 映射中、accent 是否在 accentClass 白名单中
- *   3. stripe-links.json 的 key 是否指向真实存在的 课程:计划
+ *   3. stripe-links.json：仅当 NEXT_PUBLIC_CHECKOUT_MODE=stripe 时校验 key 与链接
  *
  * 用法：
  *   node scripts/courses/validate-courses.mjs
@@ -371,6 +371,11 @@ function validateCourse(file, course, visuals, ctx) {
 /* ------------------------------------------------------------------ */
 
 function validateLinks(coursesBySlug, args) {
+  // 默认结账走成员站（Checkout Session + price_data 现场报价），不需要 Payment Link。
+  // 只有显式切回 NEXT_PUBLIC_CHECKOUT_MODE=stripe 时才校验这份 legacy 文件，
+  // 否则每次构建都会刷「已上线但没有任何支付链接」的噪音。
+  if ((process.env.NEXT_PUBLIC_CHECKOUT_MODE ?? "").trim().toLowerCase() !== "stripe") return;
+
   if (!fs.existsSync(LINKS_FILE)) {
     warn("content/courses/stripe-links.json", "-", "文件不存在，所有购买按钮都会降级为等待名单");
     return;

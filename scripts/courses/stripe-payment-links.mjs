@@ -111,9 +111,11 @@ async function stripe(pathname, body, secretKey) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const secretKey = process.env.STRIPE_SECRET_KEY;
-  const mode = secretKey?.startsWith("sk_live_")
+  // 标准密钥 sk_ 与受限密钥 rk_ 都认：受限密钥同样能建 Products/Prices/Payment Links，
+  // 适合「一个产品一把、权限最小」的用法（Stripe 后台 → 开发人员 → 受限的密钥）。
+  const mode = /^[sr]k_live_/.test(secretKey ?? "")
     ? "live"
-    : secretKey?.startsWith("sk_test_")
+    : /^[sr]k_test_/.test(secretKey ?? "")
       ? "test"
       : null;
 
@@ -122,7 +124,7 @@ async function main() {
     process.exit(1);
   }
   if (secretKey && !mode) {
-    console.error("STRIPE_SECRET_KEY 必须以 sk_test_ 或 sk_live_ 开头。");
+    console.error("STRIPE_SECRET_KEY 必须以 sk_live_ / sk_test_ / rk_live_ / rk_test_ 开头。");
     process.exit(1);
   }
 

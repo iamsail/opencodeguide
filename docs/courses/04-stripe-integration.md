@@ -1,5 +1,15 @@
 # 04 · Stripe 支付接入
 
+> **状态（2026-11-24 更新）**：结账已改为 **Worker 侧 Checkout Session + `price_data` 现场报价**
+> （`workers/course-delivery/src/stripe-api.js`），不再预建 Product / Price / Payment Link。
+> 本文档第 2、3、4 节保留 **Payment Link 时代的原始设计与实现**，作为历史记录与
+> `NEXT_PUBLIC_CHECKOUT_MODE=stripe` 应急回退的说明；当前上线流程以
+> [08-launch-runbook.md](./08-launch-runbook.md) §3 为准。
+>
+> 动态报价带来的变化：改价只改 `content/courses/*.json` 并重跑
+> `sync-worker-catalog.mjs`；Stripe 后台没有 Product 维度报表（按 `metadata.course_slug` 筛）；
+> 订阅若将来要做，那一档仍需要预建 Price。
+
 ## 1. 硬约束：这是一个纯静态站
 
 `next.config.mjs` 中 `output: 'export'`（为了把托管成本压到接近 0，见 `memory-bank/tasks/TASK077-reduce-edge-requests.md`）。这意味着：
@@ -14,8 +24,8 @@
 
 | 方案 | 是否需要服务端 | 支持优惠码 | 支持订阅 | 抽成 | 适用阶段 |
 | :--- | :---: | :---: | :---: | :--- | :--- |
-| **Stripe Payment Link**（本次采用） | 否 | ✅ | ✅ | 仅 Stripe 手续费 | P0/P1 |
-| Stripe Checkout Session + 自建 API | 是 | ✅ | ✅ | 仅 Stripe 手续费 | P2 |
+| **Stripe Payment Link**（P0/P1 采用，现降级为回退） | 否 | ✅ | ✅ | 仅 Stripe 手续费 | 应急回退 |
+| Stripe Checkout Session + 自建 API（**现用：Worker + `price_data`**） | 是（Worker） | ✅ | ✅ | 仅 Stripe 手续费 | P2 |
 | Paddle / Lemon Squeezy（MoR） | 否 | ✅ | ✅ | 约 5% + 手续费 | 无海外主体时 |
 | 自建表单 + Payment Intents | 是 | 需自建 | 需自建 | 仅 Stripe 手续费 | 不推荐 |
 

@@ -391,7 +391,7 @@ P2.0 之后，付费正文在公开站**已经读不到**了。所以在 P2.1–
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth 客户端 |
 | `GOOGLE_REDIRECT_URI` | 可选，默认 `${LEARN_URL}/auth/google/callback`，必须与控制台一致 |
 | `STRIPE_SECRET_KEY` | 服务端创建 Customer / Checkout Session |
-| `COURSE_CATALOG` | 运行时课程目录（标题 / 价格 / priceId），由 `scripts/courses/sync-worker-catalog.mjs` 生成 |
+| `COURSE_CATALOG` | 运行时课程目录（标题 / 金额 / 主题色），由 `scripts/courses/sync-worker-catalog.mjs` 生成；结账用 `price_data` 现场报价，无 priceId |
 | `SESSION_SECRET` | 会话签名（已有） |
 
 **测试**：`npm run workers:test` → 101/101（覆盖 OAuth state/PKCE、邮箱未验证、buy 需登录、

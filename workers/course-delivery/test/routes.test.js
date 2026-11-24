@@ -8,10 +8,12 @@ import { createFakeD1, createTestEnv } from "./fakes.js";
 const CATALOG = JSON.stringify({
   "ai-coding-workflow:single": {
     title: "AI 编程实战",
+    titleEn: "AI Coding in Practice",
     planLabel: "单课版",
+    planLabelEn: "Single",
     amount: 7900,
     currency: "usd",
-    priceId: "price_test_1",
+    accent: "from-indigo-500 via-violet-500 to-fuchsia-500",
   },
 });
 
@@ -236,11 +238,101 @@ test("POST /checkout：创建 Customer + Checkout Session 并跳转 Stripe", asy
     assert.ok(sessionCall, "应该调用 Checkout Session 接口");
     const body = new URLSearchParams(sessionCall.init.body);
     assert.equal(body.get("customer"), "cus_1");
-    assert.equal(body.get("line_items[0][price]"), "price_test_1");
+    // 动态报价：不再传预建 Price，金额与币种来自 COURSE_CATALOG
+    assert.equal(body.get("line_items[0][price]"), null);
+    assert.equal(body.get("line_items[0][price_data][unit_amount]"), "7900");
+    assert.equal(body.get("line_items[0][price_data][currency]"), "usd");
+    assert.equal(body.get("line_items[0][price_data][product_data][name]"), "OpenCode Guide · AI 编程实战 · 单课版");
+    assert.equal(body.get("line_items[0][quantity]"), "1");
+    // 默认不开自动计税：不传 tax_behavior，避免改变价格口径
+    assert.equal(body.get("line_items[0][price_data][tax_behavior]"), null);
+    assert.equal(body.get("automatic_tax[enabled]"), null);
     // 权益归属用登录邮箱，而不是 Stripe 页面收集的邮箱
     assert.equal(body.get("metadata[email]"), "buyer@example.com");
     assert.equal(body.get("metadata[course_slug]"), "ai-coding-workflow");
     assert.equal(body.get("metadata[plan_id]"), "single");
+  } finally {
+    stub.restore();
+  }
+});
+
+test("POST /checkout?lang=en：行项目名用英文标题", async () => {
+  const stub = stubFetch();
+  try {
+    const env = makeEnv();
+    const response = await worker.fetch(
+      new Request("https://learn.test/checkout?lang=en", {
+        method: "POST",
+        headers: {
+          cookie: await sessionCookie(env),
+          "content-type": "application/x-www-form-urlencoded",
+        },
+        body: "course=ai-coding-workflow&plan=single",
+      }),
+      env,
+    );
+
+    assert.equal(response.status, 303);
+    const sessionCall = stub.calls.find((call) => call.url === "https://api.stripe.com/v1/checkout/sessions");
+    const body = new URLSearchParams(sessionCall.init.body);
+    assert.equal(body.get("line_items[0][price_data][product_data][name]"), "OpenCode Guide · AI Coding in Practice · Single");
+  } finally {
+    stub.restore();
+  }
+});
+
+test("POST /checkout：金额为 0 时拒绝下单，不打 Stripe", async () => {
+  const stub = stubFetch();
+  try {
+    const env = makeEnv({
+      COURSE_CATALOG: JSON.stringify({
+        "ai-coding-workflow:single": { title: "AI 编程实战", planLabel: "单课版", amount: 0, currency: "usd" },
+      }),
+    });
+    const response = await worker.fetch(
+      new Request("https://learn.test/checkout", {
+        method: "POST",
+        headers: {
+          cookie: await sessionCookie(env),
+          "content-type": "application/x-www-form-urlencoded",
+        },
+        body: "course=ai-coding-workflow&plan=single",
+      }),
+      env,
+    );
+
+    assert.equal(response.status, 503);
+    assert.equal(
+      stub.calls.filter((call) => call.url.includes("api.stripe.com")).length,
+      0,
+      "金额无效时不应该请求 Stripe",
+    );
+  } finally {
+    stub.restore();
+  }
+});
+
+test("POST /checkout：STRIPE_AUTOMATIC_TAX=1 时带 automatic_tax 与 tax_behavior", async () => {
+  const stub = stubFetch();
+  try {
+    const env = makeEnv({ STRIPE_AUTOMATIC_TAX: "1" });
+    const response = await worker.fetch(
+      new Request("https://learn.test/checkout", {
+        method: "POST",
+        headers: {
+          cookie: await sessionCookie(env),
+          "content-type": "application/x-www-form-urlencoded",
+        },
+        body: "course=ai-coding-workflow&plan=single",
+      }),
+      env,
+    );
+
+    assert.equal(response.status, 303);
+    const sessionCall = stub.calls.find((call) => call.url === "https://api.stripe.com/v1/checkout/sessions");
+    const body = new URLSearchParams(sessionCall.init.body);
+    assert.equal(body.get("automatic_tax[enabled]"), "true");
+    assert.equal(body.get("line_items[0][price_data][tax_behavior]"), "exclusive");
   } finally {
     stub.restore();
   }
