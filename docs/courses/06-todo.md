@@ -1,6 +1,6 @@
 # 06 · TODO 与进度看板
 
-> 更新时间：2026-11-24（付费墙 + 权益 + Google 登录 + 站内交付已完成；结账改为 `price_data` 动态报价；文章版内容 **123/123 节**）· 分支 `dev`
+> 更新时间：2026-11-25（付费墙 + 权益 + Google 登录 + 站内交付已完成；结账改 `price_data` 动态报价；Stripe 已切 live；文章版内容 **123/123 节**）· 分支 `dev`
 > 状态图例：`[x]` 已完成 · `[ ]` 未开始 · `[~]` 进行中 · `[!]` 需外部输入
 
 ## 0. 总览
@@ -8,7 +8,7 @@
 | 阶段 | 范围 | 状态 | 完成度 |
 | :--- | :--- | :--- | :--- |
 | P0 基建与预售 | 课程页、数据层、Stripe 接入、文档 | 已完成 | 100% |
-| P1 首发成交 | 正式收款、优惠码、站内交付、发票 | 进行中（动态报价 + 站内交付已就绪，等 live 密钥注入与部署） | 60% |
+| P1 首发成交 | 正式收款、优惠码、站内交付、发票 | 进行中（live 密钥与 webhook 已上线，等真卡支付验收与公开站发版） | 75% |
 | P2 会员中心 | 登录、权益、播放页、Webhook | 进行中（P2.0 分流 + P2.1 权益 + P2.2 登录 + P2.3 成员站接线已完成；Google 登录本地验证通过） | 80% |
 | 文章版内容 | 4 门课 123 节正文 + 课时阅读页 | 已完成 | 100%（123/123） |
 | P3 规模化 | 订阅、企业采购、联盟、训练营 | 未开始 | 0% |
@@ -169,8 +169,8 @@
 > 更新于 2026-11-24：交付已改为「成员站为主、邮件为辅」（[TASK111](../../memory-bank/tasks/TASK111-in-system-delivery.md)），
 > Resend 从「上线阻塞项」降级为「体验项」。现在真正挡在收费前的只有 live 密钥。
 
-1. **公开站发版**：`dev` 仍领先 `main`（课程页线上 404）。发布前确认 `NEXT_PUBLIC_CHECKOUT_MODE` 取默认 `learn`；注意 Stripe 还是测试模式，发版后点「购买」能进 Checkout 但真卡付不了。
-2. **切正式收款**：live 模式已开通（2026-11-24），结账已改为 `price_data` 动态报价，**不需要建 9 个 live 商品**。按 [`08-launch-runbook.md`](./08-launch-runbook.md) §3.7 执行：`wrangler deploy` → 注入 `STRIPE_SECRET_KEY`（`sk_live_` 或 `rk_live_`）/ 新的 `STRIPE_WEBHOOK_SECRET`（live endpoint 要勾满 **5 个事件**，含两个 `async_payment_*`）→ `curl /health` 确认 `stripeMode` 变成 `live`。换 live 不改任何被 git 跟踪的文件。
+1. **公开站发版**：`dev` 仍领先 `main` 29 个提交（课程页线上 404）。发布前确认 `NEXT_PUBLIC_CHECKOUT_MODE` 取默认 `learn`；Stripe 已切 live，发版后点「购买」走的就是真实结账。建议先跑完真卡验收再发版。
+2. ~~切正式收款~~ **已完成 2026-11-25**：Worker 部署 `d6b4a4ad` → 注入 live `STRIPE_SECRET_KEY`（受限密钥 `rk_live_`）与 live `STRIPE_WEBHOOK_SECRET` → `/health` 的 `stripeMode` 已是 `live`；live webhook 目的地 `opencode-course-delivery` 监听 9 个事件。**剩**：一笔真卡 $79 + 全额退款的端到端验收（见 runbook §3.8）。
 3. **Resend 接入（体验项，不再阻塞交付）**：`RESEND_API_KEY` + 在 Cloudflare 验证 `opencodeguide.com`（`resend._domainkey` TXT、合并 SPF、建议加 DMARC）。配好后无需改代码，新订单自动从 `skipped_no_resend` 转为正常发信；历史订单用 `POST /admin/resend` 补发。
 4. **本地跑通一笔真实测试支付**：`npm run dev:proxy`（本地 D1 + `stripe listen`）→ 登录 → `/buy` → 测试卡 `4242…` → `/account` **立即**看到课程（对账生效）→ 测试退款验证 `revoked_at` 与门禁即时失效。
 5. **Stripe 收据**：Dashboard 打开 receipt email，让付款凭证由 Stripe 直接发，不依赖我们自己的邮件通道。

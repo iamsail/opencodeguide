@@ -54,7 +54,7 @@
 ### Subtasks
 | ID | Description | Status | Updated | Notes |
 |----|-------------|--------|---------|-------|
-| 1.1 | 正式收款通道（动态报价 + live 密钥） | In Progress | 2026-11-24 | 已改 `price_data`（无需建商品）；等注入 live 密钥与部署 |
+| 1.1 | 正式收款通道（动态报价 + live 密钥） | In Progress | 2026-11-25 | 已部署并切 live（`stripeMode=live`）；等真卡支付 + 退款验收 |
 | 1.2 | 交付 Worker + Webhook | Code Complete | 2026-11-18 | 40 项测试通过，待真实 webhook 联调 |
 | 1.3 | 开通邮件（Resend） | Code Complete | 2026-11-18 | 待域名 SPF/DKIM 验证后发真信（不阻塞交付） |
 | 1.4 | 试听内容与更新日志 | Not Started | 2026-11-18 | 依赖录制进度 |
@@ -84,6 +84,19 @@
 - runbook 新增 §3.2.1：标准密钥 vs 受限密钥的分工（Worker 只给 `Customers` + `Checkout Sessions` 写权限、
   建商品时用一次性更宽的密钥、不要给 Worker 那把绑 IP 白名单、不要复用其它产品的 key）。
 - 配套测试：`test/index.test.js` 覆盖 `rk_live_` → `live`、`rk_test_` → `test` 且不泄露密钥。
+
+### 2026-11-25（切 live）
+- **部署**：`npm run build:members`（`out-members/` 93MB）→ `wrangler deploy`，Version `d6b4a4ad`，
+  1127 个资源（651 命中缓存）、37 秒。线上首次带上 TASK111 对账、动态报价、`/admin/orders`、`/courses/*` 302
+  与 `/health` 的 `stripeMode`。
+- **密钥**：Webhook 走新版「事件目的地」创建，目的地 `opencode-course-delivery`，快照载荷，
+  监听 9 个事件（5 个核心 + `checkout.session.expired`、`refund.updated`、`charge.dispute.closed` 等）；
+  随后两次 `Secret Change` 注入 live `STRIPE_WEBHOOK_SECRET`（22:58）与 live `STRIPE_SECRET_KEY`
+  （受限密钥 `rk_live_`，仅 `Customers` + `Checkout Sessions` 写权限，23:10）。
+- **验证**：`/health` → `stripeMode: live`，`db/webhookSecret/adminToken/sessionSecret/learnUrl/googleOauth/stripeKey/catalog/assets` 全 true
+  （`resend:false` 为预期）；未登录课程页与 `/buy` 均 302 到 `/login?next=…`；`/search.json` 401；`/account` 302。
+- **未做**：真卡 $79 支付 + 全额退款端到端验收；`refund.updated` / `refund.failed` 与 `charge.dispute.closed`
+  的 handler（事件已订阅，但处理逻辑返回 ignored，只在 `processed_events` 留痕）；公开站发版（`main` 落后 29 个提交）。
 
 ### 2026-11-24（动态报价）
 - **去掉「预建 9 个 live 商品」这一步**：参照 `pindou/pindouonline` 的 `shop-checkout`，

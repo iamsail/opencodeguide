@@ -4,7 +4,7 @@
 - None.
 
 ## Pending
-- [TASK105] 课程板块 P1：正式收款与邮件交付 - In Progress：结账已改 `price_data` 动态报价（2026-11-24，不再预建商品）；待 `wrangler deploy` + 注入 live 密钥与 live webhook 后验收；邮件已不阻塞交付（TASK111）
+- [TASK105] 课程板块 P1：正式收款与邮件交付 - In Progress：2026-11-25 已切 live（部署 `d6b4a4ad` + live 受限密钥 + live webhook，`/health` `stripeMode=live`）；剩真卡支付/退款验收与公开站发版；邮件已不阻塞交付（TASK111）
 
 ## Completed
 - [TASK111] 交付改为成员站为主、邮件为辅 - `/account` 付款后主动对账（session_id → Stripe → 补写权益）、课程卡直出模板仓/社群链接、付款状态条与自动刷新上限、`skipped_no_resend` 状态语义、`/admin/orders` 与 `/admin/grant`、根级 `/courses/*` 重定向；worker 测试 121→143 - Completed on 2026-11-24

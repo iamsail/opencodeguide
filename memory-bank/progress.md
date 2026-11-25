@@ -274,6 +274,14 @@
 - **验证**: `workers:test` 143 → 147（动态价格字段、英文行项目名、金额为 0、自动计税开关）；`npm run build` 通过（148 URL，付费墙 0 泄露）；`courses:validate` 0 错误 8 警告。
 - **待做**: `wrangler deploy`（线上仍是 11-23 的构建，缺 TASK111 对账与 `stripeMode`）→ 建 live webhook（5 个事件）→ 注入 `STRIPE_SECRET_KEY`(`sk_live_`/`rk_live_`) 与 `STRIPE_WEBHOOK_SECRET` → `/health` 验 `stripeMode=live` → 真卡小额 + 退款验收。
 
+## Stripe 切 live 上线 (2026-11-25)
+- **部署**: 重建 `out-members/`（93MB）→ `wrangler deploy`，Version `d6b4a4ad`，1127 资源 / 651 命中缓存 / 37 秒。线上第一次带上 TASK111 对账、`price_data` 动态报价、`/admin/orders`、`/courses/*` 302 与 `/health` 的 `stripeMode`（此前线上是 11-23 的构建）。
+- **webhook**: 走 Stripe 新版「事件目的地」创建，目的地 `opencode-course-delivery`，**快照载荷**（精简载荷会让 `data.object` 空壳化，订单一条都写不进且不报错），监听 9 个事件：5 个核心（`checkout.session.completed`、两个 `async_payment_*`、`charge.refunded`、`charge.dispute.created`）+ `checkout.session.expired`、`refund.updated`、`charge.dispute.closed` 等。
+- **密钥**: live `STRIPE_WEBHOOK_SECRET`（22:58）与 live `STRIPE_SECRET_KEY`（受限密钥 `rk_live_`，仅 `Customers` + `Checkout Sessions` 写权限，23:10）各一次 `Secret Change`，当前版本 `0ef0ea96`；`secret put` 基于已部署脚本建版本，代码不回退。
+- **验证**: `/health` → `stripeMode: "live"`，`db/webhookSecret/adminToken/sessionSecret/learnUrl/googleOauth/stripeKey/catalog/assets` 全 `true`（`resend:false` 为预期，交付走站内）；未登录课程页与 `/buy` 都 302 到 `/login?next=…`；`/search.json` 401；`/account` 302；`/login` 带 `noindex` + `no-store`。
+- **未做**: 真卡 $79 支付 + 全额退款的端到端验收；`refund.updated` / `refund.failed`（异步退款失败回滚权益）与 `charge.dispute.closed`（争议结案）的 handler —— 事件已订阅，处理逻辑目前返回 ignored，只在 `processed_events` 留痕；公开站未发版（`main` 落后 `dev` 29 个提交，`/zh/courses` 仍 404）；Google OAuth 发布状态待确认。
+- **数据现状**: 远程 D1 `orders` / `entitlements` 均 0 行，首单是干净的第一单，没有测试脏数据要清。
+
 ## Known Issues
 -   Screenshots are still text-based placeholders.
 -   Chinese documentation depth still needs to be expanded for Providers/Configuration sections.

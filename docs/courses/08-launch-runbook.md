@@ -118,9 +118,14 @@ npx wrangler secret put GOOGLE_CLIENT_SECRET
 
 ## 3. Stripe（收款）
 
-> 2026-11-24 更新：live 模式**已开通**（账号 `deeplove`，已有其它产品的真实流水）。
-> 课程侧目前仍是 test 密钥 / 测试模式 webhook；结账已改为 `price_data` 现场报价（§3.3），
-> **不再需要预建 9 个商品**，换 live 的完整顺序见 §3.7。
+> 2026-11-25 更新：**课程侧已切到 live**。Worker 部署 `d6b4a4ad`（动态报价 + TASK111 对账），
+> 随后两次 `Secret Change` 注入 live `STRIPE_SECRET_KEY` 与 live `STRIPE_WEBHOOK_SECRET`
+> （当前版本 `0ef0ea96`），`/health` 的 `stripeMode` 已是 `live`；`/health` 全绿（`resend:false` 为预期）。
+> live webhook 目的地 `opencode-course-delivery` 监听 9 个事件（5 个核心 + `checkout.session.expired`、
+> `refund.updated`、`charge.dispute.closed` 等）。
+>
+> **仍未做**：一笔真卡 $79 支付 + 全额退款的端到端验收（§3.8）；`refund.updated` / `charge.dispute.closed`
+> 的 handler 尚未实现（事件会被记录后忽略）；公开站未发版（`main` 落后 `dev` 29 个提交，`/zh/courses` 仍 404）。
 
 ### 3.1 账号结构（已定：单账号，多产品）
 
@@ -260,13 +265,13 @@ curl -sS https://learn.opencodeguide.com/health | grep -o '"stripeMode":"[a-z]*"
 | 4 | Dashboard 全额退款 | `entitlements.revoked_at` 非空；1 分钟内该用户访问正文 → 403 |
 | 5 | `/buy/ai-coding-workflow/single` 与 Stripe 结账页的金额 | 两处一致（$79），行项目名形如 `OpenCode Guide · AI 编程实战 · 单课版` |
 
-### 3.9 现有 secret 清单（2026-11-24 实测）
+### 3.9 现有 secret 清单（2026-11-25 实测）
 
 | 名称 | 用途 | 现状 |
 | :--- | :--- | :--- |
-| `STRIPE_SECRET_KEY` | 服务端建 Customer / Checkout Session | ⚠️ 已注入，但是 **test** 值，待换 live（`sk_live_` 与 `rk_live_` 均可） |
-| `STRIPE_WEBHOOK_SECRET` | Webhook 验签 | ⚠️ 已注入，对应**测试模式** endpoint，换 live 时重设 |
-| `COURSE_CATALOG` | 课程标题 + 金额（无 priceId） | ⚠️ 已注入；换代码后建议重跑一次 `sync-worker-catalog.mjs --apply` |
+| `STRIPE_SECRET_KEY` | 服务端建 Customer / Checkout Session | ✅ **live**（受限密钥 `rk_live_…`，2026-11-25 23:10 注入） |
+| `STRIPE_WEBHOOK_SECRET` | Webhook 验签 | ✅ **live** endpoint `opencode-course-delivery` 的 `whsec_`（22:58 注入） |
+| `COURSE_CATALOG` | 课程标题 + 金额（无 priceId） | ✅ 已注入（仍是含遗留 `priceId` 的旧版 JSON，新代码忽略该字段；改价时重跑 `sync-worker-catalog.mjs --apply`） |
 | `STRIPE_AUTOMATIC_TAX` | 可选：`1` 时开启 Stripe Tax | ❌ 未设 = 不代扣税 |
 | `STRIPE_TAX_BEHAVIOR` | 可选：`exclusive`（默认）/ `inclusive` | ❌ 未设 |
 | `SESSION_SECRET` | 会话 JWT 签名 | ✅ 已注入（**不要轮换**，换了所有人登出） |
